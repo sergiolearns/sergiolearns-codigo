@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.class
+*.o
+*.out
+a.out
+*.exe
+programa
+.vscode/
+.idea/

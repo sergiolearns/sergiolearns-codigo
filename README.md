@@ -1,0 +1,98 @@
+<a href="https://sergiolearns.com"><img src="https://raw.githubusercontent.com/sergiolearns/sergiolearns/main/assets/banner.png" alt="SergioLearns: programación desde cero, explicada por un estudiante" width="100%"></a>
+
+# sergiolearns-codigo
+
+El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java y C, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
+
+Cada archivo empieza con un comentario que dice de qué artículo sale, así que siempre puedes volver a la explicación paso a paso.
+
+## Qué hay dentro
+
+136 programas de Python, 72 de Java y 31 de C, en 35 temas.
+
+### Python · FP1 / FP2
+
+| Carpeta | Tema | Programas resueltos | Ejercicios |
+|---|---|---|---|
+| [`variables-y-tipos-de-datos/`](python/variables-y-tipos-de-datos) | Variables y tipos de datos | [3](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-practica/) | [5](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-ejercicios/) |
+| [`operadores/`](python/operadores) | Operadores | [4](https://sergiolearns.com/operadores-en-python-practica/) | [5](https://sergiolearns.com/operadores-en-python-ejercicios/) |
+| [`condicionales/`](python/condicionales) | Condicionales | [5](https://sergiolearns.com/condicionales-en-python-practica/) | [4](https://sergiolearns.com/condicionales-en-python-ejercicios/) |
+| [`bucles/`](python/bucles) | Bucles | [4](https://sergiolearns.com/bucles-en-python-practica/) | [4](https://sergiolearns.com/bucles-en-python-ejercicios/) |
+| [`funciones/`](python/funciones) | Funciones | [5](https://sergiolearns.com/funciones-en-python-practica/) | [5](https://sergiolearns.com/funciones-en-python-ejercicios/) |
+| [`listas-y-tuplas/`](python/listas-y-tuplas) | Listas y tuplas | [3](https://sergiolearns.com/listas-y-tuplas-en-python-practica/) | [3](https://sergiolearns.com/listas-y-tuplas-en-python-ejercicios/) |
+| [`mutabilidad-copias-y-matrices/`](python/mutabilidad-copias-y-matrices) | Mutabilidad copias y matrices | [3](https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-practica/) | [3](https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-ejercicios/) |
+| [`modulos/`](python/modulos) | Modulos | [6](https://sergiolearns.com/modulos-en-python-practica/) | [7](https://sergiolearns.com/modulos-en-python-ejercicios/) |
+| [`excepciones/`](python/excepciones) | Excepciones | [3](https://sergiolearns.com/excepciones-en-python-practica/) | [3](https://sergiolearns.com/excepciones-en-python-ejercicios/) |
+| [`clases/`](python/clases) | Clases | [8](https://sergiolearns.com/clases-en-python-practica/) | [4](https://sergiolearns.com/clases-en-python-ejercicios/) |
+| [`herencia/`](python/herencia) | Herencia | [3](https://sergiolearns.com/herencia-en-python-practica/) | [4](https://sergiolearns.com/herencia-en-python-ejercicios/) |
+| [`sobrecarga-de-operadores/`](python/sobrecarga-de-operadores) | Sobrecarga de operadores | [2](https://sergiolearns.com/sobrecarga-de-operadores-en-python-practica/) | [4](https://sergiolearns.com/sobrecarga-de-operadores-en-python-ejercicios/) |
+| [`iteradores-y-generadores/`](python/iteradores-y-generadores) | Iteradores y generadores | [5](https://sergiolearns.com/iteradores-y-generadores-en-python-practica/) | [5](https://sergiolearns.com/iteradores-y-generadores-en-python-ejercicios/) |
+| [`pruebas/`](python/pruebas) | Pruebas | [9](https://sergiolearns.com/pruebas-en-python-practica/) | [5](https://sergiolearns.com/pruebas-en-python-ejercicios/) |
+| [`linkedlist/`](python/linkedlist) | LinkedList | [7](https://sergiolearns.com/linkedlist-en-python-practica/) | [5](https://sergiolearns.com/linkedlist-en-python-ejercicios/) |
+### Java · FP2
+
+| Carpeta | Tema | Programas resueltos | Ejercicios |
+|---|---|---|---|
+| [`sintaxis/`](java/sintaxis) | Sintaxis | [3](https://sergiolearns.com/sintaxis-java-practica/) | [3](https://sergiolearns.com/sintaxis-java-ejercicios/) |
+| [`variables/`](java/variables) | Variables | [3](https://sergiolearns.com/variables-en-java-practica/) | [3](https://sergiolearns.com/variables-en-java-ejercicios/) |
+| [`control-de-flujo/`](java/control-de-flujo) | Control de flujo | [3](https://sergiolearns.com/control-de-flujo-en-java-practica/) | [3](https://sergiolearns.com/control-de-flujo-en-java-ejercicios/) |
+| [`bucles/`](java/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-java-practica/) | [3](https://sergiolearns.com/bucles-en-java-ejercicios/) |
+| [`metodos/`](java/metodos) | Métodos | [3](https://sergiolearns.com/metodos-en-java-practica/) | [3](https://sergiolearns.com/metodos-en-java-ejercicios/) |
+| [`arrays/`](java/arrays) | Arrays | [3](https://sergiolearns.com/arrays-en-java-practica/) | — |
+| [`strings/`](java/strings) | Strings | [3](https://sergiolearns.com/strings-en-java-practica/) | — |
+| [`clases-y-objetos/`](java/clases-y-objetos) | Clases y objetos | [3](https://sergiolearns.com/clases-y-objetos-en-java-practica/) | — |
+| [`herencia/`](java/herencia) | Herencia | [3](https://sergiolearns.com/herencia-en-java-practica/) | [1](https://sergiolearns.com/herencia-en-java-ejercicios/) |
+| [`interfaces/`](java/interfaces) | Interfaces | [3](https://sergiolearns.com/interfaces-en-java-practica/) | [3](https://sergiolearns.com/interfaces-en-java-ejercicios/) |
+| [`excepciones/`](java/excepciones) | Excepciones | [3](https://sergiolearns.com/excepciones-en-java-practica/) | [2](https://sergiolearns.com/excepciones-en-java-ejercicios/) |
+| [`comparable-y-cloneable/`](java/comparable-y-cloneable) | Comparable y cloneable | [2](https://sergiolearns.com/comparable-y-cloneable-en-java-practica/) | [3](https://sergiolearns.com/comparable-y-cloneable-en-java-ejercicios/) |
+| [`iteradores/`](java/iteradores) | Iteradores | [3](https://sergiolearns.com/iteradores-en-java-practica/) | [2](https://sergiolearns.com/iteradores-en-java-ejercicios/) |
+| [`colecciones/`](java/colecciones) | Colecciones | [3](https://sergiolearns.com/colecciones-en-java-practica/) | [2](https://sergiolearns.com/colecciones-en-java-ejercicios/) |
+| [`expresiones-regulares/`](java/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-java-practica/) | — |
+### C · IC2
+
+| Carpeta | Tema | Programas resueltos | Ejercicios |
+|---|---|---|---|
+| [`tipos-y-variables/`](c/tipos-y-variables) | Tipos y variables | [3](https://sergiolearns.com/tipos-y-variables-en-c-practica/) | [4](https://sergiolearns.com/tipos-y-variables-en-c-ejercicios/) |
+| [`condicionales/`](c/condicionales) | Condicionales | [3](https://sergiolearns.com/condicionales-en-c-practica/) | [4](https://sergiolearns.com/condicionales-en-c-ejercicios/) |
+| [`bucles/`](c/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-c-practica/) | [4](https://sergiolearns.com/bucles-en-c-ejercicios/) |
+| [`funciones/`](c/funciones) | Funciones | — | [2](https://sergiolearns.com/funciones-en-c-ejercicios/) |
+| [`punteros/`](c/punteros) | Punteros | [4](https://sergiolearns.com/punteros-en-c-practica/) | [4](https://sergiolearns.com/punteros-en-c-ejercicios/) |
+
+El número enlaza al artículo de donde sale el código.
+
+## Cómo ejecutarlos
+
+```bash
+# Python
+python python/bucles/programas/01-programa-1-validador-de-contrasena-con-intentos-li.py
+
+# Java: cada programa tiene su carpeta con todas sus clases
+cd java/bucles/programas/AnalizadorTexto
+javac *.java
+java AnalizadorTexto
+
+# C
+gcc c/punteros/programas/01-*.c -o programa
+./programa
+```
+
+¿Es la primera vez? En la web tienes cómo [instalar Python en Windows](https://sergiolearns.com/instalar-python-en-windows/), [instalar Java](https://sergiolearns.com/instalar-java-en-windows/) y [compilar C con gcc en Fedora](https://sergiolearns.com/instalar-gedit-en-fedora-y-compilar-con-gcc/).
+
+## Cómo está organizado
+
+```
+lenguaje/
+└── tema/
+    ├── programas/    ← programas resueltos (artículos de práctica)
+    └── ejercicios/   ← soluciones de los ejercicios
+```
+
+Un consejo: intenta resolver el ejercicio en la web antes de mirar la solución aquí. Se aprende el doble.
+
+## ¿Has encontrado un error?
+
+Abre un [issue](https://github.com/sergiolearns/sergiolearns-codigo/issues) o escríbeme desde la [página de contacto](https://sergiolearns.com/contacto/). La versión explicada de cada programa está en la web, y si no coinciden, manda la web.
+
+---
+
+Hecho por [Sergio](https://sergiolearns.com/sergio-medina-gcid/), estudiante de Ciencia e Ingeniería de Datos en la ULPGC · [YouTube](https://www.youtube.com/channel/UCwV9eDy7IQ2a6fPRJKrG-jg) · [TikTok](https://www.tiktok.com/@sergiolearns) · [Instagram](https://www.instagram.com/sergiolearns/) · [LinkedIn](https://www.linkedin.com/in/sergiomedinalearns/) · [X](https://x.com/sergiolearns)
