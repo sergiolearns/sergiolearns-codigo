@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-154 programas de Python, 72 de Java y 31 de C, en 38 temas.
+160 programas de Python, 72 de Java y 31 de C, en 39 temas.
 
 ### Python · FP1 / FP2
 
@@ -24,6 +24,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`recursividad/`](python/recursividad) | Recursividad | [3](https://sergiolearns.com/recursividad-en-python-practica/) | [3](https://sergiolearns.com/recursividad-en-python-ejercicios/) |
 | [`contenedores-asociativos/`](python/contenedores-asociativos) | Contenedores asociativos | [3](https://sergiolearns.com/contenedores-asociativos-en-python-practica/) | [3](https://sergiolearns.com/contenedores-asociativos-en-python-ejercicios/) |
 | [`strings/`](python/strings) | Strings | [3](https://sergiolearns.com/strings-en-python-practica/) | [3](https://sergiolearns.com/strings-en-python-ejercicios/) |
+| [`expresiones-regulares/`](python/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-python-practica/) | [3](https://sergiolearns.com/expresiones-regulares-en-python-ejercicios/) |
 | [`modulos/`](python/modulos) | Modulos | [6](https://sergiolearns.com/modulos-en-python-practica/) | [7](https://sergiolearns.com/modulos-en-python-ejercicios/) |
 | [`excepciones/`](python/excepciones) | Excepciones | [3](https://sergiolearns.com/excepciones-en-python-practica/) | [3](https://sergiolearns.com/excepciones-en-python-ejercicios/) |
 | [`clases/`](python/clases) | Clases | [8](https://sergiolearns.com/clases-en-python-practica/) | [4](https://sergiolearns.com/clases-en-python-ejercicios/) |
