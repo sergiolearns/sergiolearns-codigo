@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java y 31 de C, en 40 temas.
+166 programas de Python, 72 de Java y 37 de C, en 41 temas.
 
 ### Python · FP1 / FP2
 
@@ -62,6 +62,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`bucles/`](c/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-c-practica/) | [4](https://sergiolearns.com/bucles-en-c-ejercicios/) |
 | [`funciones/`](c/funciones) | Funciones | — | [2](https://sergiolearns.com/funciones-en-c-ejercicios/) |
 | [`punteros/`](c/punteros) | Punteros | [4](https://sergiolearns.com/punteros-en-c-practica/) | [4](https://sergiolearns.com/punteros-en-c-ejercicios/) |
+| [`memoria-dinamica/`](c/memoria-dinamica) | Memoria dinámica | [3](https://sergiolearns.com/memoria-dinamica-en-c-practica/) | [3](https://sergiolearns.com/memoria-dinamica-en-c-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
