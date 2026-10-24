@@ -1,0 +1,7 @@
+2026-10-01;carrera;30
+2026-10-02, natación, 45min
+
+2026-10-04 | carrera | 25 min
+sin datos hoy
+2026-10-05;bici;60
+2026-10-07,carrera,40

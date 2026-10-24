@@ -1,0 +1,10 @@
+# diario de entrenamientos: fecha;deporte;minutos
+2026-10-05;carrera;35
+2026-10-06;bici;50
+
+2026-10-08;natación;40
+2026-10-09; carrera ;30  	
+2026-10-11;yoga;veinte
+2026-10-12;fútbol;90
+2026-10-13;carrera
+2026-10-14;bici;45
