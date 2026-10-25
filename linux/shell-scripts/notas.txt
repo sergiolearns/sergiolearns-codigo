@@ -1,0 +1,6 @@
+ana 10
+dani 5
+laura 10
+marta NP
+pablo 0
+sergio 10
