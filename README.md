@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java y 55 de C, en 44 temas.
+166 programas de Python, 72 de Java y 61 de C, en 45 temas.
 
 ### Python · FP1 / FP2
 
@@ -66,6 +66,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`structs-y-cadenas/`](c/structs-y-cadenas) | Structs y cadenas | [3](https://sergiolearns.com/structs-y-cadenas-en-c-practica/) | [3](https://sergiolearns.com/structs-y-cadenas-en-c-ejercicios/) |
 | [`preprocesador/`](c/preprocesador) | El preprocesador | [3](https://sergiolearns.com/preprocesador-en-c-practica/) | [3](https://sergiolearns.com/preprocesador-en-c-ejercicios/) |
 | [`procesos/`](c/procesos) | Procesos en Linux | [3](https://sergiolearns.com/procesos-en-c-practica/) | [3](https://sergiolearns.com/procesos-en-c-ejercicios/) |
+| [`llamadas-al-sistema/`](c/llamadas-al-sistema) | Llamadas al sistema para ficheros | [3](https://sergiolearns.com/llamadas-al-sistema-en-c-practica/) | [3](https://sergiolearns.com/llamadas-al-sistema-en-c-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
