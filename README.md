@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java, 61 de C y 7 de Linux (bash), en 46 temas.
+166 programas de Python, 72 de Java, 61 de C y 14 de Linux (bash), en 47 temas.
 
 ### Python · FP1 / FP2
 
@@ -73,6 +73,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | Carpeta | Tema | Programas resueltos | Ejercicios |
 |---|---|---|---|
 | [`permisos/`](linux/permisos) | Permisos en Linux | [4](https://sergiolearns.com/permisos-en-linux-practica/) | [3](https://sergiolearns.com/permisos-en-linux-ejercicios/) |
+| [`redirecciones/`](linux/redirecciones) | Redirecciones y tuberías | [4](https://sergiolearns.com/redirecciones-y-tuberias-en-linux-practica/) | [3](https://sergiolearns.com/redirecciones-y-tuberias-en-linux-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
