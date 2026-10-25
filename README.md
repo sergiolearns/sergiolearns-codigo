@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java, 61 de C y 32 de Linux (bash), en 50 temas.
+166 programas de Python, 72 de Java, 61 de C, 32 de Linux (bash) y 1 simulador de redes, en 51 temas.
 
 ### Python · FP1 / FP2
 
@@ -78,6 +78,14 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`vi/`](linux/vi) | El editor vi (cada script recrea el archivo y teclea las teclas con `vim -s`) | [3](https://sergiolearns.com/vi-en-linux-practica/) | [3](https://sergiolearns.com/vi-en-linux-ejercicios/) |
 | [`red/`](linux/red) | Configuración de red (con `laboratorio.sh`, un laboratorio aislado con network namespaces) | [3](https://sergiolearns.com/configuracion-de-red-en-linux-practica/) | [3](https://sergiolearns.com/configuracion-de-red-en-linux-ejercicios/) |
 
+### Redes · IC2 (teoría)
+
+Simuladores cortos de la sección «Compruébalo con Python» de cada teoría: reproducen con datos fijos el ejemplo del artículo.
+
+| Carpeta | Tema | Simuladores | Ejercicios tipo examen |
+|---|---|---|---|
+| [`introduccion-a-las-redes/`](redes/introduccion-a-las-redes) | Introducción a las redes (latencia de un dataset que viaja de la nube al portátil) | [1](https://sergiolearns.com/introduccion-a-las-redes/) | [cuestionario interactivo](https://sergiolearns.com/introduccion-a-las-redes-ejercicios/) |
+
 El número enlaza al artículo de donde sale el código.
 
 ## Cómo ejecutarlos
@@ -108,7 +116,8 @@ bash ~/sergiolearns-codigo/linux/permisos/programas/01-programa-1-montar-la-carp
 lenguaje/
 └── tema/
     ├── programas/    ← programas resueltos (artículos de práctica)
-    └── ejercicios/   ← soluciones de los ejercicios
+    ├── ejercicios/   ← soluciones de los ejercicios
+    └── simuladores/  ← «Compruébalo con Python» de las teorías de IC2 (redes/ y sistemas-operativos/)
 ```
 
 Un consejo: intenta resolver el ejercicio en la web antes de mirar la solución aquí. Se aprende el doble.
