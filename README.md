@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java y 61 de C, en 45 temas.
+166 programas de Python, 72 de Java, 61 de C y 7 de Linux (bash), en 46 temas.
 
 ### Python · FP1 / FP2
 
@@ -68,6 +68,12 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`procesos/`](c/procesos) | Procesos en Linux | [3](https://sergiolearns.com/procesos-en-c-practica/) | [3](https://sergiolearns.com/procesos-en-c-ejercicios/) |
 | [`llamadas-al-sistema/`](c/llamadas-al-sistema) | Llamadas al sistema para ficheros | [3](https://sergiolearns.com/llamadas-al-sistema-en-c-practica/) | [3](https://sergiolearns.com/llamadas-al-sistema-en-c-ejercicios/) |
 
+### Linux · IC2
+
+| Carpeta | Tema | Programas resueltos | Ejercicios |
+|---|---|---|---|
+| [`permisos/`](linux/permisos) | Permisos en Linux | [4](https://sergiolearns.com/permisos-en-linux-practica/) | [3](https://sergiolearns.com/permisos-en-linux-ejercicios/) |
+
 El número enlaza al artículo de donde sale el código.
 
 ## Cómo ejecutarlos
@@ -84,6 +90,10 @@ java AnalizadorTexto
 # C
 gcc c/punteros/programas/01-*.c -o programa
 ./programa
+
+# Linux (bash): sesiones de terminal; ejecútalas en una carpeta de pruebas, nunca como root
+mkdir ~/prueba && cd ~/prueba
+bash ~/sergiolearns-codigo/linux/permisos/programas/01-programa-1-montar-la-carpeta-del-grupo.sh
 ```
 
 ¿Es la primera vez? En la web tienes cómo [instalar Python en Windows](https://sergiolearns.com/instalar-python-en-windows/), [instalar Java](https://sergiolearns.com/instalar-java-en-windows/) y [compilar C con gcc en Fedora](https://sergiolearns.com/instalar-gedit-en-fedora-y-compilar-con-gcc/).
