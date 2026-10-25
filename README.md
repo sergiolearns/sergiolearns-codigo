@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java, 61 de C y 20 de Linux (bash), en 48 temas.
+166 programas de Python, 72 de Java, 61 de C y 32 de Linux (bash), en 50 temas.
 
 ### Python · FP1 / FP2
 
@@ -75,6 +75,8 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`permisos/`](linux/permisos) | Permisos en Linux | [4](https://sergiolearns.com/permisos-en-linux-practica/) | [3](https://sergiolearns.com/permisos-en-linux-ejercicios/) |
 | [`redirecciones/`](linux/redirecciones) | Redirecciones y tuberías | [4](https://sergiolearns.com/redirecciones-y-tuberias-en-linux-practica/) | [3](https://sergiolearns.com/redirecciones-y-tuberias-en-linux-ejercicios/) |
 | [`shell-scripts/`](linux/shell-scripts) | Shell scripts (con las entregas de C y los .txt que usan) | [3](https://sergiolearns.com/shell-scripts-en-linux-practica/) | [3](https://sergiolearns.com/shell-scripts-en-linux-ejercicios/) |
+| [`vi/`](linux/vi) | El editor vi (cada script recrea el archivo y teclea las teclas con `vim -s`) | [3](https://sergiolearns.com/vi-en-linux-practica/) | [3](https://sergiolearns.com/vi-en-linux-ejercicios/) |
+| [`red/`](linux/red) | Configuración de red (con `laboratorio.sh`, un laboratorio aislado con network namespaces) | [3](https://sergiolearns.com/configuracion-de-red-en-linux-practica/) | [3](https://sergiolearns.com/configuracion-de-red-en-linux-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
