@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-163 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 4 simuladores (3 de redes y 1 de sistemas operativos), en 55 temas.
+163 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 6 simuladores (3 de redes y 3 de sistemas operativos), en 56 temas.
 
 ### Python · FP1 / FP2
 
@@ -96,6 +96,7 @@ Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría,
 | Carpeta | Tema | Simuladores | Ejercicios tipo examen |
 |---|---|---|---|
 | [`que-es-un-sistema-operativo/`](sistemas-operativos/que-es-un-sistema-operativo) | Qué es un sistema operativo (uso de la CPU con y sin multiprogramación en una tarde de estudio) | [1](https://sergiolearns.com/que-es-un-sistema-operativo/) | [cuestionario interactivo](https://sergiolearns.com/que-es-un-sistema-operativo-ejercicios/) |
+| [`interrupciones-y-jerarquia-de-memoria/`](sistemas-operativos/interrupciones-y-jerarquia-de-memoria) | El hardware que sostiene al SO (E/S síncrona frente a asíncrona al imprimir la práctica y caché con FIFO y LRU) | [1](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria/), [2](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria/) | [cuestionario interactivo](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
