@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-159 programas de Python, 72 de Java, 63 de C, 39 de Linux (bash) y 10 simuladores (3 de redes y 7 de sistemas operativos), en 59 temas.
+159 programas de Python, 72 de Java, 63 de C, 39 de Linux (bash) y 12 simuladores (3 de redes y 9 de sistemas operativos), en 60 temas.
 
 ### Python · FP1 / FP2
 
@@ -100,6 +100,7 @@ Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría,
 | [`interrupciones-y-jerarquia-de-memoria/`](sistemas-operativos/interrupciones-y-jerarquia-de-memoria) | El hardware que sostiene al SO (E/S síncrona frente a asíncrona al imprimir la práctica y caché con FIFO y LRU) | [1](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria/), [2](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria/) | [cuestionario interactivo](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria-ejercicios/) |
 | [`procesos-e-hilos/`](sistemas-operativos/procesos-e-hilos) | Procesos e hilos (estados de bash, gcc y spotify al compilar la práctica y árbol de un bucle con fork()) | [1](https://sergiolearns.com/procesos-e-hilos/), [2](https://sergiolearns.com/procesos-e-hilos/) | [cuestionario interactivo](https://sergiolearns.com/procesos-e-hilos-ejercicios/) |
 | [`planificacion-de-la-cpu/`](sistemas-operativos/planificacion-de-la-cpu) | Planificación de la CPU (FCFS, SJF, SRTF y Round Robin con onedrive, gcc, campus y spotify la noche antes de entregar, e influencia del cuanto) | [1](https://sergiolearns.com/planificacion-de-la-cpu/), [2](https://sergiolearns.com/planificacion-de-la-cpu/) | [cuestionario interactivo](https://sergiolearns.com/planificacion-de-la-cpu-ejercicios/) |
+| [`concurrencia-y-sincronizacion/`](sistemas-operativos/concurrencia-y-sincronizacion) | Concurrencia y sincronización (condición de carrera y cerrojo con dos hilos de onedrive, y productor-consumidor con semáforos en el búfer de spotify) | [1](https://sergiolearns.com/concurrencia-y-sincronizacion/), [2](https://sergiolearns.com/concurrencia-y-sincronizacion/) | [cuestionario interactivo](https://sergiolearns.com/concurrencia-y-sincronizacion-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
