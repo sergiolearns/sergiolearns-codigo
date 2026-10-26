@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-164 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 3 simuladores de redes, en 54 temas.
+164 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 4 simuladores (3 de redes y 1 de sistemas operativos), en 55 temas.
 
 ### Python · FP1 / FP2
 
@@ -88,6 +88,14 @@ Simuladores cortos de la sección «Compruébalo con Python» de cada teoría: r
 | [`introduccion-a-las-redes/`](redes/introduccion-a-las-redes) | Introducción a las redes (latencia de un dataset que viaja de la nube al portátil) | [1](https://sergiolearns.com/introduccion-a-las-redes/) | [cuestionario interactivo](https://sergiolearns.com/introduccion-a-las-redes-ejercicios/) |
 | [`modelos-osi-y-tcp-ip/`](redes/modelos-osi-y-tcp-ip) | Modelos OSI y TCP/IP (encapsulado de la práctica que se sube al campus) | [1](https://sergiolearns.com/modelos-osi-y-tcp-ip/) | [cuestionario interactivo](https://sergiolearns.com/modelos-osi-y-tcp-ip-ejercicios/) |
 | [`direccionamiento-ip-y-subredes/`](redes/direccionamiento-ip-y-subredes) | Direccionamiento IP y subredes (AND con la máscara y tabla del router de la facultad) | [1](https://sergiolearns.com/direccionamiento-ip-y-subredes/) | [cuestionario interactivo](https://sergiolearns.com/direccionamiento-ip-y-subredes-ejercicios/) |
+
+### Sistemas operativos · IC2 (teoría)
+
+Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría, con los datos fijos del ejemplo del artículo.
+
+| Carpeta | Tema | Simuladores | Ejercicios tipo examen |
+|---|---|---|---|
+| [`que-es-un-sistema-operativo/`](sistemas-operativos/que-es-un-sistema-operativo) | Qué es un sistema operativo (uso de la CPU con y sin multiprogramación en una tarde de estudio) | [1](https://sergiolearns.com/que-es-un-sistema-operativo/) | [cuestionario interactivo](https://sergiolearns.com/que-es-un-sistema-operativo-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
