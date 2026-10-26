@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-162 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 6 simuladores (3 de redes y 3 de sistemas operativos), en 56 temas.
+162 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 8 simuladores (3 de redes y 5 de sistemas operativos), en 57 temas.
 
 ### Python · FP1 / FP2
 
@@ -97,6 +97,7 @@ Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría,
 |---|---|---|---|
 | [`que-es-un-sistema-operativo/`](sistemas-operativos/que-es-un-sistema-operativo) | Qué es un sistema operativo (uso de la CPU con y sin multiprogramación en una tarde de estudio) | [1](https://sergiolearns.com/que-es-un-sistema-operativo/) | [cuestionario interactivo](https://sergiolearns.com/que-es-un-sistema-operativo-ejercicios/) |
 | [`interrupciones-y-jerarquia-de-memoria/`](sistemas-operativos/interrupciones-y-jerarquia-de-memoria) | El hardware que sostiene al SO (E/S síncrona frente a asíncrona al imprimir la práctica y caché con FIFO y LRU) | [1](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria/), [2](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria/) | [cuestionario interactivo](https://sergiolearns.com/interrupciones-y-jerarquia-de-memoria-ejercicios/) |
+| [`procesos-e-hilos/`](sistemas-operativos/procesos-e-hilos) | Procesos e hilos (estados de bash, gcc y spotify al compilar la práctica y árbol de un bucle con fork()) | [1](https://sergiolearns.com/procesos-e-hilos/), [2](https://sergiolearns.com/procesos-e-hilos/) | [cuestionario interactivo](https://sergiolearns.com/procesos-e-hilos-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
