@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-163 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 6 simuladores (3 de redes y 3 de sistemas operativos), en 56 temas.
+162 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 6 simuladores (3 de redes y 3 de sistemas operativos), en 56 temas.
 
 ### Python · FP1 / FP2
 
@@ -17,7 +17,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`variables-y-tipos-de-datos/`](python/variables-y-tipos-de-datos) | Variables y tipos de datos | [3](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-practica/) | [4](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-ejercicios/) |
 | [`operadores/`](python/operadores) | Operadores | [3](https://sergiolearns.com/operadores-en-python-practica/) | [5](https://sergiolearns.com/operadores-en-python-ejercicios/) |
 | [`condicionales/`](python/condicionales) | Condicionales | [4](https://sergiolearns.com/condicionales-en-python-practica/) | [4](https://sergiolearns.com/condicionales-en-python-ejercicios/) |
-| [`bucles/`](python/bucles) | Bucles | [4](https://sergiolearns.com/bucles-en-python-practica/) | [4](https://sergiolearns.com/bucles-en-python-ejercicios/) |
+| [`bucles/`](python/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-python-practica/) | [4](https://sergiolearns.com/bucles-en-python-ejercicios/) |
 | [`funciones/`](python/funciones) | Funciones | [5](https://sergiolearns.com/funciones-en-python-practica/) | [5](https://sergiolearns.com/funciones-en-python-ejercicios/) |
 | [`listas-y-tuplas/`](python/listas-y-tuplas) | Listas y tuplas | [3](https://sergiolearns.com/listas-y-tuplas-en-python-practica/) | [3](https://sergiolearns.com/listas-y-tuplas-en-python-ejercicios/) |
 | [`mutabilidad-copias-y-matrices/`](python/mutabilidad-copias-y-matrices) | Mutabilidad copias y matrices | [3](https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-practica/) | [3](https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-ejercicios/) |
@@ -104,7 +104,7 @@ El número enlaza al artículo de donde sale el código.
 
 ```bash
 # Python
-python python/bucles/programas/01-programa-1-validador-de-contrasena-con-intentos-li.py
+python python/bucles/programas/01-programa-1-el-pin-de-la-caja.py
 
 # Java: cada programa tiene su carpeta con todas sus clases
 cd java/bucles/programas/AnalizadorTexto
