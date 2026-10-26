@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-162 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 8 simuladores (3 de redes y 5 de sistemas operativos), en 57 temas.
+159 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 8 simuladores (3 de redes y 5 de sistemas operativos), en 57 temas.
 
 ### Python · FP1 / FP2
 
@@ -18,7 +18,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`operadores/`](python/operadores) | Operadores | [3](https://sergiolearns.com/operadores-en-python-practica/) | [5](https://sergiolearns.com/operadores-en-python-ejercicios/) |
 | [`condicionales/`](python/condicionales) | Condicionales | [4](https://sergiolearns.com/condicionales-en-python-practica/) | [4](https://sergiolearns.com/condicionales-en-python-ejercicios/) |
 | [`bucles/`](python/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-python-practica/) | [4](https://sergiolearns.com/bucles-en-python-ejercicios/) |
-| [`funciones/`](python/funciones) | Funciones | [5](https://sergiolearns.com/funciones-en-python-practica/) | [5](https://sergiolearns.com/funciones-en-python-ejercicios/) |
+| [`funciones/`](python/funciones) | Funciones | [3](https://sergiolearns.com/funciones-en-python-practica/) | [4](https://sergiolearns.com/funciones-en-python-ejercicios/) |
 | [`listas-y-tuplas/`](python/listas-y-tuplas) | Listas y tuplas | [3](https://sergiolearns.com/listas-y-tuplas-en-python-practica/) | [3](https://sergiolearns.com/listas-y-tuplas-en-python-ejercicios/) |
 | [`mutabilidad-copias-y-matrices/`](python/mutabilidad-copias-y-matrices) | Mutabilidad copias y matrices | [3](https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-practica/) | [3](https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-ejercicios/) |
 | [`recursividad/`](python/recursividad) | Recursividad | [3](https://sergiolearns.com/recursividad-en-python-practica/) | [3](https://sergiolearns.com/recursividad-en-python-ejercicios/) |
