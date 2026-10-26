@@ -1,74 +1,58 @@
-# Condicionales en Python práctica — Programa 3: Clasificador de notas con menú
-# Del artículo «Condicionales en Python — práctica real con 3 programas en VS Code»
+# Programa 3 · Clasificador de notas con menú
+# Del artículo «Condicionales en Python — práctica con un validador de registro, descuentos por nivel y un clasificador de notas (y el formulario que solo te enseñaba un error)»
 # https://sergiolearns.com/condicionales-en-python-practica/
 
 # Clasificador de notas con menú
+opcion = "1"                 # lo que se elegiría en el menú (input() devuelve texto)
+nota = 6.5                   # dato de la opción 1
+nota1 = 6.5                  # datos de la opción 2
+nota2 = 8.0
+nota_practicas = 5.5         # dato de la opción 3
+
 print("=== CLASIFICADOR DE NOTAS ===")
 print("1. Clasificar una nota")
 print("2. Comparar dos notas")
-print("3. Calcular nota mínima necesaria")
+print("3. ¿Qué necesito en el examen?")
+print(f"Opción elegida: {opcion}")
 
-opcion = int(input("\nElige una opción (1-3): "))
-
-if opcion == 1:
-    nota = float(input("\nIntroduce la nota (0-10): "))
-
-    if nota < 0 or nota > 10:
+if opcion == "1":
+    # Primero se descarta lo imposible: la cadena de abajo solo ve notas válidas
+    if not 0 <= nota <= 10:
         print("Error: la nota debe estar entre 0 y 10")
-    elif nota >= 9:
-        calificacion = "Sobresaliente"
-        emoji = "🏆"
-    elif nota >= 7:
-        calificacion = "Notable"
-        emoji = "⭐"
-    elif nota >= 5:
-        calificacion = "Aprobado"
-        emoji = "✓"
-    elif nota >= 3:
-        calificacion = "Suspenso"
-        emoji = "✗"
     else:
-        calificacion = "Muy deficiente"
-        emoji = "❌"
-
-    if nota >= 0 and nota <= 10:
-        print(f"\n{emoji} Nota {nota} — {calificacion}")
-        if nota < 5:
-            print(f"Necesitas {round(5 - nota, 1)} puntos más para aprobar")
+        if nota >= 9:
+            calificacion = "Sobresaliente"
+        elif nota >= 7:
+            calificacion = "Notable"
+        elif nota >= 5:
+            calificacion = "Aprobado"
         else:
-            print(f"Tienes {round(nota - 5, 1)} puntos sobre el aprobado")
+            calificacion = "Suspenso"
+        print(f"Nota {nota}: {calificacion}")
+        if nota < 5:
+            print(f"Te faltan {5 - nota:.1f} puntos para aprobar")
+        else:
+            print(f"Tienes {nota - 5:.1f} puntos sobre el aprobado")
 
-elif opcion == 2:
-    nota1 = float(input("\nNota 1: "))
-    nota2 = float(input("Nota 2: "))
-
+elif opcion == "2":
     if nota1 > nota2:
-        print(f"\nLa nota 1 ({nota1}) es mayor por {round(nota1 - nota2, 1)} puntos")
+        print(f"La nota 1 ({nota1}) gana por {nota1 - nota2:.1f} puntos")
     elif nota2 > nota1:
-        print(f"\nLa nota 2 ({nota2}) es mayor por {round(nota2 - nota1, 1)} puntos")
+        print(f"La nota 2 ({nota2}) gana por {nota2 - nota1:.1f} puntos")
+    else:                    # ni mayor ni menor: iguales
+        print(f"Empate: las dos son {nota1}")
+    media = (nota1 + nota2) / 2
+    print(f"Media: {media:.2f} ({'Aprobado' if media >= 5 else 'Suspenso'})")
+
+elif opcion == "3":
+    # Regla del ejemplo: final = 40 % prácticas + 60 % examen, y el examen pide un 4
+    necesaria = (5 - 0.4 * nota_practicas) / 0.6
+    if necesaria > 10:
+        print("Ni con un 10 en el examen llegas al 5: toca recuperar prácticas")
+    elif necesaria <= 4:
+        print("Con el 4 mínimo del examen ya apruebas")
     else:
-        print(f"\nAmbas notas son iguales ({nota1})")
+        print(f"Necesitas al menos un {necesaria:.2f} en el examen")
 
-    media = round((nota1 + nota2) / 2, 2)
-    print(f"Media: {media} — {'Aprobado' if media >= 5 else 'Suspenso'}")
-
-elif opcion == 3:
-    notas_actuales = int(input("\n¿Cuántas notas tienes ya?: "))
-    suma = 0
-
-    for i in range(notas_actuales):
-        nota = float(input(f"Nota {i+1}: "))
-        suma += nota
-
-    total_asignaturas = int(input("¿Cuántas asignaturas en total?: "))
-    nota_minima = round((5 * total_asignaturas - suma) / (total_asignaturas - notas_actuales), 2)
-
-    if nota_minima <= 0:
-        print("\n✓ Ya tienes el aprobado asegurado")
-    elif nota_minima <= 10:
-        print(f"\nNecesitas sacar al menos {nota_minima} en las asignaturas restantes")
-    else:
-        print("\n✗ Matemáticamente ya no es posible aprobar con media 5")
-
-else:
-    print("Opción no válida — elige entre 1 y 3")
+else:                        # cualquier otro texto
+    print("Opción no válida: elige 1, 2 o 3")
