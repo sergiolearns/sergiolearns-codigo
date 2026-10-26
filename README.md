@@ -8,13 +8,13 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-165 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 3 simuladores de redes, en 54 temas.
+164 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 3 simuladores de redes, en 54 temas.
 
 ### Python · FP1 / FP2
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
 |---|---|---|---|
-| [`variables-y-tipos-de-datos/`](python/variables-y-tipos-de-datos) | Variables y tipos de datos | [3](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-practica/) | [5](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-ejercicios/) |
+| [`variables-y-tipos-de-datos/`](python/variables-y-tipos-de-datos) | Variables y tipos de datos | [3](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-practica/) | [4](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-ejercicios/) |
 | [`operadores/`](python/operadores) | Operadores | [4](https://sergiolearns.com/operadores-en-python-practica/) | [5](https://sergiolearns.com/operadores-en-python-ejercicios/) |
 | [`condicionales/`](python/condicionales) | Condicionales | [4](https://sergiolearns.com/condicionales-en-python-practica/) | [4](https://sergiolearns.com/condicionales-en-python-ejercicios/) |
 | [`bucles/`](python/bucles) | Bucles | [4](https://sergiolearns.com/bucles-en-python-practica/) | [4](https://sergiolearns.com/bucles-en-python-ejercicios/) |
