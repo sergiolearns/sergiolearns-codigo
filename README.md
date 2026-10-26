@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-159 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 10 simuladores (3 de redes y 7 de sistemas operativos), en 58 temas.
+159 programas de Python, 72 de Java, 63 de C, 39 de Linux (bash) y 10 simuladores (3 de redes y 7 de sistemas operativos), en 59 temas.
 
 ### Python · FP1 / FP2
 
@@ -57,6 +57,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
 |---|---|---|---|
+| [`primer-programa/`](c/primer-programa) | Primer programa: gedit y gcc en Fedora (Hola, mundo y un programa en varios archivos) | [2](https://sergiolearns.com/instalar-gedit-en-fedora-y-compilar-con-gcc/) | — |
 | [`tipos-y-variables/`](c/tipos-y-variables) | Tipos y variables | [3](https://sergiolearns.com/tipos-y-variables-en-c-practica/) | [4](https://sergiolearns.com/tipos-y-variables-en-c-ejercicios/) |
 | [`condicionales/`](c/condicionales) | Condicionales | [3](https://sergiolearns.com/condicionales-en-c-practica/) | [4](https://sergiolearns.com/condicionales-en-c-ejercicios/) |
 | [`bucles/`](c/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-c-practica/) | [4](https://sergiolearns.com/bucles-en-c-ejercicios/) |
