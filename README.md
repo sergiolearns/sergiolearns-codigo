@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-166 programas de Python, 72 de Java, 61 de C, 32 de Linux (bash) y 1 simulador de redes, en 51 temas.
+166 programas de Python, 72 de Java, 61 de C, 39 de Linux (bash) y 1 simulador de redes, en 52 temas.
 
 ### Python · FP1 / FP2
 
@@ -72,6 +72,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
 |---|---|---|---|
+| [`comandos-basicos/`](linux/comandos-basicos) | Comandos básicos de Linux | [3](https://sergiolearns.com/comandos-basicos-de-linux-practica/) | [4](https://sergiolearns.com/comandos-basicos-de-linux-ejercicios/) |
 | [`permisos/`](linux/permisos) | Permisos en Linux | [4](https://sergiolearns.com/permisos-en-linux-practica/) | [3](https://sergiolearns.com/permisos-en-linux-ejercicios/) |
 | [`redirecciones/`](linux/redirecciones) | Redirecciones y tuberías | [4](https://sergiolearns.com/redirecciones-y-tuberias-en-linux-practica/) | [3](https://sergiolearns.com/redirecciones-y-tuberias-en-linux-ejercicios/) |
 | [`shell-scripts/`](linux/shell-scripts) | Shell scripts (con las entregas de C y los .txt que usan) | [3](https://sergiolearns.com/shell-scripts-en-linux-practica/) | [3](https://sergiolearns.com/shell-scripts-en-linux-ejercicios/) |
