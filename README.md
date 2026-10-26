@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-159 programas de Python, 72 de Java, 63 de C, 39 de Linux (bash) y 12 simuladores (3 de redes y 9 de sistemas operativos), en 60 temas.
+159 programas de Python, 72 de Java, 63 de C, 39 de Linux (bash) y 14 simuladores (3 de redes y 11 de sistemas operativos), en 61 temas.
 
 ### Python · FP1 / FP2
 
@@ -101,6 +101,7 @@ Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría,
 | [`procesos-e-hilos/`](sistemas-operativos/procesos-e-hilos) | Procesos e hilos (estados de bash, gcc y spotify al compilar la práctica y árbol de un bucle con fork()) | [1](https://sergiolearns.com/procesos-e-hilos/), [2](https://sergiolearns.com/procesos-e-hilos/) | [cuestionario interactivo](https://sergiolearns.com/procesos-e-hilos-ejercicios/) |
 | [`planificacion-de-la-cpu/`](sistemas-operativos/planificacion-de-la-cpu) | Planificación de la CPU (FCFS, SJF, SRTF y Round Robin con onedrive, gcc, campus y spotify la noche antes de entregar, e influencia del cuanto) | [1](https://sergiolearns.com/planificacion-de-la-cpu/), [2](https://sergiolearns.com/planificacion-de-la-cpu/) | [cuestionario interactivo](https://sergiolearns.com/planificacion-de-la-cpu-ejercicios/) |
 | [`concurrencia-y-sincronizacion/`](sistemas-operativos/concurrencia-y-sincronizacion) | Concurrencia y sincronización (condición de carrera y cerrojo con dos hilos de onedrive, y productor-consumidor con semáforos en el búfer de spotify) | [1](https://sergiolearns.com/concurrencia-y-sincronizacion/), [2](https://sergiolearns.com/concurrencia-y-sincronizacion/) | [cuestionario interactivo](https://sergiolearns.com/concurrencia-y-sincronizacion-ejercicios/) |
+| [`gestion-de-memoria/`](sistemas-operativos/gestion-de-memoria) | Gestión de memoria (traducción de direcciones con paginación y una TLB de 2 entradas, y primer, mejor y peor ajuste con gcc, spotify, el campus y onedrive) | [1](https://sergiolearns.com/gestion-de-memoria/), [2](https://sergiolearns.com/gestion-de-memoria/) | [cuestionario interactivo](https://sergiolearns.com/gestion-de-memoria-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
 
