@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-159 programas de Python, 72 de Java, 63 de C, 39 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 63 temas.
+159 programas de Python, 72 de Java, 78 de C, 39 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 63 temas y 1 simulacro de examen práctico.
 
 ### Python · FP1 / FP2
 
@@ -68,6 +68,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`preprocesador/`](c/preprocesador) | El preprocesador | [3](https://sergiolearns.com/preprocesador-en-c-practica/) | [3](https://sergiolearns.com/preprocesador-en-c-ejercicios/) |
 | [`procesos/`](c/procesos) | Procesos en Linux | [3](https://sergiolearns.com/procesos-en-c-practica/) | [3](https://sergiolearns.com/procesos-en-c-ejercicios/) |
 | [`llamadas-al-sistema/`](c/llamadas-al-sistema) | Llamadas al sistema para ficheros | [3](https://sergiolearns.com/llamadas-al-sistema-en-c-practica/) | [3](https://sergiolearns.com/llamadas-al-sistema-en-c-ejercicios/) |
+| [`examenes/ic2/`](c/examenes/ic2) | Simulacro del examen práctico de IC2 (soluciones de las versiones A, B y C: algoritmo, procesos e hilos; `<versión>-<ejercicio>-….c`) | — | [15](https://sergiolearns.com/simulacro-examen-ic2-practica/) |
 
 ### Linux · IC2
 
