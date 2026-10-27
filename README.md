@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-159 programas de Python, 72 de Java, 90 de C, 39 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 65 temas y 1 simulacro de examen práctico.
+159 programas de Python, 72 de Java, 90 de C, 39 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 65 temas, y 2 simulacros de examen práctico (IC2 en C y FP2 en Python y Java). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2.
 
 ### Python · FP1 / FP2
 
@@ -34,6 +34,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`iteradores-y-generadores/`](python/iteradores-y-generadores) | Iteradores y generadores | [5](https://sergiolearns.com/iteradores-y-generadores-en-python-practica/) | [5](https://sergiolearns.com/iteradores-y-generadores-en-python-ejercicios/) |
 | [`pruebas/`](python/pruebas) | Pruebas | [9](https://sergiolearns.com/pruebas-en-python-practica/) | [5](https://sergiolearns.com/pruebas-en-python-ejercicios/) |
 | [`linkedlist/`](python/linkedlist) | LinkedList | [7](https://sergiolearns.com/linkedlist-en-python-practica/) | [5](https://sergiolearns.com/linkedlist-en-python-ejercicios/) |
+| [`examenes/fp2/`](python/examenes/fp2) | Simulacro del examen práctico de FP2 (soluciones de Python de las versiones A, B y C: examen 1 de clases, examen 2 de estructuras encadenadas y la parte de Python de la extraordinaria; cada carpeta con su `prueba.py` y sus clases dadas) | — | [9](https://sergiolearns.com/simulacro-examen-fp2-practica/) |
 ### Java · FP2
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
@@ -53,6 +54,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`iteradores/`](java/iteradores) | Iteradores | [3](https://sergiolearns.com/iteradores-en-java-practica/) | [2](https://sergiolearns.com/iteradores-en-java-ejercicios/) |
 | [`colecciones/`](java/colecciones) | Colecciones | [3](https://sergiolearns.com/colecciones-en-java-practica/) | [2](https://sergiolearns.com/colecciones-en-java-ejercicios/) |
 | [`expresiones-regulares/`](java/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-java-practica/) | — |
+| [`examenes/fp2/`](java/examenes/fp2) | Simulacro del examen práctico de FP2 (soluciones de Java de las versiones A, B y C: examen 3 de estructuras encadenadas y la parte de Java de la extraordinaria; cada carpeta con su `Pruebas.java` y sus clases dadas, `javac *.java`) | — | [6](https://sergiolearns.com/simulacro-examen-fp2-practica/) |
 ### C · IC2
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
