@@ -1,0 +1,4 @@
+Horario de la biblioteca: abre a las 8:30 y cierra a las 21h00.
+El sábado abre a las 09:00 (no a las 9.00) y cierra a las 14h00.
+Tutoría de FP1: de 12:15 a 13:45. Reunión a las 12:15 en el aula 2.
+Ojo, 25:10 y 7:75 no son horas válidas.

@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 2 simulacros de examen práctico (IC2 en C y FP2 en Python y Java). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2.
+161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2.
 
 ### Python · FP1 / FP2
 
@@ -36,6 +36,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`pruebas/`](python/pruebas) | Pruebas | [9](https://sergiolearns.com/pruebas-en-python-practica/) | [5](https://sergiolearns.com/pruebas-en-python-ejercicios/) |
 | [`linkedlist/`](python/linkedlist) | LinkedList | [7](https://sergiolearns.com/linkedlist-en-python-practica/) | [5](https://sergiolearns.com/linkedlist-en-python-ejercicios/) |
 | [`examenes/fp2/`](python/examenes/fp2) | Simulacro del examen práctico de FP2 (soluciones de Python de las versiones A, B y C: examen 1 de clases, examen 2 de estructuras encadenadas y la parte de Python de la extraordinaria; cada carpeta con su `prueba.py` y sus clases dadas) | — | [9](https://sergiolearns.com/simulacro-examen-fp2-practica/) |
+| [`examenes/fp1/`](python/examenes/fp1) | Simulacro del examen práctico de FP1 (soluciones de las versiones A, B y C de los tres exámenes de continuidad y de la extraordinaria: listas, matrices y recursividad; contenedores asociativos; regex y ficheros; cada carpeta con sus módulos y textos dados) | — | [12](https://sergiolearns.com/simulacro-examen-fp1-practica/) |
 ### Java · FP2
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
