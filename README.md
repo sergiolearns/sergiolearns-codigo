@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2.
+161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1.
 
 ### Python · FP1 / FP2
 
@@ -113,6 +113,12 @@ Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría,
 | [`sistemas-de-archivos/`](sistemas-operativos/sistemas-de-archivos) | Sistemas de archivos (la carpeta de la práctica de IC2 con asignación contigua, enlazada, FAT e indexada; tamaño máximo con un i-nodo) | [1](https://sergiolearns.com/sistemas-de-archivos/), [2](https://sergiolearns.com/sistemas-de-archivos/) | [cuestionario interactivo](https://sergiolearns.com/sistemas-de-archivos-ejercicios/) |
 
 El número enlaza al artículo de donde sale el código.
+
+### MIPS · IC1
+
+| Tema | Archivos | Artículos |
+|---|---|---|
+| Herramientas: QtSpim y Notepad++ | `herramientas/mips/` (colores y autocompletado para Notepad++ y `suma.s`) | [Instalar QtSpim](https://sergiolearns.com/instalar-qtspim/) · [Cómo usar QtSpim](https://sergiolearns.com/como-usar-qtspim/) · [Notepad++ para MIPS](https://sergiolearns.com/notepad-plus-plus-para-mips/) |
 
 ## Cómo ejecutarlos
 
