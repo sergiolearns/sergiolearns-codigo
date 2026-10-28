@@ -8,12 +8,13 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-159 programas de Python, 72 de Java, 90 de C, 39 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 65 temas, y 2 simulacros de examen práctico (IC2 en C y FP2 en Python y Java). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2.
+161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 2 simulacros de examen práctico (IC2 en C y FP2 en Python y Java). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2.
 
 ### Python · FP1 / FP2
 
 | Carpeta | Tema | Programas resueltos | Ejercicios |
 |---|---|---|---|
+| [`informatica-basica/`](python/informatica-basica) | Informática básica (Fundamentos) | — | [3](https://sergiolearns.com/informatica-basica-ejercicios/) |
 | [`variables-y-tipos-de-datos/`](python/variables-y-tipos-de-datos) | Variables y tipos de datos | [3](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-practica/) | [4](https://sergiolearns.com/variables-y-tipos-de-datos-en-python-ejercicios/) |
 | [`operadores/`](python/operadores) | Operadores | [3](https://sergiolearns.com/operadores-en-python-practica/) | [5](https://sergiolearns.com/operadores-en-python-ejercicios/) |
 | [`condicionales/`](python/condicionales) | Condicionales | [4](https://sergiolearns.com/condicionales-en-python-practica/) | [4](https://sergiolearns.com/condicionales-en-python-ejercicios/) |
