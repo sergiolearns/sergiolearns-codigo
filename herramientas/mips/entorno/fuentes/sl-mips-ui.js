@@ -217,12 +217,12 @@
     radix.innerHTML = '<option value="h">Hex</option><option value="d">Dec</option>';
     var bHelp = btn('help', T('Ayudas', 'Hints'), T('Ayudas del entorno', 'Environment hints'));
     var bFull = btn('full', '', T('Pantalla completa', 'Full screen'));
-    var dark = store('sl_mips_tema') !== 'claro';
+    var tk = (function () { try { return localStorage.getItem('sl_entorno_tema') || localStorage.getItem('sl_mips_tema'); } catch (e) { return null; } })(), dark = tk !== 'claro' && tk !== '"claro"';
     var bTheme = btn('sun', '', '');
     function setTheme(d) { dark = d; root.classList.toggle('is-dark', d); bTheme.textContent = ''; bTheme.appendChild(ico(d ? 'sun' : 'moon'));
       var t = d ? T('Aspecto claro (como Notepad++ y QtSpim)', 'Light look (like Notepad++ and QtSpim)') : T('Aspecto oscuro (tinta)', 'Dark look (ink)'); bTheme.title = t; bTheme.setAttribute('aria-label', t); }
     setTheme(dark);
-    bTheme.onclick = function () { setTheme(!dark); store('sl_mips_tema', dark ? 'oscuro' : 'claro'); };
+    bTheme.onclick = function () { setTheme(!dark); try { localStorage.setItem('sl_entorno_tema', dark ? 'oscuro' : 'claro'); } catch (e) {} };   // v1.0.1: la misma elección que los entornos de Python, Java y C
     tools.append(radix, bHelp, bTheme);
     if (libre) { var bMore = btn('down', '', T('Descargar, subir, compartir', 'Download, upload, share')); tools.append(bMore); }
     tools.append(bFull);

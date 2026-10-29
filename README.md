@@ -2,13 +2,13 @@
 
 # sergiolearns-codigo
 
-El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java y C, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
+El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java, C y MIPS, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
 
 Cada archivo empieza con un comentario que dice de qué artículo sale, así que siempre puedes volver a la explicación paso a paso.
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash), 6 de MIPS y 18 simuladores (3 de redes y 15 de sistemas operativos), en 67 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -119,6 +119,7 @@ El número enlaza al artículo de donde sale el código.
 | Tema | Archivos | Artículos |
 |---|---|---|
 | Herramientas: QtSpim y Notepad++ | `herramientas/mips/` (colores y autocompletado para Notepad++ y `suma.s`) | [Instalar QtSpim](https://sergiolearns.com/instalar-qtspim/) · [Cómo usar QtSpim](https://sergiolearns.com/como-usar-qtspim/) · [Notepad++ para MIPS](https://sergiolearns.com/notepad-plus-plus-para-mips/) |
+| Estructura de un programa y datos (directivas, alineación, little endian, `la` y `lw`) | [`mips/estructura-y-datos/`](mips/estructura-y-datos): [3 programas](https://sergiolearns.com/estructura-y-datos-en-mips-practica/) y [3 ejercicios](https://sergiolearns.com/estructura-y-datos-en-mips-ejercicios/) | [Teoría](https://sergiolearns.com/estructura-y-datos-en-mips/) · [Práctica](https://sergiolearns.com/estructura-y-datos-en-mips-practica/) · [Ejercicios](https://sergiolearns.com/estructura-y-datos-en-mips-ejercicios/) |
 
 ## Cómo ejecutarlos
 
@@ -134,6 +135,9 @@ java AnalizadorTexto
 # C
 gcc c/punteros/programas/01-*.c -o programa
 ./programa
+
+# MIPS: ábrelo en QtSpim (Reinitialize and Load File) o en el entorno MIPS de la web
+# mips/estructura-y-datos/programas/01-programa-1-el-mapa-de-memoria-del-inventario.s
 
 # Linux (bash): sesiones de terminal; ejecútalas en una carpeta de pruebas, nunca como root
 mkdir ~/prueba && cd ~/prueba
