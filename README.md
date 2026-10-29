@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1.
+161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash) y 18 simuladores (3 de redes y 15 de sistemas operativos), en 66 temas, y 3 simulacros de examen práctico (IC2 en C, FP2 en Python y Java y FP1 en Python). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
