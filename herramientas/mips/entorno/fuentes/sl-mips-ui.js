@@ -34,7 +34,8 @@
     chip: '<rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/>',
     dot: '<circle cx="12" cy="12" r="5"/>',
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
-    moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'
+    moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+    chev: '<path d="M6 9l6 6 6-6"/>'
   };
   function ico(n) { var s = el('span', 'slm-ico'); s.setAttribute('aria-hidden', 'true');
     s.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + P[n] + '</svg>'; return s; }
@@ -257,15 +258,46 @@
     sim.append(regs, segs); body.append(ed, sim); root.appendChild(body);
     /* consola y mensajes */
     var low = el('div', 'slm-low'), lTabs = el('div', 'slm-ptabs'), lCon = el('button', 'is-on', T('Consola', 'Console')), lMsg = el('button', '', T('Mensajes', 'Messages')); lCon.type = lMsg.type = 'button';
-    var lClear = el('button', 'slm-lclear', T('Limpiar', 'Clear')); lClear.type = 'button'; lTabs.append(lCon, lMsg, lClear);
+    var lClear = el('button', 'slm-lclear', T('Limpiar', 'Clear')); lClear.type = 'button';
+    var lMin = el('button', 'slm-lmin'); lMin.type = 'button'; lMin.appendChild(ico('chev')); lTabs.append(lCon, lMsg, lClear, lMin);
+    var split = el('div', 'slm-split'); split.setAttribute('role', 'separator'); split.setAttribute('aria-orientation', 'horizontal'); split.title = T('Arrastra para cambiar el alto de la consola (doble clic: recogerla o desplegarla)', 'Drag to resize the console (double click: collapse or expand it)');
     var con = el('pre', 'slm-con'), msg = el('pre', 'slm-msg'); msg.hidden = true; con.setAttribute('aria-live', 'polite');
     var inRow = el('form', 'slm-inrow'), inBox = el('input', 'slm-in'); inBox.type = 'text'; inBox.autocomplete = 'off'; inBox.spellcheck = false;
     inBox.setAttribute('aria-label', T('Entrada del programa', 'Program input')); var inOk = el('button', 'slm-btn slm-btn--go', T('Enviar', 'Send')); inOk.type = 'submit';
     inRow.append(el('span', 'slm-inlab', T('Entrada:', 'Input:')), inBox, inOk); inRow.hidden = true;
-    low.append(lTabs, con, inRow, msg); root.appendChild(low);
+    low.append(lTabs, con, inRow, msg); root.appendChild(split); root.appendChild(low);
     var status = el('div', 'slm-status'), stL = el('span', 'slm-stl'), stR = el('span', 'slm-str'); status.append(stL, stR); root.appendChild(status);
 
     /* ---------- utilidades de la interfaz ---------- */
+    /* v1.0.2: alto de la consola (separador arrastrable, se recuerda) y botón para recogerla */
+    var LOWK = 'sl_mips_low', LOWMK = 'sl_mips_lowmin';
+    function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+    function lowMin(on, keep) {
+      root.classList.toggle('is-lowmin', !!on);
+      lMin.title = on ? T('Desplegar la consola', 'Expand the console') : T('Recoger la consola', 'Collapse the console');
+      lMin.setAttribute('aria-label', lMin.title); lMin.setAttribute('aria-expanded', on ? 'false' : 'true');
+      if (!keep) lsSet(LOWMK, on ? '1' : null);
+      if (cm) cm.requestMeasure();
+    }
+    var lowSaved = parseInt(lsGet(LOWK), 10); if (lowSaved >= 60 && lowSaved <= 900) root.style.setProperty('--slm-low', lowSaved + 'px');
+    lowMin(lsGet(LOWMK) === '1', true);
+    lMin.addEventListener('click', function () { lowMin(!root.classList.contains('is-lowmin')); });
+    split.addEventListener('dblclick', function () { lowMin(!root.classList.contains('is-lowmin')); });
+    split.addEventListener('pointerdown', function (e) {
+      if (e.button) return; e.preventDefault(); try { split.setPointerCapture(e.pointerId); } catch (x) {}
+      var y0 = e.clientY, h0 = root.classList.contains('is-lowmin') ? 60 : low.getBoundingClientRect().height, h = h0;
+      lowMin(false); root.classList.add('is-drag');
+      var max = function () { return Math.max(120, Math.min(window.innerHeight * 0.75, root.getBoundingClientRect().height - 180)); };
+      var mv = function (ev) { h = Math.round(Math.min(max(), Math.max(60, h0 + (y0 - ev.clientY)))); root.style.setProperty('--slm-low', h + 'px'); };
+      var up = function () { split.removeEventListener('pointermove', mv); split.removeEventListener('pointerup', up); split.removeEventListener('pointercancel', up); root.classList.remove('is-drag'); lsSet(LOWK, String(h)); if (cm) cm.requestMeasure(); };
+      split.addEventListener('pointermove', mv); split.addEventListener('pointerup', up); split.addEventListener('pointercancel', up);
+    });
+    split.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return; e.preventDefault(); lowMin(false);
+      var h = Math.min(900, Math.max(60, low.getBoundingClientRect().height + (e.key === 'ArrowUp' ? 20 : -20))); root.style.setProperty('--slm-low', h + 'px'); lsSet(LOWK, String(h));
+    });
+    split.tabIndex = 0;
     function setView(v) {
       view = v; ed.hidden = v !== 'ed'; sim.hidden = v !== 'sim';
       tEd.classList.toggle('is-on', v === 'ed'); tSim.classList.toggle('is-on', v === 'sim');
@@ -275,13 +307,13 @@
     function say(t, cls) { stL.textContent = t; status.className = 'slm-status' + (cls ? ' is-' + cls : ''); }
     function msgAdd(t, err) { if (!t) return; var s = el('span', err ? 'is-err' : '', t); msg.appendChild(s); msg.scrollTop = msg.scrollHeight; if (err) showLow('msg'); }
     function conAdd(t, cls) { if (!t) return; out += t; if (out.length > 200000) { out = out.slice(-150000); con.textContent = out; } else { var s = document.createTextNode(t); if (cls) { var sp = el('span', cls); sp.appendChild(s); con.appendChild(sp); } else con.appendChild(s); } con.scrollTop = con.scrollHeight; }
-    function showLow(w) { con.hidden = w !== 'con'; msg.hidden = w !== 'msg'; lCon.classList.toggle('is-on', w === 'con'); lMsg.classList.toggle('is-on', w === 'msg'); }
+    function showLow(w) { lowMin(false, true); con.hidden = w !== 'con'; msg.hidden = w !== 'msg'; lCon.classList.toggle('is-on', w === 'con'); lMsg.classList.toggle('is-on', w === 'msg'); }
     function code() { return cm ? cm.state.doc.toString() : textarea ? textarea.value : file.code; }
     function setCode(c) { if (cm) cm.dispatch({ changes: { from: 0, to: cm.state.doc.length, insert: c } }); else if (textarea) textarea.value = c; file.code = c; changed(); }
     function save() { if (libre) store(key, { name: file.name, code: code() }); }
     var saveT = null;
     function changed() { dirty = true; if (marks && cm) marks.mark(cm, []); clearTimeout(saveT); saveT = setTimeout(save, 400); }
-    function busy(on) { running = on; root.classList.toggle('is-running', on); bAsm.disabled = on; bStep.disabled = on; bPause.disabled = !on; }
+    function busy(on) { if (on) lowMin(false, true); running = on; root.classList.toggle('is-running', on); bAsm.disabled = on; bStep.disabled = on; bPause.disabled = !on; }
     function srcLine(addr) { var t = textRows.filter(function (r) { return r.addr === addr; })[0]; if (!t) return 0; if (t.line) return t.line; var i = textRows.indexOf(t); while (i > 0 && !textRows[i].line) i--; return textRows[i].line || 0; }
 
     /* ---------- ensamblar y cargar ---------- */
