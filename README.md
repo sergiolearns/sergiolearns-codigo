@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 73 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+156 programas de Python, 72 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 73 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -28,8 +28,8 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`expresiones-regulares/`](python/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-python-practica/) | [3](https://sergiolearns.com/expresiones-regulares-en-python-ejercicios/) |
 | [`archivos-de-texto/`](python/archivos-de-texto) | Archivos de texto | [3](https://sergiolearns.com/archivos-de-texto-en-python-practica/) | [3](https://sergiolearns.com/archivos-de-texto-en-python-ejercicios/) |
 | [`modulos/`](python/modulos) | Modulos | [6](https://sergiolearns.com/modulos-en-python-practica/) | [7](https://sergiolearns.com/modulos-en-python-ejercicios/) |
-| [`excepciones/`](python/excepciones) | Excepciones | [3](https://sergiolearns.com/excepciones-en-python-practica/) | [3](https://sergiolearns.com/excepciones-en-python-ejercicios/) |
-| [`clases/`](python/clases) | Clases | [8](https://sergiolearns.com/clases-en-python-practica/) | [4](https://sergiolearns.com/clases-en-python-ejercicios/) |
+| [`excepciones/`](python/excepciones) | Excepciones | [4](https://sergiolearns.com/excepciones-en-python-practica/) | [3](https://sergiolearns.com/excepciones-en-python-ejercicios/) |
+| [`clases/`](python/clases) | Clases | [3](https://sergiolearns.com/clases-en-python-practica/) | [3](https://sergiolearns.com/clases-en-python-ejercicios/) |
 | [`herencia/`](python/herencia) | Herencia | [3](https://sergiolearns.com/herencia-en-python-practica/) | [4](https://sergiolearns.com/herencia-en-python-ejercicios/) |
 | [`sobrecarga-de-operadores/`](python/sobrecarga-de-operadores) | Sobrecarga de operadores | [2](https://sergiolearns.com/sobrecarga-de-operadores-en-python-practica/) | [4](https://sergiolearns.com/sobrecarga-de-operadores-en-python-ejercicios/) |
 | [`iteradores-y-generadores/`](python/iteradores-y-generadores) | Iteradores y generadores | [5](https://sergiolearns.com/iteradores-y-generadores-en-python-practica/) | [5](https://sergiolearns.com/iteradores-y-generadores-en-python-ejercicios/) |

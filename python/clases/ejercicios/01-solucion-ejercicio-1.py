@@ -1,11 +1,11 @@
-# Solución Ejercicio 1:
-# Del artículo «Clases en Python — ejercicios para dominar objetos y encapsulamiento»
+# Solución del ejercicio 1 · Clase Estudiante con notas
+# Del artículo «Clases en Python — ejercicios con un estudiante y sus notas, un vehículo que pierde valor y una pila con sus propias excepciones (y el boletín de Laura con el suspenso de Pablo)»
 # https://sergiolearns.com/clases-en-python-ejercicios/
 
 class Estudiante:
     def __init__(self, nombre, edad):
-        self.nombre = nombre    # usa setter
-        self.edad = edad        # usa setter
+        self.nombre = nombre           # setters
+        self.edad = edad
         self.__notas = []
 
     @property
@@ -14,8 +14,8 @@ class Estudiante:
 
     @nombre.setter
     def nombre(self, valor):
-        if not valor or not isinstance(valor, str):
-            raise ValueError('El nombre debe ser una cadena no vacía')
+        if not isinstance(valor, str) or not valor.strip():
+            raise ValueError('el nombre debe ser un texto no vacío')
         self.__nombre = valor.strip()
 
     @property
@@ -24,53 +24,45 @@ class Estudiante:
 
     @edad.setter
     def edad(self, valor):
-        if not isinstance(valor, int) or not (16 <= valor <= 99):
-            raise ValueError(f'Edad no válida: {valor}')
+        if not isinstance(valor, int) or not 16 <= valor <= 99:
+            raise ValueError(f'edad no válida: {valor}')
         self.__edad = valor
 
     @property
     def notas(self):
-        return list(self.__notas)    # copia — no el original
+        return list(self.__notas)      # copia
 
     def añadir_nota(self, nota):
-        if not isinstance(nota, (int, float)) or not (0 <= nota <= 10):
-            raise ValueError(f'Nota no válida: {nota}')
-        self.__notas.append(float(nota))
+        if not isinstance(nota, (int, float)) or not 0 <= nota <= 10:
+            raise ValueError(f'nota no válida: {nota}')
+        self.__notas.append(nota)
 
     def media(self):
         if not self.__notas:
-            return 0.0
-        return round(sum(self.__notas) / len(self.__notas), 2)
-
-    def nota_maxima(self):
-        if not self.__notas:
-            raise ValueError('No hay notas')
-        return max(self.__notas)
-
-    def nota_minima(self):
-        if not self.__notas:
-            raise ValueError('No hay notas')
-        return min(self.__notas)
+            return 0.0                 # sin notas, media 0 (decisión del enunciado)
+        return sum(self.__notas) / len(self.__notas)
 
     def aprobado(self):
-        return self.media() >= 5.0
+        return self.media() >= 5
 
     def __str__(self):
-        estado = 'Aprobado ✓' if self.aprobado() else 'Suspenso ✗'
-        return (f'Estudiante: {self.__nombre} ({self.__edad} años)\n'
-                f'Notas: {self.__notas}\n'
-                f'Media: {self.media()}\n'
-                f'Máxima: {self.nota_maxima()} | Mínima: {self.nota_minima()}\n'
-                f'Estado: {estado}')
+        return f'Estudiante: {self.__nombre} ({self.__edad} años)'
 
     def __repr__(self):
-        return f'Estudiante("{self.__nombre}", {self.__edad})'
+        return f'Estudiante({self.__nombre!r}, {self.__edad})'
 
-# Uso
-e = Estudiante('Sergio', 22)
-e.añadir_nota(7.5)
-e.añadir_nota(8.0)
-e.añadir_nota(6.5)
-e.añadir_nota(9.0)
+
+e = Estudiante('Laura', 20)
+for n in [7.5, 8.0, 6.5, 9.0, 11]:
+    try:
+        e.añadir_nota(n)
+    except ValueError as err:
+        print('Error:', err)
 print(e)
-print(f'\nrepr: {repr(e)}')
+print('Notas:', e.notas)
+print(f'Media: {e.media():.2f}')
+print('Máxima:', max(e.notas), '| Mínima:', min(e.notas))
+print('Estado:', 'Aprobado' if e.aprobado() else 'Suspenso')
+print('repr:', repr(e))
+e.notas.append(-5)                     # se añade a una copia...
+print('Notas tras el intento:', e.notas)

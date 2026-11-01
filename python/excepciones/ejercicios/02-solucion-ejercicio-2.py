@@ -1,59 +1,71 @@
-# Solución Ejercicio 2:
-# Del artículo «Excepciones en Python — ejercicios para escribir código que no se rompe»
+# Solución del ejercicio 2 · Validador de contraseñas con excepciones propias
+# Del artículo «Excepciones en Python — ejercicios con un conversor, contraseñas con su familia de errores y una agenda que siempre se guarda (y el finally que cerró un fichero que no existía)»
 # https://sergiolearns.com/excepciones-en-python-ejercicios/
 
-# Jerarquía de excepciones
-class ErrorContrasena(Exception):
+# Lo que teclearía la persona (en tu ordenador, cambia leer() por input()):
+TECLEO = iter(['abc', 'abcdefgh', 'Abcdefgh', 'Abcdef1h', 'Abc def1!', 'Abcdef1!'])
+
+
+def leer(mensaje):
+    texto = next(TECLEO)     # el siguiente dato «tecleado»
+    print(mensaje + texto)   # lo enseñamos como se vería en la terminal
+    return texto
+
+
+class ErrorContrasena(Exception):        # la base de la familia
     pass
+
 
 class ErrorLongitud(ErrorContrasena):
     pass
 
+
 class ErrorMayuscula(ErrorContrasena):
     pass
+
 
 class ErrorDigito(ErrorContrasena):
     pass
 
+
 class ErrorEspecial(ErrorContrasena):
     pass
+
 
 class ErrorEspacio(ErrorContrasena):
     pass
 
-CARACTERES_ESPECIALES = '!@#$%^&*'
 
-def validar_contrasena(contrasena):
-    if len(contrasena) < 8:
-        raise ErrorLongitud(
-            f'mínimo 8 caracteres (tiene {len(contrasena)})')
-    if not any(c.isupper() for c in contrasena):
+ESPECIALES = '!@#$%^&*'
+
+
+def validar_contrasena(c):
+    """No devuelve nada si es válida; si no, lanza la excepción del PRIMER fallo."""
+    if len(c) < 8:
+        raise ErrorLongitud(f'mínimo 8 caracteres (tiene {len(c)})')
+    if not any(x.isupper() for x in c):
         raise ErrorMayuscula('debe contener al menos una mayúscula')
-    if not any(c.isdigit() for c in contrasena):
+    if not any(x.isdigit() for x in c):
         raise ErrorDigito('debe contener al menos un número')
-    if not any(c in CARACTERES_ESPECIALES for c in contrasena):
-        raise ErrorEspecial(
-            f'debe contener al menos un carácter especial ({CARACTERES_ESPECIALES})')
-    if ' ' in contrasena:
+    if not any(x in ESPECIALES for x in c):
+        raise ErrorEspecial(f'debe contener al menos un carácter especial ({ESPECIALES})')
+    if ' ' in c:
         raise ErrorEspacio('no puede contener espacios')
 
-print('=== VALIDADOR DE CONTRASEÑA ===\n')
 
+print('=== VALIDADOR DE CONTRASEÑA ===')
 while True:
-    contrasena = input('Contraseña: ')
-
+    c = leer('Contraseña: ')
     try:
-        validar_contrasena(contrasena)
-        print('✓ Contraseña válida')
-        break
+        validar_contrasena(c)
     except ErrorLongitud as err:
-        print(f'Error de longitud: {err}')
+        print('  Error de longitud:', err)
     except ErrorMayuscula as err:
-        print(f'Error de mayúscula: {err}')
+        print('  Error de mayúscula:', err)
     except ErrorDigito as err:
-        print(f'Error de dígito: {err}')
-    except ErrorEspecial as err:
-        print(f'Error especial: {err}')
-    except ErrorEspacio as err:
-        print(f'Error de espacio: {err}')
-    print()
+        print('  Error de dígito:', err)
+    except ErrorContrasena as err:       # las dos que quedan, con su nombre
+        print(f'  {type(err).__name__}: {err}')
+    else:                                # solo si validar no lanzó nada
+        print('  Contraseña válida')
+        break

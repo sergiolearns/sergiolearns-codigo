@@ -1,18 +1,23 @@
-# Solución Ejercicio 2:
-# Del artículo «Clases en Python — ejercicios para dominar objetos y encapsulamiento»
+# Solución del ejercicio 2 · Clase Vehículo
+# Del artículo «Clases en Python — ejercicios con un estudiante y sus notas, un vehículo que pierde valor y una pila con sus propias excepciones (y el boletín de Laura con el suspenso de Pablo)»
 # https://sergiolearns.com/clases-en-python-ejercicios/
+
+AÑO_ACTUAL = 2026
+
 
 class Vehiculo:
     _total_vehiculos = 0
+    VALOR_BASE = 15000
+    VALOR_MINIMO = 1000
 
     def __init__(self, marca, modelo, anio, kilometraje=0):
         self.marca = marca
         self.modelo = modelo
         self.anio = anio
-        self.__kilometraje = 0
+        if not isinstance(kilometraje, int) or kilometraje < 0:
+            raise ValueError('el kilometraje no puede ser negativo')
+        self.__kilometraje = kilometraje
         self.__activo = True
-        if kilometraje > 0:
-            self.conducir(kilometraje)
         Vehiculo._total_vehiculos += 1
 
     @property
@@ -21,8 +26,8 @@ class Vehiculo:
 
     @marca.setter
     def marca(self, valor):
-        if not valor or not isinstance(valor, str):
-            raise ValueError('La marca debe ser una cadena no vacía')
+        if not isinstance(valor, str) or not valor.strip():
+            raise ValueError('la marca debe ser un texto no vacío')
         self.__marca = valor.strip()
 
     @property
@@ -31,8 +36,8 @@ class Vehiculo:
 
     @modelo.setter
     def modelo(self, valor):
-        if not valor or not isinstance(valor, str):
-            raise ValueError('El modelo debe ser una cadena no vacía')
+        if not isinstance(valor, str) or not valor.strip():
+            raise ValueError('el modelo debe ser un texto no vacío')
         self.__modelo = valor.strip()
 
     @property
@@ -41,32 +46,28 @@ class Vehiculo:
 
     @anio.setter
     def anio(self, valor):
-        if not isinstance(valor, int) or not (1900 <= valor <= 2025):
-            raise ValueError(f'Año no válido: {valor}')
+        if not isinstance(valor, int) or not 1900 <= valor <= AÑO_ACTUAL:
+            raise ValueError(f'año no válido: {valor}')
         self.__anio = valor
 
     @property
-    def kilometraje(self):
+    def kilometraje(self):             # solo lectura: solo sube conduciendo
         return self.__kilometraje
-
-    @property
-    def activo(self):
-        return self.__activo
 
     def conducir(self, km):
         if not self.__activo:
-            raise ValueError('El vehículo está dado de baja')
-        if not isinstance(km, (int, float)) or km <= 0:
-            raise ValueError('Los km deben ser un número positivo')
+            raise ValueError('el vehículo está dado de baja')
+        if km <= 0:
+            raise ValueError('los kilómetros deben ser positivos')
         self.__kilometraje += km
 
     def dar_de_baja(self):
         self.__activo = False
 
     def valor_estimado(self):
-        antiguedad = 2025 - self.__anio
-        valor = 15000 - (antiguedad * 1000) - (self.__kilometraje * 0.01)
-        return max(1000, round(valor, 2))
+        antiguedad = AÑO_ACTUAL - self.__anio
+        valor = Vehiculo.VALOR_BASE - 1000 * antiguedad - 0.01 * self.__kilometraje
+        return max(valor, Vehiculo.VALOR_MINIMO)
 
     @classmethod
     def total_vehiculos(cls):
@@ -74,28 +75,26 @@ class Vehiculo:
 
     def __str__(self):
         estado = 'activo' if self.__activo else 'baja'
-        return (f'{self.__marca} {self.__modelo} ({self.__anio}) '
-                f'— {self.__kilometraje:.0f} km — {estado}')
+        return f'{self.__marca} {self.__modelo} ({self.__anio}), {self.__kilometraje} km, {estado}'
 
     def __repr__(self):
-        return (f'Vehiculo("{self.__marca}", "{self.__modelo}", '
-                f'{self.__anio}, {self.__kilometraje})')
+        return f'Vehiculo({self.__marca!r}, {self.__modelo!r}, {self.__anio}, {self.__kilometraje})'
 
-# Uso
-v1 = Vehiculo('Toyota', 'Corolla', 2018, 45000)
-print(v1)
-print(f'Valor estimado: {v1.valor_estimado():.2f}€\n')
 
-v1.conducir(50000)
-print(v1)
-print(f'Valor estimado: {v1.valor_estimado():.2f}€\n')
-
-v1.dar_de_baja()
-print(v1)
-try:
-    v1.conducir(100)
-except ValueError as err:
-    print(f'Error: {err}\n')
-
-v2 = Vehiculo('Honda', 'Civic', 2020)
-print(f'Total vehículos: {Vehiculo.total_vehiculos()}')
+v = Vehiculo('Toyota', 'Corolla', 2018, 45000)
+moto = Vehiculo('Honda', 'PCX', 2023)
+print(v)
+print(f'Valor estimado: {v.valor_estimado():.2f} €')
+v.conducir(50000)
+print(v)
+print(f'Valor estimado: {v.valor_estimado():.2f} €')
+print(f'Moto: {moto.valor_estimado():.2f} €')
+v.dar_de_baja()
+print(v)
+for orden in ['v.conducir(10)', 'moto.conducir(-5)', 'v.kilometraje = 0', "Vehiculo('Seat', 'Ibiza', 2031)"]:
+    try:
+        exec(orden)
+    except (ValueError, AttributeError) as err:
+        print(f'{orden:<32} {type(err).__name__}: {err}')
+print('Total vehículos:', Vehiculo.total_vehiculos())
+print(repr(moto))
