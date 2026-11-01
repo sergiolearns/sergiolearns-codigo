@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash), 51 de MIPS y 18 simuladores (3 de redes y 15 de sistemas operativos), en 72 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 73 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -114,6 +114,14 @@ Igual que en redes: el simulador de «Compruébalo con Python» de cada teoría,
 
 El número enlaza al artículo de donde sale el código.
 
+### Computadores · IC1 (teoría)
+
+Temas de papel de IC1: los simuladores de «Compruébalo con Python» de la teoría y de la práctica, y los scripts con los que se comprobaron las cuentas de los ejercicios, con los datos fijos de los artículos.
+
+| Carpeta | Tema | Simuladores | Problemas guiados y ejercicios |
+|---|---|---|---|
+| [`introduccion-a-los-computadores/`](computadores/introduccion-a-los-computadores) | Introducción a los computadores (máquina de Von Neumann de juguete que sube el brillo de un píxel, una fila de la foto de la pizarra digitalizada y enviada con un reloj, la traza del contador de la galería y la del salto, y las cuentas de los cronogramas) | [1](https://sergiolearns.com/introduccion-a-los-computadores/), [2](https://sergiolearns.com/introduccion-a-los-computadores/), [3](https://sergiolearns.com/introduccion-a-los-computadores-practica/), [4](https://sergiolearns.com/introduccion-a-los-computadores-ejercicios/), [5](https://sergiolearns.com/introduccion-a-los-computadores-ejercicios/) | [práctica guiada](https://sergiolearns.com/introduccion-a-los-computadores-practica/) · [ejercicios con cuestionario](https://sergiolearns.com/introduccion-a-los-computadores-ejercicios/) |
+
 ### MIPS · IC1
 
 | Tema | Archivos | Artículos |
@@ -159,7 +167,7 @@ lenguaje/
 └── tema/
     ├── programas/    ← programas resueltos (artículos de práctica)
     ├── ejercicios/   ← soluciones de los ejercicios
-    └── simuladores/  ← «Compruébalo con Python» de las teorías de IC2 (redes/ y sistemas-operativos/)
+    └── simuladores/  ← «Compruébalo con Python» de las teorías de IC2 (redes/ y sistemas-operativos/) y de IC1 (computadores/)
 ```
 
 Un consejo: intenta resolver el ejercicio en la web antes de mirar la solución aquí. Se aprende el doble.
