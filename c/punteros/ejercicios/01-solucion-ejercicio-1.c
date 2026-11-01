@@ -1,50 +1,40 @@
 /*
- * Solución Ejercicio 1:
- * Del artículo «Punteros en C — ejercicios para dominar la memoria»
+ * Solución del ejercicio 1: copiar el horario con punteros
+ * Del artículo «Punteros en C — ejercicios resueltos con la guagua: copiar horarios, contar viajeros, ajustar retrasos y una biblioteca de vectores (más el chuletario para el examen)»
  * https://sergiolearns.com/punteros-en-c-ejercicios/
  */
-
 #include <stdio.h>
 
-int main() {
-    int vec_origen[6] = {10, 25, 8, 42, 17, 33};
-    int vec_destino[6];
+int main(void) {
+    int horario[6] = {610, 640, 710, 740, 810, 840};   /* salidas de la línea 201 (hhmm) */
+    int refuerzo[6];                                   /* vacío: aquí va la copia */
     int n = 6;
-    int *origen, *destino;
-    int i, iguales = 0;
+    int *o, *d;                                        /* origen y destino */
+    int iguales = 0;
 
-    /* Mostrar original */
-    printf("Vector original: ");
-    for (origen = vec_origen; origen < vec_origen + n; origen++) {
-        printf("%d ", *origen);
-    }
+    printf("Horario original: ");
+    for (o = horario; o < horario + n; o++)
+        printf("%d ", *o);
     printf("\n\nCopiando con punteros...\n\n");
 
-    /* Copia con dos punteros simultáneos */
-    for (origen = vec_origen, destino = vec_destino;
-         origen < vec_origen + n;
-         origen++, destino++) {
-        *destino = *origen;
-    }
+    /* dos punteros que avanzan a la vez; los dos empiezan apuntando a algo */
+    for (o = horario, d = refuerzo; o < horario + n; o++, d++)
+        *d = *o;
 
-    /* Mostrar copia */
-    printf("Vector copia:    ");
-    for (destino = vec_destino; destino < vec_destino + n; destino++) {
-        printf("%d ", *destino);
-    }
-    printf("\n\n");
+    printf("Horario refuerzo: ");
+    for (d = refuerzo; d < refuerzo + n; d++)
+        printf("%d ", *d);
+    printf("\n\nComprobación casilla a casilla:\n");
 
-    /* Verificación */
-    printf("Verificación elemento a elemento:\n");
-    for (i = 0; i < n; i++) {
-        if (vec_origen[i] == vec_destino[i]) {
-            printf("[%d] %d == %d ✓\n", i, vec_origen[i], vec_destino[i]);
+    for (o = horario, d = refuerzo; o < horario + n; o++, d++) {
+        int i = (int)(o - horario);                    /* posición = resta de punteros */
+        if (*o == *d) {
+            printf("[%d] %d == %d igual\n", i, *o, *d);
             iguales++;
         } else {
-            printf("[%d] %d != %d ✗\n", i, vec_origen[i], vec_destino[i]);
+            printf("[%d] %d != %d DISTINTO\n", i, *o, *d);
         }
     }
-    printf("Copia correcta: %d/%d elementos iguales\n", iguales, n);
-
+    printf("Copia correcta: %d/%d casillas iguales\n", iguales, n);
     return 0;
 }

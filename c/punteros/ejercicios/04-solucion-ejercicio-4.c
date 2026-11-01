@@ -1,77 +1,68 @@
 /*
- * Solución Ejercicio 4:
- * Del artículo «Punteros en C — ejercicios para dominar la memoria»
+ * Solución del ejercicio 4: biblioteca de vectores de la guagua
+ * Del artículo «Punteros en C — ejercicios resueltos con la guagua: copiar horarios, contar viajeros, ajustar retrasos y una biblioteca de vectores (más el chuletario para el examen)»
  * https://sergiolearns.com/punteros-en-c-ejercicios/
  */
-
 #include <stdio.h>
 
-void suma_vectores(int *a, int *b, int *resultado, int n) {
-    int *pa, *pb, *pr;
-    for (pa = a, pb = b, pr = resultado;
-         pa < a + n;
-         pa++, pb++, pr++) {
-        *pr = *pa + *pb;
-    }
+/* c[i] = a[i] + b[i], con tres punteros que avanzan a la vez */
+void sumar(int *a, int *b, int *c, int n) {
+    for (int *pa = a, *pb = b, *pc = c; pa < a + n; pa++, pb++, pc++)
+        *pc = *pa + *pb;
 }
 
+/* Suma de productos casilla a casilla */
 int producto_escalar(int *a, int *b, int n) {
-    int *pa, *pb;
-    int suma = 0;
-    for (pa = a, pb = b; pa < a + n; pa++, pb++) {
-        suma += (*pa) * (*pb);
-    }
-    return suma;
+    int total = 0;
+    for (int *pa = a, *pb = b; pa < a + n; pa++, pb++)
+        total += *pa * *pb;              /* el primer * es el producto: (*pa) * (*pb) */
+    return total;
 }
 
-int son_iguales(int *a, int *b, int n) {
-    int *pa, *pb;
-    for (pa = a, pb = b; pa < a + n; pa++, pb++) {
-        if (*pa != *pb) return 0;
-    }
+/* 1 si son iguales casilla a casilla, 0 en cuanto una no coincide */
+int iguales(int *a, int *b, int n) {
+    for (int *pa = a, *pb = b; pa < a + n; pa++, pb++)
+        if (*pa != *pb)
+            return 0;
     return 1;
 }
 
-void rotar_derecha(int *vec, int n) {
-    int ultimo = *(vec + n - 1);
-    int *ptr;
-    for (ptr = vec + n - 1; ptr > vec; ptr--) {
-        *ptr = *(ptr - 1);
-    }
-    *vec = ultimo;
+/* El último pasa al principio y los demás se corren uno a la derecha */
+void rotar_derecha(int *v, int n) {
+    int ultimo = *(v + n - 1);           /* lo guardo antes de pisarlo */
+    for (int *p = v + n - 1; p > v; p--) /* de atrás hacia delante */
+        *p = *(p - 1);
+    *v = ultimo;
 }
 
-void mostrar_vector(int *vec, int n) {
-    int *ptr;
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        printf("%d ", *ptr);
-    }
+void mostrar(const char *titulo, int *v, int n) {
+    printf("%s", titulo);
+    for (int *p = v; p < v + n; p++)
+        printf("%d ", *p);
     printf("\n");
 }
 
-int main() {
-    int a[5] = {1, 2, 3, 4, 5};
-    int b[5] = {5, 4, 3, 2, 1};
-    int resultado[5];
+int main(void) {
+    int ida[5] = {12, 7, 9, 4, 15};          /* suben en cada parada a la ida */
+    int vuelta[5] = {5, 11, 6, 13, 3};       /* suben en la misma parada a la vuelta */
+    int tarifa[5] = {155, 155, 140, 140, 120};   /* céntimos por viajero en cada parada */
+    int total[5];
     int n = 5;
 
-    printf("=== BIBLIOTECA DE VECTORES ===\n\n");
-    printf("Vector A: "); mostrar_vector(a, n);
-    printf("Vector B: "); mostrar_vector(b, n);
+    printf("=== BIBLIOTECA DE LA GUAGUA ===\n\n");
+    mostrar("Ida:              ", ida, n);
+    mostrar("Vuelta:           ", vuelta, n);
+    sumar(ida, vuelta, total, n);
+    mostrar("Ida + vuelta:     ", total, n);
+    printf("Recaudación ida:  %d céntimos\n", producto_escalar(ida, tarifa, n));
+    printf("¿Ida == vuelta?:  %s\n", iguales(ida, vuelta, n) ? "Sí" : "No");
+    printf("¿Ida == ida?:     %s\n\n", iguales(ida, ida, n) ? "Sí" : "No");
 
-    suma_vectores(a, b, resultado, n);
-    printf("\nSuma A+B:          "); mostrar_vector(resultado, n);
-
-    printf("Producto escalar:  %d\n", producto_escalar(a, b, n));
-    printf("¿Son iguales?:     %s\n", son_iguales(a, b, n) ? "Sí" : "No");
-
-    printf("\nRotando A un puesto a la derecha:\n");
-    rotar_derecha(a, n);
-    printf("Vector A rotado:   "); mostrar_vector(a, n);
-
-    printf("\nRotando otra vez:\n");
-    rotar_derecha(a, n);
-    printf("Vector A rotado:   "); mostrar_vector(a, n);
-
+    int turnos[5] = {1, 2, 3, 4, 5};         /* orden de los conductores */
+    mostrar("Turnos:           ", turnos, n);
+    rotar_derecha(turnos, n);
+    mostrar("Rotado una vez:   ", turnos, n);
+    rotar_derecha(turnos, n);
+    mostrar("Rotado dos veces: ", turnos, n);
     return 0;
 }

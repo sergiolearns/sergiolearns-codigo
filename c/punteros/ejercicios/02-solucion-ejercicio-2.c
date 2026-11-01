@@ -1,78 +1,49 @@
 /*
- * Solución Ejercicio 2:
- * Del artículo «Punteros en C — ejercicios para dominar la memoria»
+ * Solución del ejercicio 2: contar cómo cambia la guagua en cada parada
+ * Del artículo «Punteros en C — ejercicios resueltos con la guagua: copiar horarios, contar viajeros, ajustar retrasos y una biblioteca de vectores (más el chuletario para el examen)»
  * https://sergiolearns.com/punteros-en-c-ejercicios/
  */
-
 #include <stdio.h>
 
-int main() {
-    int vec[8];
+int main(void) {
+    int cambio[8];       /* en cada parada: los que suben menos los que bajan */
     int n = 8;
-    int *ptr;
-    int i;
-    int positivos = 0, negativos = 0, ceros = 0;
-    int pares = 0, impares = 0, mayores_media = 0;
+    int *p;
+    int positivos = 0, negativos = 0, ceros = 0, pares = 0, impares = 0, sobre_media = 0;
     int suma = 0;
-    float media;
 
-    /* Lectura con validación */
-    printf("Introduce 8 números:\n");
-    for (i = 0; i < n; i++) {
-        printf("Número %d: ", i + 1);
-        scanf("%d", &vec[i]);
+    printf("Cambio de viajeros en las 8 paradas:\n");
+    for (p = cambio; p < cambio + n; p++) {            /* p ya apunta al vector */
+        printf("Parada %td: ", p - cambio + 1);
+        while (scanf("%d", p) != 1) {                  /* p ya es una dirección: sin & */
+            while (getchar() != '\n');                 /* tira la línea mala */
+            printf("Eso no es un número. Parada %td: ", p - cambio + 1);
+        }
     }
 
-    /* Mostrar vector */
-    printf("\nVector: ");
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        printf("%d ", *ptr);
+    printf("\nCambios: ");
+    for (p = cambio; p < cambio + n; p++) {            /* primera pasada: suma */
+        printf("%d ", *p);
+        suma += *p;
     }
-    printf("\n\n--- Estadísticas ---\n");
+    double media = (double)suma / n;
 
-    /* Calcular suma para la media */
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        suma += *ptr;
+    for (p = cambio; p < cambio + n; p++) {            /* segunda pasada: contar */
+        if (*p > 0) positivos++;
+        else if (*p < 0) negativos++;
+        else ceros++;
+        if (*p % 2 == 0) pares++;                      /* -12 % 2 da 0: también par */
+        else impares++;
+        if (*p > media) sobre_media++;
     }
-    media = (float)suma / n;
 
-    /* Contar con punteros */
-    printf("Positivos:         ");
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        if (*ptr > 0) { positivos++; printf("%d ", *ptr); }
-    }
-    printf("(%d)\n", positivos);
-
-    printf("Negativos:         ");
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        if (*ptr < 0) { negativos++; printf("%d ", *ptr); }
-    }
-    printf("(%d)\n", negativos);
-
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        if (*ptr == 0) ceros++;
-    }
-    printf("Ceros:             %d\n", ceros);
-
-    printf("Pares:             ");
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        if (*ptr % 2 == 0) { pares++; printf("%d ", *ptr); }
-    }
-    printf("(%d)\n", pares);
-
-    printf("Impares:           ");
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        if (*ptr % 2 != 0) { impares++; printf("%d ", *ptr); }
-    }
-    printf("(%d)\n", impares);
-
-    printf("Media:             %.2f\n", media);
-
-    printf("Mayores que media: ");
-    for (ptr = vec; ptr < vec + n; ptr++) {
-        if (*ptr > media) { mayores_media++; printf("%d ", *ptr); }
-    }
-    printf("(%d)\n", mayores_media);
-
+    printf("\n\n--- Resumen ---\n");
+    printf("Suben más que bajan:  %d\n", positivos);
+    printf("Bajan más que suben:  %d\n", negativos);
+    printf("Se quedan igual:      %d\n", ceros);
+    printf("Pares / impares:      %d / %d\n", pares, impares);
+    printf("Media:                %.2f\n", media);
+    printf("Por encima de media:  %d\n", sobre_media);
+    printf("Viajeros al final:    %d\n", suma);
     return 0;
 }
