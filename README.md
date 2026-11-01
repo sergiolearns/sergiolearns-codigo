@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-161 programas de Python, 72 de Java, 90 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 73 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+161 programas de Python, 72 de Java, 91 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 73 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -64,7 +64,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`primer-programa/`](c/primer-programa) | Primer programa: gedit y gcc en Fedora (Hola, mundo y un programa en varios archivos) | [2](https://sergiolearns.com/instalar-gedit-en-fedora-y-compilar-con-gcc/) | — |
 | [`tipos-y-variables/`](c/tipos-y-variables) | Tipos y variables | [3](https://sergiolearns.com/tipos-y-variables-en-c-practica/) | [4](https://sergiolearns.com/tipos-y-variables-en-c-ejercicios/) |
 | [`condicionales/`](c/condicionales) | Condicionales | [3](https://sergiolearns.com/condicionales-en-c-practica/) | [4](https://sergiolearns.com/condicionales-en-c-ejercicios/) |
-| [`bucles/`](c/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-c-practica/) | [4](https://sergiolearns.com/bucles-en-c-ejercicios/) |
+| [`bucles/`](c/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-c-practica/) | [5](https://sergiolearns.com/bucles-en-c-ejercicios/) |
 | [`funciones/`](c/funciones) | Funciones | — | [2](https://sergiolearns.com/funciones-en-c-ejercicios/) |
 | [`punteros/`](c/punteros) | Punteros | [4](https://sergiolearns.com/punteros-en-c-practica/) | [4](https://sergiolearns.com/punteros-en-c-ejercicios/) |
 | [`memoria-dinamica/`](c/memoria-dinamica) | Memoria dinámica | [3](https://sergiolearns.com/memoria-dinamica-en-c-practica/) | [3](https://sergiolearns.com/memoria-dinamica-en-c-ejercicios/) |

@@ -1,101 +1,43 @@
 /*
- * Solución Ejercicio 4:
- * Del artículo «Bucles en C — ejercicios para dominar for, while y do…while»
+ * Solución del ejercicio 4: login con 3 intentos en un solo bloque
+ * Del artículo «Bucles en C — ejercicios con primos, piedra-papel-tijera, un login de 3 intentos y una calculadora con menú (y el ; que dejó la lista de primos vacía)»
  * https://sergiolearns.com/bucles-en-c-ejercicios/
  */
-
 #include <stdio.h>
 
-int main() {
-    int opcion;
-    float a, b, resultado, mayor = 0;
-    char continuar;
-    int operaciones = 0;
-    int primera = 1;
+#define PIN_OK 5678
 
-    printf("=== CALCULADORA INTERACTIVA ===\n");
+int main(void) {
+    char inicial;
+    int pin;
+    int intento;
+    int dentro = 0;              // bandera: 1 cuando el login es correcto
+    int c;
 
-    do {
-        printf("1. Suma        2. Resta\n");
-        printf("3. Multiplicar 4. Dividir\n");
-        printf("5. Módulo      6. Potencia\n");
-        printf("0. Salir\n\n");
+    printf("=== SISTEMA DE LOGIN ===\n");
 
-        do {
-            printf("Operación: ");
-            scanf("%d", &opcion);
-            if (opcion < 0 || opcion > 6) {
-                printf("Error: elige entre 0 y 6\n");
-            }
-        } while (opcion < 0 || opcion > 6);
-
-        if (opcion == 0) break;
-
-        printf("Número A: ");
-        scanf("%f", &a);
-
-        /* Validar B para división y módulo */
-        do {
-            printf("Número B: ");
-            scanf("%f", &b);
-            if ((opcion == 4 || opcion == 5) && b == 0) {
-                printf("Error: no se puede dividir entre cero\n");
-            }
-        } while ((opcion == 4 || opcion == 5) && b == 0);
-
-        /* Calcular */
-        switch (opcion) {
-            case 1:
-                resultado = a + b;
-                printf("%.2f + %.2f = %.2f\n\n", a, b, resultado);
-                break;
-            case 2:
-                resultado = a - b;
-                printf("%.2f - %.2f = %.2f\n\n", a, b, resultado);
-                break;
-            case 3:
-                resultado = a * b;
-                printf("%.2f * %.2f = %.2f\n\n", a, b, resultado);
-                break;
-            case 4:
-                resultado = a / b;
-                printf("%.2f / %.2f = %.4f\n\n", a, b, resultado);
-                break;
-            case 5:
-                resultado = (int)a % (int)b;
-                printf("%d %% %d = %.0f\n\n", (int)a, (int)b, resultado);
-                break;
-            case 6: {
-                resultado = 1;
-                int exp = (int)b;
-                int j;
-                for (j = 0; j < exp; j++) {
-                    resultado *= a;
-                }
-                printf("%.2f ^ %d = %.2f\n\n", a, exp, resultado);
-                break;
-            }
+    // UN solo bloque que se repite: como mucho 3 veces y antes si entra
+    for (intento = 1; intento <= 3 && !dentro; intento++) {
+        printf("\nIntento %d de 3\n", intento);
+        printf("Inicial del usuario: ");
+        scanf(" %c", &inicial);           // el espacio salta el Intro anterior
+        printf("PIN: ");
+        if (scanf("%d", &pin) != 1) {
+            while ((c = getchar()) != '\n' && c != EOF);
+            pin = -1;                     // un PIN que nunca es correcto
         }
 
-        operaciones++;
-
-        /* Actualizar mayor resultado */
-        if (primera || resultado > mayor) {
-            mayor = resultado;
-            primera = 0;
+        if (inicial == 's' && pin == PIN_OK) {
+            dentro = 1;
+        } else {
+            printf("Usuario o PIN incorrectos\n");
         }
-
-        printf("¿Otra operación? (s/n): ");
-        scanf(" %c", &continuar);
-        printf("\n");
-
-    } while (continuar == 's');
-
-    printf("--- Resumen ---\n");
-    printf("Operaciones realizadas: %d\n", operaciones);
-    if (operaciones > 0) {
-        printf("Mayor resultado obtenido: %.2f\n", mayor);
     }
 
+    if (dentro) {
+        printf("\nAcceso concedido. Bienvenido, sergio.\n");
+    } else {
+        printf("\nCuenta bloqueada: 3 intentos fallidos\n");
+    }
     return 0;
 }
