@@ -1,5 +1,5 @@
-# Solución del Nivel 2
-# Del artículo «Módulos y paquetes en Python — ejercicios con temperaturas, divisas y una tienda (y el precio con IVA que salía con descuento)»
+# Solución del Nivel 2 · Dos módulos con el mismo nombre de función (lanza programa.py)
+# Del artículo «Módulos y paquetes en Python — ejercicios con temperaturas, divisas y una tienda (y el precio con IGIC que salía con descuento)»
 # https://sergiolearns.com/modulos-en-python-ejercicios/
 
 from euros import formatea as en_euros

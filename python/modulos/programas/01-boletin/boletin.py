@@ -1,5 +1,5 @@
-# Programa 1 · Un módulo propio y el programa que lo importa
-# Del artículo «Módulos y paquetes en Python — práctica con un boletín, un módulo que se prueba solo y un paquete (y el assert que tumbaba mi programa al importar)»
+# Programa 1 · Un módulo propio y el programa que lo importa (lanza informe.py)
+# Del artículo «Módulos y paquetes en Python — práctica con el boletín de Lucía, un módulo que se prueba solo y un paquete (y el assert que tumbaba mi programa al importar)»
 # https://sergiolearns.com/modulos-en-python-practica/
 
 """Utilidades para el boletín de notas."""
@@ -17,8 +17,8 @@ def media(a, b, c):
 
 def califica(nota):
     """Convierte una nota numérica en su calificación escrita."""
-    if nota >= SOBRESALIENTE:
-        return "Sobresaliente"
+    if nota >= SOBRESALIENTE:      # de la más alta a la más baja:
+        return "Sobresaliente"     # el primer return que se cumple termina
     if nota >= NOTABLE:
         return "Notable"
     if nota >= APROBADO:

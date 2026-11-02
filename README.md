@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-137 programas de Python, 81 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 74 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+130 programas de Python, 84 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 74 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -27,7 +27,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`strings/`](python/strings) | Strings | [3](https://sergiolearns.com/strings-en-python-practica/) | [3](https://sergiolearns.com/strings-en-python-ejercicios/) |
 | [`expresiones-regulares/`](python/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-python-practica/) | [3](https://sergiolearns.com/expresiones-regulares-en-python-ejercicios/) |
 | [`archivos-de-texto/`](python/archivos-de-texto) | Archivos de texto | [3](https://sergiolearns.com/archivos-de-texto-en-python-practica/) | [3](https://sergiolearns.com/archivos-de-texto-en-python-ejercicios/) |
-| [`modulos/`](python/modulos) | Modulos | [6](https://sergiolearns.com/modulos-en-python-practica/) | [7](https://sergiolearns.com/modulos-en-python-ejercicios/) |
+| [`modulos/`](python/modulos) | Módulos y paquetes (una carpeta por programa, con sus módulos) | [3](https://sergiolearns.com/modulos-en-python-practica/) | [3](https://sergiolearns.com/modulos-en-python-ejercicios/) |
 | [`excepciones/`](python/excepciones) | Excepciones | [4](https://sergiolearns.com/excepciones-en-python-practica/) | [3](https://sergiolearns.com/excepciones-en-python-ejercicios/) |
 | [`clases/`](python/clases) | Clases | [3](https://sergiolearns.com/clases-en-python-practica/) | [3](https://sergiolearns.com/clases-en-python-ejercicios/) |
 | [`herencia/`](python/herencia) | Herencia | [3](https://sergiolearns.com/herencia-en-python-practica/) | [3](https://sergiolearns.com/herencia-en-python-ejercicios/) |
@@ -56,7 +56,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`iteradores/`](java/iteradores) | Iteradores | [3](https://sergiolearns.com/iteradores-en-java-practica/) | [2](https://sergiolearns.com/iteradores-en-java-ejercicios/) |
 | [`colecciones/`](java/colecciones) | Colecciones | [3](https://sergiolearns.com/colecciones-en-java-practica/) | [2](https://sergiolearns.com/colecciones-en-java-ejercicios/) |
 | [`linkedlist/`](java/linkedlist) | LinkedList (estructuras encadenadas) | 3 | 3 |
-| [`expresiones-regulares/`](java/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-java-practica/) | — |
+| [`expresiones-regulares/`](java/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-java-practica/) | [3](https://sergiolearns.com/expresiones-regulares-en-java-ejercicios/) |
 | [`examenes/fp2/`](java/examenes/fp2) | Simulacro del examen práctico de FP2 (soluciones de Java de las versiones A, B y C: examen 3 de estructuras encadenadas y la parte de Java de la extraordinaria; cada carpeta con su `Pruebas.java` y sus clases dadas, `javac *.java`) | — | [6](https://sergiolearns.com/simulacro-examen-fp2-practica/) |
 ### C · IC2
 

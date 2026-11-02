@@ -1,5 +1,5 @@
-# Programa 2 · Un módulo que se prueba a sí mismo
-# Del artículo «Módulos y paquetes en Python — práctica con un boletín, un módulo que se prueba solo y un paquete (y el assert que tumbaba mi programa al importar)»
+# Programa 2 · Un módulo que se prueba a sí mismo (lanza app.py o validacion.py)
+# Del artículo «Módulos y paquetes en Python — práctica con el boletín de Lucía, un módulo que se prueba solo y un paquete (y el assert que tumbaba mi programa al importar)»
 # https://sergiolearns.com/modulos-en-python-practica/
 
 """Validación de notas."""
@@ -11,6 +11,7 @@ print("validacion.py: __name__ =", __name__)
 
 
 def es_nota_valida(nota):
+    """True si la nota está entre NOTA_MIN y NOTA_MAX."""
     return NOTA_MIN <= nota <= NOTA_MAX
 
 
