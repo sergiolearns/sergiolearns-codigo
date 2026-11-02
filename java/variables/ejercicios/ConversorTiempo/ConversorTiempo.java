@@ -1,74 +1,30 @@
 /*
- * Solución Ejercicio 2
- * Del artículo «Variables en Java — ejercicios para dominar tipos, casting y Strings»
+ * Solución del ejercicio 2: conversor de tiempo
+ * Del artículo «Variables en Java ejercicios — IMC, segundos y el inventario de la copistería (y el porcentaje que se quedaba en 100)»
  * https://sergiolearns.com/variables-en-java-ejercicios/
  */
-
-import java.util.Scanner;
-
+/** Ejercicio 2: descomponer 90061 segundos con / y %, y el porcentaje de un día con el cast en su sitio. */
 public class ConversorTiempo {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        final int SEG_DIA = 24 * 60 * 60;       // 86400: que lo calcule Java
+        final int SEG_HORA = 60 * 60;           // 3600
+        int totalSegundos = 90061;
+
+        int dias = totalSegundos / SEG_DIA;     // días completos
+        int resto = totalSegundos % SEG_DIA;    // lo que sobra tras quitar los días
+        int horas = resto / SEG_HORA;
+        resto = resto % SEG_HORA;               // reutilizamos resto
+        int minutos = resto / 60;
+        int segundos = resto % 60;
+
+        double porcentaje = (double) totalSegundos / SEG_DIA * 100;   // cast ANTES de dividir
+        int vuelta = dias * SEG_DIA + horas * SEG_HORA + minutos * 60 + segundos;
 
         System.out.println("=== CONVERSOR DE TIEMPO ===");
-        System.out.println();
-
-        System.out.print("Segundos totales: ");
-        int totalSegundos = sc.nextInt();
-
-        // Todo esto es división entera y módulo — sin doubles hasta el final
-        // El orden importa: primero los valores más grandes
-
-        // ¿Cuántos días completos caben?
-        int dias = totalSegundos / 86400;         // 86400 = 60*60*24
-        int resto = totalSegundos % 86400;        // lo que sobra tras quitar los días
-
-        // De lo que sobra, ¿cuántas horas completas?
-        int horas = resto / 3600;                 // 3600 = 60*60
-        resto = resto % 3600;                     // reutilizamos la variable resto
-
-        // De lo que queda, ¿cuántos minutos completos?
-        int minutos = resto / 60;
-        int segundos = resto % 60;                // lo que sobra son segundos
-
-        System.out.println();
-        System.out.println("--- Desglose ---");
-
-        // Singular/plural con ternario — pequeño detalle que marca la diferencia
-        System.out.printf("%d %s, %d %s, %d %s y %d %s%n",
-            dias,    (dias == 1    ? "día"    : "días"),
-            horas,   (horas == 1   ? "hora"   : "horas"),
-            minutos, (minutos == 1 ? "minuto" : "minutos"),
-            segundos,(segundos == 1? "segundo": "segundos"));
-
-        System.out.println();
-        System.out.println("--- En detalle ---");
-        System.out.printf("Días:     %-4d (86400 segundos)%n", dias);
-        System.out.printf("Horas:    %-4d (3600 segundos)%n",  horas);
-        System.out.printf("Minutos:  %-4d (60 segundos)%n",    minutos);
-        System.out.printf("Segundos: %d%n",                     segundos);
-
-        System.out.println();
-        System.out.println("--- Porcentaje del día ---");
-
-        // Aquí sí necesitamos double — y el cast va ANTES de dividir
-        // Si escribiéramos totalSegundos / 86400 * 100, la división entera
-        // truncaría el resultado antes de que el double entre en juego
-        double porcentaje = (double) totalSegundos / 86400 * 100;
-
-        System.out.printf("%d segundos = %.2f%% de un día completo%n",
-                          totalSegundos, porcentaje);
-
-        // Mensaje adicional según el resultado
-        if (porcentaje > 100) {
-            System.out.println("(más de un día completo)");
-        } else if (porcentaje == 100) {
-            System.out.println("(exactamente un día completo)");
-        } else {
-            System.out.printf("(faltan %.2f%% para completar el día)%n",
-                              100 - porcentaje);
-        }
-
-        sc.close();
+        System.out.println("Segundos totales: " + totalSegundos);
+        System.out.printf("%d d, %d h, %d min y %d s%n", dias, horas, minutos, segundos);
+        System.out.printf("Formato reloj: %d d %02d:%02d:%02d%n", dias, horas, minutos, segundos);
+        System.out.printf("Porcentaje de un día: %.2f %%%n", porcentaje);
+        System.out.println("Comprobación: " + vuelta + " segundos");
     }
 }
