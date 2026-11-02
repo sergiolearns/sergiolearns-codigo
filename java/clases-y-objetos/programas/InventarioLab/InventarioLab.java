@@ -1,9 +1,8 @@
 /*
- * Programa 3: inventario de un laboratorio con códigos automáticos
- * Del artículo «Clases y objetos en Java — práctica con un banco, una biblioteca y el inventario de un laboratorio (y la cuenta que era de nadie)»
+ * Programa 3: inventario de un laboratorio
+ * Del artículo «Clases y objetos en Java — práctica con la cuenta de Laura, la biblioteca de la facultad y el inventario del laboratorio (y la cuenta que era de nadie)»
  * https://sergiolearns.com/clases-y-objetos-en-java-practica/
  */
-
 public class InventarioLab {
     public static void main(String[] args) {
         Equipo[] lab = {
@@ -16,7 +15,9 @@ public class InventarioLab {
         int averiados = 0;
         for (Equipo e : lab) {
             System.out.println(e);
-            if (e.isAveriado()) averiados++;
+            if (e.isAveriado()) {
+                averiados++;
+            }
         }
         System.out.println("Equipos creados: " + Equipo.getContador() + " · averiados: " + averiados);
 

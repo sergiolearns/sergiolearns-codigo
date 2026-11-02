@@ -1,28 +1,26 @@
 /*
- * Métodos en java práctica — Programa 2: Validador de contraseña
- * Del artículo «Métodos en Java — práctica: tres programas que crecen a base de trocitos»
+ * Programa 2: validador de contraseña
+ * Del artículo «Métodos en Java — práctica con la calculadora de Laura, su contraseña del campus y su boletín (y el formato que cambié en tres sitios de cuatro)»
  * https://sergiolearns.com/metodos-en-java-practica/
  */
-
 import java.util.Scanner;
 
 public class ValidadorPassword {
 
     // ---------- Piezas pequeñas: cada una comprueba UNA cosa ----------
-    // Todas son private: son ladrillos internos, no la API de la clase.
-    // Todas devuelven boolean: la respuesta es sí o no.
+    // private: son ladrillos internos. boolean: la respuesta es sí o no.
 
     private static boolean tieneLongitudMinima(String pw, int minimo) {
-        return pw.length() >= minimo;    // la propia comparación ya ES un boolean
+        return pw.length() >= minimo;    // la comparación ya ES un boolean: no hace falta if
     }
 
     private static boolean tieneMayuscula(String pw) {
         for (int i = 0; i < pw.length(); i++) {
             if (Character.isUpperCase(pw.charAt(i))) {
-                return true;    // con UNA mayúscula basta: cortamos ya, sin mirar el resto
+                return true;    // con UNA basta: return sale del método, sin break ni bandera
             }
         }
-        return false;    // si el bucle termina sin encontrar ninguna, es que no hay
+        return false;           // el bucle terminó sin encontrar ninguna
     }
 
     private static boolean tieneDigito(String pw) {
@@ -35,34 +33,36 @@ public class ValidadorPassword {
     }
 
     private static boolean tieneEspacios(String pw) {
-        return pw.contains(" ");    // contains devuelve true si el texto aparece dentro
+        return pw.contains(" ");    // contains: true si el texto aparece dentro
     }
 
-    // ---------- La pieza que las junta ----------
-    // public: es la que usaría cualquier otra parte del programa.
+    // ---------- La pieza que las junta (la única public) ----------
     public static boolean esValida(String pw) {
-        // && corta en cuanto una es false: si es corta, ni mira lo demás
+        // && se para en el primer false: si falta la mayúscula, ni mira el dígito ni los espacios
         return tieneLongitudMinima(pw, 8)
                 && tieneMayuscula(pw)
                 && tieneDigito(pw)
-                && !tieneEspacios(pw);    // ! porque queremos que NO tenga espacios
+                && !tieneEspacios(pw);    // ! porque queremos que NO tenga
+    }
+
+    // Traduce un boolean a texto para la lista. Un método de una línea también merece nombre.
+    private static String siNo(boolean b) {
+        return b ? "sí" : "no";
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("=== VALIDADOR DE CONTRASEÑA ===");
+        System.out.println("=== CONTRASEÑA DEL CAMPUS VIRTUAL ===");
         System.out.print("Contraseña: ");
-        String pw = sc.nextLine();    // nextLine porque una contraseña puede llevar espacios
-
+        String pw = sc.nextLine();    // nextLine: una contraseña puede llevar espacios
         System.out.println();
-        System.out.println("--- Requisitos ---");
-        // El operador ternario decide qué símbolo pintar según el boolean que devuelve el método
-        System.out.println("8 caracteres o más: " + (tieneLongitudMinima(pw, 8) ? "✓" : "✗"));
-        System.out.println("Al menos una mayúscula: " + (tieneMayuscula(pw) ? "✓" : "✗"));
-        System.out.println("Al menos un dígito: " + (tieneDigito(pw) ? "✓" : "✗"));
-        System.out.println("Sin espacios: " + (!tieneEspacios(pw) ? "✓" : "✗"));
 
+        System.out.println("--- Requisitos ---");
+        System.out.println("8 caracteres o más:     " + siNo(tieneLongitudMinima(pw, 8)));
+        System.out.println("Al menos una mayúscula: " + siNo(tieneMayuscula(pw)));
+        System.out.println("Al menos un dígito:     " + siNo(tieneDigito(pw)));
+        System.out.println("Sin espacios:           " + siNo(!tieneEspacios(pw)));
         System.out.println();
         System.out.println(esValida(pw) ? "Contraseña válida" : "Contraseña no válida");
 

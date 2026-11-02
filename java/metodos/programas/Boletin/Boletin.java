@@ -1,37 +1,27 @@
 /*
- * Métodos en java práctica — Programa 3: Boletín del cuatrimestre
- * Del artículo «Métodos en Java — práctica: tres programas que crecen a base de trocitos»
+ * Programa 3: boletín del cuatrimestre
+ * Del artículo «Métodos en Java — práctica con la calculadora de Laura, su contraseña del campus y su boletín (y el formato que cambié en tres sitios de cuatro)»
  * https://sergiolearns.com/metodos-en-java-practica/
  */
-
 import java.util.Scanner;
 
 public class Boletin {
 
-    // Recibe el Scanner ya creado (no crea uno nuevo) y el mensaje a mostrar.
-    // Devuelve la nota, pero SOLO cuando es válida: el bucle no la deja escapar antes.
-    private static double leerNota(Scanner sc, String mensaje) {
+    // Recibe el Scanner ya creado (no crea otro) y el nombre de la asignatura.
+    // Devuelve la nota SOLO cuando es válida: el do-while no la deja salir antes.
+    private static double leerNota(Scanner sc, String asignatura) {
         double nota;
         do {
-            System.out.print(mensaje);
+            System.out.print("Nota de " + asignatura + ": ");
             nota = sc.nextDouble();
             if (nota < 0 || nota > 10) {
-                System.out.println("✗ La nota debe estar entre 0 y 10");
+                System.out.println("  La nota va de 0 a 10. Otra vez.");
             }
-        } while (nota < 0 || nota > 10);    // se repite mientras la nota NO sea válida
+        } while (nota < 0 || nota > 10);
         return nota;
     }
 
-    // Un array como parámetro: double[] notas. Devuelve la media como double.
-    private static double calcularMedia(double[] notas) {
-        double suma = 0;
-        for (int i = 0; i < notas.length; i++) {    // length sirve para CUALQUIER tamaño
-            suma += notas[i];
-        }
-        return suma / notas.length;
-    }
-
-    // Recibe un número, devuelve un texto. Varios return, uno por camino posible.
+    // Recibe un número y devuelve un texto. Varios return: uno por camino.
     private static String clasificar(double nota) {
         if (nota >= 9) {
             return "Sobresaliente";
@@ -40,35 +30,37 @@ public class Boletin {
         } else if (nota >= 5) {
             return "Aprobado";
         }
-        return "Suspenso";    // si no entró en ningún if, llega aquí: todos los caminos devuelven algo
+        return "Suspenso";
     }
 
-    // void: pinta el boletín y no devuelve nada. Usa a calcularMedia y a clasificar.
-    private static void imprimirBoletin(String[] asignaturas, double[] notas) {
-        System.out.println("--- Boletín ---");
-        for (int i = 0; i < asignaturas.length; i++) {
-            // %-6s = texto alineado a la izquierda en 6 huecos; %5.2f = número en 5 huecos, 2 decimales
-            System.out.printf("%-6s %5.2f  %s%n", asignaturas[i], notas[i], clasificar(notas[i]));
-        }
-        double media = calcularMedia(notas);    // aquí se llama a otro método
-        System.out.println("---------------");
-        System.out.printf("Media: %.2f (%s)%n", media, clasificar(media));
+    // Tres parámetros y no un array: los arrays llegan en el tema siguiente
+    private static double media(double a, double b, double c) {
+        return (a + b + c) / 3;
+    }
+
+    // void: pinta una fila del boletín. Usa a clasificar para la última columna.
+    private static void imprimirLinea(String asignatura, double nota) {
+        // %-6s: texto a la izquierda en 6 huecos; %5.2f: número en 5 huecos con 2 decimales
+        System.out.printf("%-6s %5.2f  %s%n", asignatura, nota, clasificar(nota));
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);    // UN solo Scanner para todo el programa
+        Scanner sc = new Scanner(System.in);    // UN Scanner para todo el programa
 
-        String[] asignaturas = {"FP2", "IC2", "AEDV"};
-        double[] notas = new double[asignaturas.length];    // mismo tamaño que las asignaturas
-
-        System.out.println("=== BOLETÍN DEL CUATRIMESTRE ===");
-        for (int i = 0; i < asignaturas.length; i++) {
-            notas[i] = leerNota(sc, "Nota de " + asignaturas[i] + ": ");
-        }
-
+        System.out.println("=== BOLETÍN DE LAURA ===");
+        double fp1 = leerNota(sc, "FP1");
+        double fp2 = leerNota(sc, "FP2");
+        double ic2 = leerNota(sc, "IC2");
         System.out.println();
-        imprimirBoletin(asignaturas, notas);
 
-        sc.close();
+        System.out.println("--- Boletín ---");
+        imprimirLinea("FP1", fp1);
+        imprimirLinea("FP2", fp2);
+        imprimirLinea("IC2", ic2);
+        System.out.println("---------------");
+        double m = media(fp1, fp2, ic2);
+        System.out.printf("Media: %.2f (%s)%n", m, clasificar(m));    // clasificar sirve también para la media
+
+        sc.close();    // se cierra donde se creó, al final
     }
 }
