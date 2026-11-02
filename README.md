@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-130 programas de Python, 86 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 74 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 23 simuladores y comprobaciones en Python (3 de redes, 15 de sistemas operativos y 5 de computadores), en 74 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -46,8 +46,8 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`control-de-flujo/`](java/control-de-flujo) | Control de flujo | [3](https://sergiolearns.com/control-de-flujo-en-java-practica/) | [3](https://sergiolearns.com/control-de-flujo-en-java-ejercicios/) |
 | [`bucles/`](java/bucles) | Bucles | [3](https://sergiolearns.com/bucles-en-java-practica/) | [3](https://sergiolearns.com/bucles-en-java-ejercicios/) |
 | [`metodos/`](java/metodos) | Métodos | [3](https://sergiolearns.com/metodos-en-java-practica/) | [3](https://sergiolearns.com/metodos-en-java-ejercicios/) |
-| [`arrays/`](java/arrays) | Arrays | [3](https://sergiolearns.com/arrays-en-java-practica/) | — |
-| [`strings/`](java/strings) | Strings | [3](https://sergiolearns.com/strings-en-java-practica/) | — |
+| [`arrays/`](java/arrays) | Arrays | [3](https://sergiolearns.com/arrays-en-java-practica/) | [3](https://sergiolearns.com/arrays-en-java-ejercicios/) |
+| [`strings/`](java/strings) | Strings | [3](https://sergiolearns.com/strings-en-java-practica/) | [3](https://sergiolearns.com/strings-en-java-ejercicios/) |
 | [`clases-y-objetos/`](java/clases-y-objetos) | Clases y objetos | [3](https://sergiolearns.com/clases-y-objetos-en-java-practica/) | [3](https://sergiolearns.com/clases-y-objetos-en-java-ejercicios/) |
 | [`herencia/`](java/herencia) | Herencia | [3](https://sergiolearns.com/herencia-en-java-practica/) | [3](https://sergiolearns.com/herencia-en-java-ejercicios/) |
 | [`interfaces/`](java/interfaces) | Interfaces | [3](https://sergiolearns.com/interfaces-en-java-practica/) | [3](https://sergiolearns.com/interfaces-en-java-ejercicios/) |
