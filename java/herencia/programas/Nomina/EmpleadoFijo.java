@@ -1,4 +1,4 @@
-// Del artículo «Herencia en Java — práctica con una nómina, unas figuras y dos tipos de cuenta (y el saldo que hice public para que compilara)» — https://sergiolearns.com/herencia-en-java-practica/
+// Del artículo «Herencia en Java — práctica con una nómina, unas figuras en tres pisos y dos tipos de cuenta (y el saldo que hice public para que compilara)» — https://sergiolearns.com/herencia-en-java-practica/
 
 public class EmpleadoFijo extends Empleado {
 
@@ -8,14 +8,14 @@ public class EmpleadoFijo extends Empleado {
     private final int anios;
 
     public EmpleadoFijo(String nombre, double sueldoBase, int anios) {
-        super(nombre);
+        super(nombre);                                 // el nombre lo guarda Empleado
         this.sueldoBase = sueldoBase;
         this.anios = anios;
     }
 
     @Override
     public double salarioMensual() {
-        int trienios = anios / 3;                     // división entera: 7 años = 2 trienios
+        int trienios = anios / 3;                      // división entera: 7 años = 2 trienios
         return sueldoBase + trienios * PLUS_TRIENIO;
     }
 

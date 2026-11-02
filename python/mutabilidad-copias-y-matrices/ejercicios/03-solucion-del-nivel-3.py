@@ -1,5 +1,5 @@
-# Solución del Nivel 3
-# Del artículo «Mutabilidad, copias y matrices en Python — ejercicios con una lista de la compra, un ticket y un stock de almacenes (y el producto que zip se comió)»
+# Solución del Nivel 3 · El stock de tres almacenes
+# Del artículo «Mutabilidad, copias y matrices en Python — ejercicios con una lista de la compra, un ticket y el stock de tres almacenes (y el producto que zip se comió)»
 # https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-ejercicios/
 
 STOCK = [
@@ -10,20 +10,23 @@ STOCK = [
 
 
 def totales_por_almacen(stock):
+    """Suma de cada fila."""
     return [sum(fila) for fila in stock]
 
 
 def totales_por_producto(stock):
+    """Suma de cada columna: se recorren los índices de columna."""
     return [sum([fila[j] for fila in stock]) for j in range(len(stock[0]))]
 
 
 def transponer(stock):
+    """Filas y columnas intercambiadas: cada columna pasa a ser una fila."""
     return [[fila[j] for fila in stock] for j in range(len(stock[0]))]
 
 
 def reponer(stock, almacen, cantidad):
     """Devuelve un stock NUEVO con 'cantidad' unidades más de cada producto en ese almacén."""
-    nuevo = [fila[:] for fila in stock]
+    nuevo = [fila[:] for fila in stock]     # copia fila a fila: el original no se toca
     nuevo[almacen] = [unidades + cantidad for unidades in nuevo[almacen]]
     return nuevo
 

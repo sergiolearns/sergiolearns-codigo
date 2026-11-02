@@ -1,5 +1,5 @@
 # Programa 2 · Un carrito que cambia
-# Del artículo «Mutabilidad, copias y matrices en Python — práctica con un ticket de compra, un carrito que cambia y una tabla de precios (y la lista ordenada que era None)»
+# Del artículo «Mutabilidad, copias y matrices en Python — práctica con un ticket con IGIC, un carrito que cambia y una tabla de precios (y la lista ordenada que era None)»
 # https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-practica/
 
 def anadir(carrito, producto, precio):
@@ -12,7 +12,7 @@ def quitar(carrito, producto):
     for pos, (nombre, precio) in enumerate(carrito):
         if nombre == producto:
             carrito.pop(pos)
-            return True
+            return True                     # paramos YA: la lista acaba de cambiar
     return False
 
 
@@ -36,10 +36,10 @@ print(carrito)
 
 rebajado = con_descuento(carrito, 0.20)
 print(rebajado)
-print(carrito)
+print(carrito)                              # el original, intacto
 print(f"Total: {total(carrito):.2f} € -> {total(rebajado):.2f} €")
 
 precios = [precio for nombre, precio in carrito]
-ordenados = sorted(precios, reverse=True)
+ordenados = sorted(precios, reverse=True)   # sorted DEVUELVE una lista nueva
 print("Precios de mayor a menor:", ordenados)
 print("Lista original:", precios)

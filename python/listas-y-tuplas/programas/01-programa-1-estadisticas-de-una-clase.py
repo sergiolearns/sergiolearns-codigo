@@ -1,5 +1,5 @@
 # Programa 1 · Estadísticas de una clase
-# Del artículo «Listas y tuplas en Python — práctica con estadísticas de clase, un buscador de alumnos y medias móviles (y la nota mínima que era un cero que nadie había sacado)»
+# Del artículo «Listas y tuplas en Python — práctica con las estadísticas de la clase, un buscador de alumnos y medias móviles (y la nota mínima que era un cero que nadie había sacado)»
 # https://sergiolearns.com/listas-y-tuplas-en-python-practica/
 
 ALUMNOS = [
@@ -14,18 +14,18 @@ APROBADO = 5.0
 
 
 def media(alumnos):
-    """Media de las notas de la clase."""
+    """Media de las notas de la clase (acumulador)."""
     acumulador = 0
-    for nombre, nota in alumnos:
+    for nombre, nota in alumnos:        # desempaquetamos cada tupla
         acumulador += nota
     return acumulador / len(alumnos)
 
 
 def mejor(alumnos):
     """Alumno con la nota más alta (el primero si hay empate)."""
-    candidato = alumnos[0]
+    candidato = alumnos[0]              # el primer alumno, no un valor inventado
     for alumno in alumnos:
-        if alumno[1] > candidato[1]:
+        if alumno[1] > candidato[1]:    # > estricto: en un empate gana el que ya estaba
             candidato = alumno
     return candidato
 
@@ -40,7 +40,7 @@ def peor(alumnos):
 
 
 def contar_aprobados(alumnos):
-    """Cuántos alumnos llegan al aprobado."""
+    """Cuántos alumnos llegan al aprobado (contador selectivo)."""
     contador = 0
     for nombre, nota in alumnos:
         if nota >= APROBADO:
@@ -48,7 +48,7 @@ def contar_aprobados(alumnos):
     return contador
 
 
-nombre_mejor, nota_mejor = mejor(ALUMNOS)
+nombre_mejor, nota_mejor = mejor(ALUMNOS)   # mejor() devuelve una tupla: la desempaquetamos
 nombre_peor, nota_peor = peor(ALUMNOS)
 
 print(f"Alumnos: {len(ALUMNOS)}")

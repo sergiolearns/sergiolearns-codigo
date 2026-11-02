@@ -1,14 +1,18 @@
-// Del artículo «Herencia en Java — práctica con una nómina, unas figuras y dos tipos de cuenta (y el saldo que hice public para que compilara)» — https://sergiolearns.com/herencia-en-java-practica/
+// Del artículo «Herencia en Java — práctica con una nómina, unas figuras en tres pisos y dos tipos de cuenta (y el saldo que hice public para que compilara)» — https://sergiolearns.com/herencia-en-java-practica/
 
 public class Cuenta {
 
     private final String titular;
-    protected double saldo;                           // las hijas necesitan tocarlo
+    protected double saldo;                            // las hijas necesitan tocarlo
 
     public Cuenta(String titular, double saldoInicial) {
         this.titular = titular;
         this.saldo = saldoInicial;
     }
+
+    public String getTitular() { return titular; }
+
+    public double getSaldo() { return saldo; }
 
     public void ingresar(double cantidad) {
         if (cantidad > 0) saldo += cantidad;
@@ -20,8 +24,6 @@ public class Cuenta {
         saldo -= cantidad;
         return true;
     }
-
-    public double getSaldo() { return saldo; }
 
     @Override
     public String toString() {

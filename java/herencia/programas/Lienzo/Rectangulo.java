@@ -1,4 +1,4 @@
-// Del artículo «Herencia en Java — práctica con una nómina, unas figuras y dos tipos de cuenta (y el saldo que hice public para que compilara)» — https://sergiolearns.com/herencia-en-java-practica/
+// Del artículo «Herencia en Java — práctica con una nómina, unas figuras en tres pisos y dos tipos de cuenta (y el saldo que hice public para que compilara)» — https://sergiolearns.com/herencia-en-java-practica/
 
 public class Rectangulo extends Figura {
 
@@ -6,11 +6,11 @@ public class Rectangulo extends Figura {
     private final double altura;
 
     public Rectangulo(double base, double altura) {
-        this("Rectángulo", base, altura);             // reutiliza el constructor de abajo
+        this("Rectángulo", base, altura);              // reutiliza el constructor de abajo
     }
 
     protected Rectangulo(String nombre, double base, double altura) {
-        super(nombre);
+        super(nombre);                                 // el nombre lo guarda Figura
         this.base = base;
         this.altura = altura;
     }

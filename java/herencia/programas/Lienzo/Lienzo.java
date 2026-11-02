@@ -1,15 +1,16 @@
 /*
  * Programa 2: un lienzo de figuras con herencia en varios niveles
- * Del artículo «Herencia en Java — práctica con una nómina, unas figuras y dos tipos de cuenta (y el saldo que hice public para que compilara)»
+ * Del artículo «Herencia en Java — práctica con una nómina, unas figuras en tres pisos y dos tipos de cuenta (y el saldo que hice public para que compilara)»
  * https://sergiolearns.com/herencia-en-java-practica/
  */
 
 public class Lienzo {
 
+    // Recibe figuras de cualquier tipo: solo usa lo que tiene toda Figura
     public static Figura mayor(Figura[] figuras) {
-        Figura max = figuras[0];
+        Figura max = figuras[0];                       // candidato: la primera
         for (Figura f : figuras) {
-            if (f.area() > max.area()) max = f;       // polimorfismo: cada una calcula su área
+            if (f.area() > max.area()) max = f;        // polimorfismo: cada una calcula su área
         }
         return max;
     }
@@ -24,7 +25,7 @@ public class Lienzo {
 
         double areaTotal = 0;
         for (Figura f : figuras) {
-            System.out.println(f);
+            System.out.println(f);                     // el toString de Figura
             areaTotal += f.area();
         }
         System.out.printf("Área total: %.2f%n", areaTotal);
@@ -32,7 +33,7 @@ public class Lienzo {
 
         int rectangulares = 0;
         for (Figura f : figuras) {
-            if (f instanceof Rectangulo) rectangulares++;
+            if (f instanceof Rectangulo) rectangulares++;   // ¿y el cuadrado?
         }
         System.out.println("Rectangulares: " + rectangulares);
     }

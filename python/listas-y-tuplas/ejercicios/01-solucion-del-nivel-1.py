@@ -1,4 +1,4 @@
-# Solución del Nivel 1
+# Solución del Nivel 1 · Recortes de una lista de notas
 # Del artículo «Listas y tuplas en Python — ejercicios con recortes, un resumen de clase y aprobados contra suspensos (y la tupla de seis elementos que solo tenía uno)»
 # https://sergiolearns.com/listas-y-tuplas-en-python-ejercicios/
 

@@ -1,5 +1,5 @@
-# Solución del Nivel 2
-# Del artículo «Mutabilidad, copias y matrices en Python — ejercicios con una lista de la compra, un ticket y un stock de almacenes (y el producto que zip se comió)»
+# Solución del Nivel 2 · El ticket de la compra
+# Del artículo «Mutabilidad, copias y matrices en Python — ejercicios con una lista de la compra, un ticket y el stock de tres almacenes (y el producto que zip se comió)»
 # https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-ejercicios/
 
 def ticket(precios, cantidades):

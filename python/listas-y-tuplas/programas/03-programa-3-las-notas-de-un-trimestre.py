@@ -1,5 +1,5 @@
 # Programa 3 · Las notas de un trimestre
-# Del artículo «Listas y tuplas en Python — práctica con estadísticas de clase, un buscador de alumnos y medias móviles (y la nota mínima que era un cero que nadie había sacado)»
+# Del artículo «Listas y tuplas en Python — práctica con las estadísticas de la clase, un buscador de alumnos y medias móviles (y la nota mínima que era un cero que nadie había sacado)»
 # https://sergiolearns.com/listas-y-tuplas-en-python-practica/
 
 NOTAS = [6.2, 7.4, 5.6, 8.1, 9.3, 7.8, 6.6]
@@ -16,9 +16,9 @@ def media(tramo):
 
 def medias_moviles(notas, ventana):
     """Media de cada grupo de 'ventana' notas seguidas."""
-    resultado = []
-    for inicio in range(len(notas) - ventana + 1):
-        tramo = notas[inicio:inicio + ventana]
+    resultado = []                                  # el neutro de la concatenación
+    for inicio in range(len(notas) - ventana + 1):  # 7 notas, ventana 3: inicios 0..4
+        tramo = notas[inicio:inicio + ventana]      # 3 notas seguidas
         resultado = resultado + [round(media(tramo), 2)]
     return resultado
 
@@ -26,7 +26,7 @@ def medias_moviles(notas, ventana):
 def contar_mejoras(notas):
     """Cuántas veces una nota supera a la anterior."""
     contador = 0
-    for pos in range(1, len(notas)):
+    for pos in range(1, len(notas)):                # la 0 no tiene anterior
         if notas[pos] > notas[pos - 1]:
             contador += 1
     return contador
@@ -34,7 +34,7 @@ def contar_mejoras(notas):
 
 def redondear_en_sitio(notas):
     """Redondea cada nota a un entero, modificando la propia lista."""
-    for pos in range(len(notas)):
+    for pos in range(len(notas)):                   # por índice: así sí cambia la lista
         notas[pos] = round(notas[pos])
 
 

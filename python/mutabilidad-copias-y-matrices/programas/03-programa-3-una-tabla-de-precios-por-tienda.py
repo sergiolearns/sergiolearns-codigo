@@ -1,5 +1,5 @@
 # Programa 3 · Una tabla de precios por tienda
-# Del artículo «Mutabilidad, copias y matrices en Python — práctica con un ticket de compra, un carrito que cambia y una tabla de precios (y la lista ordenada que era None)»
+# Del artículo «Mutabilidad, copias y matrices en Python — práctica con un ticket con IGIC, un carrito que cambia y una tabla de precios (y la lista ordenada que era None)»
 # https://sergiolearns.com/mutabilidad-copias-y-matrices-en-python-practica/
 
 TIENDAS = ["Mercado", "Súper", "Online"]
@@ -17,7 +17,7 @@ for tienda, fila in zip(TIENDAS, PRECIOS):
 # Producto a producto: la tienda más barata (recorrido por columnas)
 for j, producto in enumerate(PRODUCTOS):
     columna = [fila[j] for fila in PRECIOS]
-    barata = columna.index(min(columna))
+    barata = columna.index(min(columna))    # la posición del mínimo = la de la tienda
     print(producto, "->", TIENDAS[barata], min(columna))
 
 # Una tabla nueva con un 10 % de descuento (comprehension dentro de otra)
