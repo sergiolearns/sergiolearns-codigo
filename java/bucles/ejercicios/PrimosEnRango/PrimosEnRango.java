@@ -1,59 +1,56 @@
 /*
- * Solución Ejercicio 3
- * Del artículo «Bucles en Java — ejercicios con vocales, notas y el bucle que se me colgó a mí»
+ * Solución del ejercicio 3: números primos en un rango
+ * Del artículo «Bucles en Java — ejercicios con vocales, notas hasta el -1 y primos en un rango (y el bucle que se me colgó a mí)»
  * https://sergiolearns.com/bucles-en-java-ejercicios/
  */
-
 import java.util.Scanner;
 
+/**
+ * Primos en un rango: el bucle de fuera recorre los números y el de dentro busca un divisor
+ * hasta la raíz cuadrada (d * d <= n), cortando con break en cuanto lo encuentra.
+ */
 public class PrimosEnRango {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         System.out.println("=== NÚMEROS PRIMOS EN UN RANGO ===");
         System.out.print("Desde: ");
-        int inicio = sc.nextInt();
+        int desde = sc.nextInt();
         System.out.print("Hasta: ");
-        int fin = sc.nextInt();
+        int hasta = sc.nextInt();
 
-        // Cortamos aquí mismo si el rango no tiene sentido
-        if (inicio > fin) {
-            System.out.println("✗ El inicio no puede ser mayor que el fin");
-            sc.close();
+        if (desde > hasta) {
+            System.out.println("Rango no válido: «desde» tiene que ser menor o igual que «hasta».");
             return;
         }
-
-        System.out.println();
-        System.out.println("--- Primos encontrados ---");
-        int totalPrimos = 0;
-
-        // Bucle de fuera: recorre cada número del rango
-        for (int numero = inicio; numero <= fin; numero++) {
-            // El 1 no cuenta como primo por convención, así que lo saltamos
-            if (numero < 2) {
-                continue;
-            }
-
-            boolean esPrimo = true;
-
-            // Bucle de dentro: busca un divisor de "numero"
-            // Basta con llegar hasta su raíz cuadrada — si no hay divisor
-            // hasta ahí, tampoco lo habrá más allá
-            for (int divisor = 2; divisor <= Math.sqrt(numero); divisor++) {
-                if (numero % divisor == 0) {
-                    esPrimo = false;
-                    break;    // ya sabemos que no es primo, no hace falta seguir
-                }
-            }
-
-            if (esPrimo) {
-                System.out.println(numero);
-                totalPrimos++;
-            }
+        if (desde < 2) {
+            desde = 2;                                    // ni el 0 ni el 1 son primos: se empieza en 2
         }
 
-        System.out.println("Total: " + totalPrimos + " primos");
-
+        System.out.println("--- Primos encontrados ---");
+        int total = 0, divisiones = 0;
+        String fila = "";
+        for (int n = desde; n <= hasta; n++) {            // bucle de fuera: cada candidato
+            boolean esPrimo = true;                       // se reinicia en CADA candidato
+            for (int d = 2; d * d <= n; d++) {            // bucle de dentro: divisores hasta la raíz
+                divisiones++;
+                if (n % d == 0) {
+                    esPrimo = false;
+                    break;                                // sale solo del bucle de dentro
+                }
+            }
+            if (esPrimo) {
+                total++;
+                fila += n + " ";
+                if (total % 5 == 0) {                     // cada 5 primos, una línea
+                    System.out.println(fila.trim());
+                    fila = "";
+                }
+            }
+        }
+        if (!fila.isEmpty()) {
+            System.out.println(fila.trim());              // la última línea, si quedó a medias
+        }
+        System.out.println("Total: " + total + " primos (" + divisiones + " divisiones)");
         sc.close();
     }
 }

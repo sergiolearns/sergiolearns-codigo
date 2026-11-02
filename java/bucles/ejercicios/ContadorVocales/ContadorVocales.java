@@ -1,60 +1,49 @@
 /*
- * Solución Ejercicio 1
- * Del artículo «Bucles en Java — ejercicios con vocales, notas y el bucle que se me colgó a mí»
+ * Solución del ejercicio 1: contador de vocales
+ * Del artículo «Bucles en Java — ejercicios con vocales, notas hasta el -1 y primos en un rango (y el bucle que se me colgó a mí)»
  * https://sergiolearns.com/bucles-en-java-ejercicios/
  */
-
 import java.util.Scanner;
 
+/**
+ * Contador de vocales: un for recorre la frase y un switch suma a la vocal que toque.
+ * Las vocales con tilde cuentan como su vocal (á → a) y da igual la mayúscula.
+ */
 public class ContadorVocales {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         System.out.println("=== CONTADOR DE VOCALES ===");
         System.out.print("Palabra o frase: ");
-        String texto = sc.nextLine();
+        String texto = sc.nextLine().toLowerCase();       // una sola conversión, fuera del bucle
 
-        // Un contador por cada vocal — todos arrancan en 0
-        int contA = 0, contE = 0, contI = 0, contO = 0, contU = 0;
-
-        // Recorremos el texto carácter a carácter
-        for (int i = 0; i < texto.length(); i++) {
-            // toLowerCase evita tener que comparar mayúscula y minúscula por separado
-            char c = Character.toLowerCase(texto.charAt(i));
-
-            // switch sobre un char funciona igual que sobre un int o un String
-            switch (c) {
-                case 'a':
-                    contA++;
-                    break;
-                case 'e':
-                    contE++;
-                    break;
-                case 'i':
-                    contI++;
-                    break;
-                case 'o':
-                    contO++;
-                    break;
-                case 'u':
-                    contU++;
-                    break;
-                // si no es ninguna vocal, no hacemos nada — no hace falta default
+        int a = 0, e = 0, i = 0, o = 0, u = 0;            // un contador por vocal, todos a 0
+        for (int k = 0; k < texto.length(); k++) {        // k: la i ya es el contador de la vocal i
+            switch (texto.charAt(k)) {
+                case 'a', 'á' -> a++;
+                case 'e', 'é' -> e++;
+                case 'i', 'í' -> i++;
+                case 'o', 'ó' -> o++;
+                case 'u', 'ú', 'ü' -> u++;
+                default -> { }                            // consonantes, espacios, dígitos: nada
             }
         }
-
-        // El total es la suma de los cinco contadores individuales
-        int total = contA + contE + contI + contO + contU;
-
-        System.out.println();
+        int total = a + e + i + o + u;
         System.out.println("--- Resultado ---");
+        System.out.println("a: " + a + "  e: " + e + "  i: " + i + "  o: " + o + "  u: " + u);
         System.out.println("Total de vocales: " + total);
-        System.out.println("a: " + contA);
-        System.out.println("e: " + contE);
-        System.out.println("i: " + contI);
-        System.out.println("o: " + contO);
-        System.out.println("u: " + contU);
 
+        if (total == 0) {
+            System.out.println("No hay vocales.");
+        } else {
+            // La más repetida: se empieza suponiendo la a y se compara con las demás (> y no >=: en empate gana la primera)
+            char masRepetida = 'a';
+            int maximo = a;
+            if (e > maximo) { masRepetida = 'e'; maximo = e; }
+            if (i > maximo) { masRepetida = 'i'; maximo = i; }
+            if (o > maximo) { masRepetida = 'o'; maximo = o; }
+            if (u > maximo) { masRepetida = 'u'; maximo = u; }
+            System.out.println("La más repetida: " + masRepetida + " (" + maximo + " veces)");
+        }
         sc.close();
     }
 }

@@ -1,30 +1,30 @@
 /*
- * Bucles en Java práctica — Programa 1: Analizador de texto
- * Del artículo «Bucles en Java — práctica con texto, estadísticas y patrones»
+ * Programa 1: analizador de texto
+ * Del artículo «Bucles en Java — práctica con un analizador de texto, el adivino que por fin repite y un generador de patrones (y la vuelta de más que me tumbó el programa)»
  * https://sergiolearns.com/bucles-en-java-practica/
  */
-
 import java.util.Scanner;
 
+/**
+ * Analizador de texto: recorre una frase carácter a carácter con for e índice y con for-each,
+ * cuenta lo que hay y mira si es un palíndromo comparando desde los dos extremos.
+ */
 public class AnalizadorTexto {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         System.out.println("=== ANALIZADOR DE TEXTO ===");
-        System.out.println();
-
-        System.out.print("Escribe una frase: ");
+        System.out.print("Frase: ");
         String frase = sc.nextLine();
 
-        // FORMA 1 — con charAt() y un for con índice
-        // Es la más directa cuando necesitas saber también la posición
-        int letras = 0, digitos = 0, espacios = 0, mayusculas = 0;
-
-        for (int i = 0; i < frase.length(); i++) {
-            char c = frase.charAt(i);    // el carácter en la posición i
-
+        // 1. Contadores: todos empiezan en 0 y cada vuelta suma donde toque
+        int letras = 0, vocales = 0, digitos = 0, espacios = 0, mayusculas = 0;
+        for (int i = 0; i < frase.length(); i++) {        // < y no <=: la última posición es length() - 1
+            char c = frase.charAt(i);
             if (Character.isLetter(c)) {
                 letras++;
+                if ("aeiouáéíóúAEIOUÁÉÍÓÚ".indexOf(c) >= 0) {   // ¿está c en la lista de vocales?
+                    vocales++;
+                }
                 if (Character.isUpperCase(c)) {
                     mayusculas++;
                 }
@@ -34,38 +34,36 @@ public class AnalizadorTexto {
                 espacios++;
             }
         }
+        System.out.println("Caracteres: " + frase.length());
+        System.out.println("Letras: " + letras + " (vocales: " + vocales + ", mayúsculas: " + mayusculas + ")");
+        System.out.println("Dígitos: " + digitos + ", espacios: " + espacios);
 
-        // FORMA 2 — con toCharArray() y for-each
-        // Más limpia cuando solo te interesa el carácter, no su posición
-        int vocales = 0;
+        // 2. Al revés: recorrer de la última posición a la 0
+        String alReves = "";
+        for (int i = frase.length() - 1; i >= 0; i--) {
+            alReves += frase.charAt(i);
+        }
+        System.out.println("Al revés: " + alReves);
+
+        // 3. Palíndromo: primero solo letras y en minúscula (for-each: aquí no hace falta la posición)
+        String limpia = "";
         for (char c : frase.toLowerCase().toCharArray()) {
-            // toLowerCase() antes de comparar — así "A" y "a" cuentan igual
-            if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
-                vocales++;
+            if (Character.isLetter(c)) {
+                limpia += c;
             }
         }
-
-        System.out.println();
-        System.out.println("--- Resultado ---");
-        System.out.printf("Longitud total:  %d caracteres%n", frase.length());
-        System.out.printf("Letras:          %d%n", letras);
-        System.out.printf("  De las cuales, mayúsculas: %d%n", mayusculas);
-        System.out.printf("Vocales:         %d%n", vocales);
-        System.out.printf("Dígitos:         %d%n", digitos);
-        System.out.printf("Espacios:        %d%n", espacios);
-
-        // Palíndromo — comprobamos leyendo desde los dos extremos a la vez
-        String limpio = frase.toLowerCase().replace(" ", "");
-        boolean esPalindromo = true;
-        for (int i = 0; i < limpio.length() / 2; i++) {
-            // Comparamos el carácter i-ésimo desde el principio con el i-ésimo desde el final
-            if (limpio.charAt(i) != limpio.charAt(limpio.length() - 1 - i)) {
-                esPalindromo = false;
-                break;    // en cuanto encontramos una diferencia, no hace falta seguir
+        // Dos índices que se acercan: i desde el principio, j desde el final. Basta con llegar a la mitad.
+        boolean palindromo = true;
+        int comparaciones = 0;
+        for (int i = 0, j = limpia.length() - 1; i < j; i++, j--) {
+            comparaciones++;
+            if (limpia.charAt(i) != limpia.charAt(j)) {
+                palindromo = false;
+                break;                                    // en cuanto falla una pareja, ya no lo es
             }
         }
-        System.out.printf("¿Es palíndromo?  %s%n", esPalindromo ? "Sí" : "No");
-
+        System.out.println("Solo letras: " + limpia + " (" + limpia.length() + ")");
+        System.out.println("¿Palíndromo? " + (palindromo ? "sí" : "no") + " (parejas comparadas: " + comparaciones + ")");
         sc.close();
     }
 }
