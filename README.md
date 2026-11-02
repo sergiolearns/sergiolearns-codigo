@@ -55,7 +55,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 | [`comparable-y-cloneable/`](java/comparable-y-cloneable) | Comparable y cloneable | [2](https://sergiolearns.com/comparable-y-cloneable-en-java-practica/) | [3](https://sergiolearns.com/comparable-y-cloneable-en-java-ejercicios/) |
 | [`iteradores/`](java/iteradores) | Iteradores | [3](https://sergiolearns.com/iteradores-en-java-practica/) | [2](https://sergiolearns.com/iteradores-en-java-ejercicios/) |
 | [`colecciones/`](java/colecciones) | Colecciones | [3](https://sergiolearns.com/colecciones-en-java-practica/) | [2](https://sergiolearns.com/colecciones-en-java-ejercicios/) |
-| [`linkedlist/`](java/linkedlist) | LinkedList (estructuras encadenadas) | 3 | 3 |
+| [`linkedlist/`](java/linkedlist) | LinkedList (estructuras encadenadas) | [3](https://sergiolearns.com/linkedlist-en-java-practica/) | [3](https://sergiolearns.com/linkedlist-en-java-ejercicios/) |
 | [`expresiones-regulares/`](java/expresiones-regulares) | Expresiones regulares | [3](https://sergiolearns.com/expresiones-regulares-en-java-practica/) | [3](https://sergiolearns.com/expresiones-regulares-en-java-ejercicios/) |
 | [`examenes/fp2/`](java/examenes/fp2) | Simulacro del examen práctico de FP2 (soluciones de Java de las versiones A, B y C: examen 3 de estructuras encadenadas y la parte de Java de la extraordinaria; cada carpeta con su `Pruebas.java` y sus clases dadas, `javac *.java`) | — | [6](https://sergiolearns.com/simulacro-examen-fp2-practica/) |
 ### C · IC2
