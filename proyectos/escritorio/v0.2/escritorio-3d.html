@@ -1,0 +1,2148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escritorio 3D de SergioLearns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js" } }
+</script>
+<style>
+/* v0.2 · Una habitación de noche vista desde la silla. Fuera del PC no hay interfaz: solo el punto. */
+:root{
+  --ink:#1E1B2E; --ink-2:#2A2640; --ink-3:#141221; --line:#3A3552;
+  --violet:#5B4BDB; --violet-l:#A99EF5; --coral:#FF6B4A; --coral-l:#FF9B80;
+  --cream:#FAFAF7; --text:#E8E6F5; --muted:#C9C5DC; --ok:#5BD39A; --err:#FF8A7A; --amber:#F5C06B;
+  --f-display:'Space Grotesk','Segoe UI',system-ui,sans-serif;
+  --f-body:Inter,'Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,'Cascadia Mono',Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--ink-3);color:var(--text);font-family:var(--f-body);overflow:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:none;outline:none}
+code,.mono{font-family:var(--f-mono);font-variant-ligatures:none}
+/* el punto (E03): cambia de forma según la acción */
+#punto{position:fixed;left:0;top:0;z-index:9;pointer-events:none;width:0;height:0;transition:opacity .2s}
+#punto .ico{position:absolute;left:-14px;top:-14px;width:28px;height:28px;display:grid;place-items:center;transition:transform .16s cubic-bezier(.2,.9,.3,1.3)}
+#punto svg{width:24px;height:24px;overflow:visible}
+#punto .dot{width:7px;height:7px;border-radius:50%;background:var(--cream);box-shadow:0 0 0 2px rgba(20,18,33,.55)}
+#punto .nombre{position:absolute;left:18px;top:10px;white-space:nowrap;font:500 12px/1 var(--f-body);color:var(--cream);text-shadow:0 1px 3px rgba(0,0,0,.8);opacity:0;transform:translateY(3px);transition:opacity .25s,transform .25s}
+#punto.con-nombre .nombre{opacity:.92;transform:none}
+#punto.oculto{opacity:0}
+/* velo de inspección: la habitación se oscurece alrededor del objeto */
+#velo{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(20,18,33,0) 30%,rgba(20,18,33,.72) 100%);opacity:0;transition:opacity .45s}
+#velo.on{opacity:1}
+/* recordatorio de teclas, solo las dos primeras veces que se inspecciona */
+#teclas{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:4;display:flex;gap:18px;font:500 13px var(--f-body);color:var(--muted);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}
+#teclas.on{opacity:1}
+#teclas kbd{display:inline-block;min-width:24px;padding:2px 7px;margin-right:6px;border:1px solid rgba(201,197,220,.5);border-bottom-width:2px;border-radius:6px;font:600 12px var(--f-mono);font-variant-ligatures:none;color:var(--cream);text-align:center}
+/* accesibilidad (E20): invisible hasta que se usa el teclado */
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#saltar{position:fixed;left:16px;top:16px;z-index:40;padding:10px 14px;border-radius:10px;background:var(--ink);color:var(--text);font:500 14px var(--f-body);box-shadow:0 0 0 2px var(--coral);text-decoration:none;transform:translateY(-200%)}
+#saltar:focus{transform:none;outline:none}
+#objetos button{all:unset}
+#etiqueta{position:fixed;z-index:8;pointer-events:none;transform:translate(-50%,-140%);padding:6px 10px;border-radius:8px;background:rgba(20,18,33,.86);box-shadow:0 0 0 2px var(--coral);font:500 13px var(--f-body);color:var(--cream);white-space:nowrap}
+:focus-visible{outline:2px solid var(--coral);outline-offset:3px}
+#entrada{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0}
+#carga{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--ink-3);font:500 15px var(--f-body);color:var(--muted);transition:opacity .6s}
+#carga.fuera{opacity:0;pointer-events:none}
+#sin3d{position:fixed;inset:0;z-index:31;display:grid;place-items:center;padding:24px;background:var(--ink);font:400 15px/1.7 var(--f-body)}
+#sin3d a{color:var(--violet-l)}
+/* SergioLearns OS (mundo virtual: aquí sí hay terminal). Se rehace en la v0.3 */
+#os{position:fixed;inset:0;z-index:20;background:var(--ink-3);overflow:hidden;transform-origin:50% 50%;cursor:default}
+#os.on{animation:crtOn .55s cubic-bezier(.2,.8,.2,1)}
+#os.off{animation:crtOff .45s ease-in forwards}
+@keyframes crtOn{0%{transform:scale(1,.004);filter:brightness(3)}45%{transform:scale(1,.004)}100%{transform:scale(1,1);filter:brightness(1)}}
+@keyframes crtOff{0%{transform:scale(1,1)}55%{transform:scale(1,.004);filter:brightness(2.5)}100%{transform:scale(0,.004);filter:brightness(4)}}
+#wall{position:absolute;inset:0;width:100%;height:100%}
+.os-bar{position:absolute;left:0;right:0;top:0;height:44px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(20,18,33,.9);border-bottom:1px solid var(--line);font:600 13px var(--f-mono);font-variant-ligatures:none}
+.os-bar .clock{color:var(--muted);font-weight:400}
+.dock{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:6px;background:rgba(20,18,33,.9);border:1px solid var(--line);border-radius:20px;padding:8px 10px;max-width:calc(100vw - 32px);overflow-x:auto}
+.dock button{background:none;border:1px solid transparent;border-radius:14px;padding:8px 10px;min-width:70px;min-height:56px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:var(--text);font:500 11px var(--f-mono);font-variant-ligatures:none;transition:transform .18s cubic-bezier(.2,.9,.3,1.3)}
+.dock button:hover,.dock button:focus-visible{transform:translateY(-6px) scale(1.12);border-color:var(--coral)}
+.dock svg{width:26px;height:26px;stroke:var(--text);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.win{position:absolute;width:min(640px,calc(100vw - 32px));background:var(--ink-2);border-radius:14px;box-shadow:0 0 0 1px rgba(255,107,74,.45),0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:winIn .3s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes winIn{from{opacity:0;transform:scale(.9) translateY(14px)}to{opacity:1;transform:none}}
+.win-bar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;background:var(--ink);cursor:grab;font:600 13px var(--f-mono);font-variant-ligatures:none;touch-action:none;user-select:none}
+.win-bar button{background:none;border:0;cursor:pointer;color:var(--muted);padding:6px 10px;min-height:32px;font:600 12px var(--f-mono)}
+.win-bar button:hover{color:var(--coral-l)}
+.win-body{padding:16px 18px;font:400 14px/1.65 var(--f-mono);font-variant-ligatures:none;max-height:min(56vh,460px);overflow:auto;white-space:normal}
+.win-body a{color:var(--violet-l)}
+.win-body pre{margin:0;white-space:pre-wrap;font:inherit}
+.term-line{white-space:pre-wrap}
+.term-in{display:flex;gap:8px;align-items:center;margin-top:6px}
+.term-in label{color:var(--violet-l);white-space:nowrap}
+.term-in input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font:400 14px var(--f-mono);font-variant-ligatures:none;caret-color:var(--coral)}
+.c-ok{color:var(--ok)}.c-err{color:var(--err)}.c-cmd{color:var(--violet-l)}.c-dim{color:var(--muted)}.c-num{color:var(--amber)}.c-co{color:var(--coral)}
+.dollar{color:var(--coral)}
+@media (prefers-reduced-motion: reduce){
+  #os.on,#os.off,.win{animation:none}
+  .dock button,#punto .ico,#velo,#teclas{transition:none}
+}
+</style>
+</head>
+<body>
+<a id="saltar" href="https://sergiolearns.com/">Ir a la web normal, sin 3D</a>
+<canvas id="gl" tabindex="-1" aria-label="El escritorio de Sergio en 3D. Usa el tabulador para recorrer los objetos; el manual está en la estantería."></canvas>
+<nav id="objetos" class="sr" aria-label="Objetos de la habitación"></nav>
+<div id="anuncio" class="sr" aria-live="polite"></div>
+<div id="velo"></div>
+<div id="punto" class="oculto" aria-hidden="true"><div class="ico"></div><span class="nombre"></span></div>
+<div id="etiqueta" hidden aria-hidden="true"></div>
+<div id="teclas" aria-hidden="true"></div>
+<input id="entrada" type="text" aria-label="Escribe" autocomplete="off" spellcheck="false">
+<div id="os" hidden role="application" aria-label="SergioLearns OS">
+  <canvas id="wall" aria-hidden="true"></canvas>
+  <div class="os-bar"><span>SergioLearns OS <span class="c-co">v0.2</span></span><span class="clock" id="clock"></span><span class="c-dim">shutdown · Esc</span></div>
+  <div id="wins"></div>
+  <nav class="dock" id="dock" aria-label="Aplicaciones"></nav>
+</div>
+<div id="carga" aria-live="polite">Entrando en la habitación…</div>
+<div id="sin3d" hidden></div>
+<script type="module">
+/* ===================== 01 · núcleo =====================
+   Motor (three.js como módulo), utilidades de geometría y texturas,
+   animaciones (curvas, anim() con promesas y muelles) y el «bus» de eventos
+   con el que se avisan los módulos entre sí. */
+import * as THREE from 'three';
+
+const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const $ = s => document.querySelector(s);
+const VERSION = 'v0.2';
+
+/* ---------- bus: los módulos se avisan sin conocerse ---------- */
+const bus = {
+  oy: {},
+  on(ev, fn) { (this.oy[ev] = this.oy[ev] || []).push(fn); },
+  emit(ev, dato) { (this.oy[ev] || []).forEach(fn => fn(dato)); }
+};
+
+/* ---------- guardado por persona (solo comodidades: puede fallar) ---------- */
+const guardado = {
+  get(k, def) { try { const v = localStorage.getItem('sl-escritorio-' + k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem('sl-escritorio-' + k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento: no pasa nada */ } }
+};
+
+/* ---------- WebGL ---------- */
+const canvas = $('#gl');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+} catch (e) { renderer = null; }
+if (!renderer || !renderer.getContext()) {
+  const fb = $('#sin3d');
+  fb.innerHTML = '<div><p>Este navegador no puede dibujar la habitación en 3D (WebGL).</p>' +
+    '<p>Todo lo que hay en ella está también en la web: <a href="https://sergiolearns.com/aprende/">Aprende</a> · <a href="https://sergiolearns.com/laboratorio/">Laboratorio</a> · <a href="https://sergiolearns.com/universidad/">Universidad</a></p></div>';
+  fb.hidden = false; $('#carga').hidden = true;
+  throw new Error('sin WebGL');
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x141221);
+scene.fog = new THREE.Fog(0x141221, 3.4, 6.5);
+const camera = new THREE.PerspectiveCamera(62, 1, 0.02, 20);
+const BASE = new THREE.Vector3(0, 1.22, 0.55);   // los ojos de alguien sentado
+const MESA_Y = 0.74, PLANO_Y = 0.765;            // tablero de la mesa y plano de trabajo para arrastrar
+
+/* ---------- geometría ---------- */
+function mat(color, o = {}) {
+  return new THREE.MeshStandardMaterial({
+    color, roughness: o.r ?? 0.82, metalness: o.m ?? 0.04,
+    emissive: o.e ?? 0x000000, emissiveIntensity: o.ei ?? 0, map: o.map ?? null,
+    transparent: !!o.t, opacity: o.op ?? 1, side: o.side ?? THREE.FrontSide
+  });
+}
+function box(w, h, d, m, x = 0, y = 0, z = 0, padre = scene) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+  mesh.position.set(x, y, z); padre.add(mesh); return mesh;
+}
+function cyl(rt, rb, h, m, x = 0, y = 0, z = 0, padre = scene, seg = 32) {
+  const mesh = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), m);
+  mesh.position.set(x, y, z); padre.add(mesh); return mesh;
+}
+function plano(w, h, m, x = 0, y = 0, z = 0, rx = 0, ry = 0, padre = scene) {
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+  p.position.set(x, y, z); p.rotation.set(rx, ry, 0); padre.add(p); return p;
+}
+
+/* ---------- texturas dibujadas en un lienzo ---------- */
+const MONO = '"JetBrains Mono", ui-monospace, Consolas, monospace';
+const DISP = '"Space Grotesk", "Segoe UI", sans-serif';
+const BODY = 'Inter, "Segoe UI", sans-serif';
+const MANO = 'Caveat, "Segoe Print", cursive';   // la letra a mano (pizarra, etiquetas de los discos)
+const TEXTURAS = [];   // las que se redibujan cuando cargan las fuentes
+function texFrom(w, h, dibuja) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'); if (dibuja) dibuja(g, w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  t.userData = { canvas: c, g, dibuja };
+  if (dibuja) TEXTURAS.push(t);
+  return t;
+}
+function redibuja(t, dibuja) { const { canvas: c, g } = t.userData; g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, c.width, c.height); g.restore(); (dibuja || t.userData.dibuja)(g, c.width, c.height); t.needsUpdate = true; }
+function rr(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+function wrap(g, texto, x, y, maxW, lh) {
+  const palabras = texto.split(' '); let linea = '';
+  for (const p of palabras) {
+    const t = linea ? linea + ' ' + p : p;
+    if (g.measureText(t).width > maxW && linea) { g.fillText(linea, x, y); linea = p; y += lh; } else linea = t;
+  }
+  if (linea) g.fillText(linea, x, y);
+  return y;
+}
+
+/* ---------- animaciones ---------- */
+// Curvas: reciben el avance x (0 → 1) y devuelven cuánto se ha movido (puede pasar de 1 en las que rebotan)
+const curva = {
+  lineal: x => x,
+  suave: x => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2),   // cúbica de entrada y salida (la de la v0.1)
+  sale: x => 1 - Math.pow(1 - x, 3),                                        // frena al final
+  entra: x => x * x * x,                                                     // arranca despacio
+  retroceso: x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); }, // se pasa y vuelve
+  rebote: x => {                                                             // cae y rebota (disco en la bandeja)
+    const n = 7.5625, d = 2.75;
+    if (x < 1 / d) return n * x * x;
+    if (x < 2 / d) return n * (x -= 1.5 / d) * x + 0.75;
+    if (x < 2.5 / d) return n * (x -= 2.25 / d) * x + 0.9375;
+    return n * (x -= 2.625 / d) * x + 0.984375;
+  }
+};
+const anims = [];
+// anim(duración en ms, función que recibe el avance ya curvado, curva) → promesa que se cumple al terminar
+function anim(dur, fn, ease = curva.suave) {
+  return new Promise(resolve => {
+    const a = { t0: performance.now(), dur: reduced ? Math.min(dur, 1) : dur, fn, ease, resolve, vivo: true };
+    anims.push(a);
+  });
+}
+function espera(ms) { return anim(reduced ? 0 : ms, () => {}); }
+function corrAnims(ahora) {
+  for (let i = anims.length - 1; i >= 0; i--) {
+    const a = anims[i], p = Math.min(1, (ahora - a.t0) / a.dur);
+    a.fn(a.ease(p), p);
+    if (p >= 1) { anims.splice(i, 1); a.resolve(); }
+  }
+}
+// Muelle amortiguado: da «peso» (cajón, objeto que se lleva). F = −k·(x − objetivo) − c·v
+class Muelle {
+  constructor(x = 0, k = 120, c = 16, m = 1) { this.x = x; this.v = 0; this.obj = x; this.k = k; this.c = c; this.m = m; }
+  paso(dt) {
+    if (reduced) { this.x = this.obj; this.v = 0; return this.x; }
+    const sub = Math.ceil(dt / 0.008), h = dt / sub;          // pasos pequeños para que no se vuelva inestable
+    for (let i = 0; i < sub; i++) {
+      const a = (-this.k * (this.x - this.obj) - this.c * this.v) / this.m;
+      this.v += a * h; this.x += this.v * h;                  // Euler semiimplícito: primero la velocidad
+    }
+    return this.x;
+  }
+  quieto() { return Math.abs(this.x - this.obj) < 1e-4 && Math.abs(this.v) < 1e-3; }
+}
+const v3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+
+/* ===================== 02 · datos =====================
+   Lo que hay en la habitación, con datos reales de la web (4 nov 2026).
+   Regla de Sergio (4 nov): fuera del PC todo es físico, sin órdenes de terminal. */
+const LIBROS = [
+  { id: 'fp1', code: 'FP1', curso: 1, name: 'Fundamentos de Programación I', sub: 'Python desde cero', color: '#5B4BDB', estado: 'Completa', url: 'https://sergiolearns.com/asignatura/fp1/',
+    temas: ['Variables y tipos', 'Operadores', 'Condicionales', 'Bucles', 'Funciones', 'Listas y tuplas', 'Strings', 'Diccionarios', 'Ficheros', 'Módulos'],
+    datos: ['43 artículos en cada idioma', 'Teoría, práctica y ejercicios', 'Cuestionario y chuletario por tema'],
+    curiosidad: 'El 2 de noviembre de 2026 terminé de renovar todos los artículos antiguos de la web. Este libro fue el primero en estar completo.' },
+  { id: 'fp2', code: 'FP2', curso: 1, name: 'Fundamentos de Programación II', sub: 'Python y Java con objetos', color: '#4638B8', estado: 'Completa', url: 'https://sergiolearns.com/asignatura/fp2/',
+    temas: ['Clases y objetos', 'Herencia', 'Excepciones', 'Sintaxis de Java', 'Colecciones', 'Iteradores'],
+    datos: ['70 artículos en cada idioma', 'De Python a Java', 'Programas probados con Java 21'],
+    curiosidad: 'Los programas de Java de la web se ejecutan de verdad antes de publicarse: las salidas en español llevan coma decimal y las inglesas, punto.' },
+  { id: 'ic1', code: 'IC1', curso: 1, name: 'IC1', sub: 'Computadores y MIPS', color: '#FF6B4A', estado: 'En curso', url: '',
+    temas: ['MIPS (6 temas, del 20 al 25 nov)', 'Temas de papel (del 27 al 30 nov)', 'Simulacro práctico (26 nov)'],
+    datos: ['Se escribe ahora mismo', 'Guía de la asignatura: 19 nov'],
+    curiosidad: 'Este libro todavía tiene páginas en blanco: se va escribiendo a la vez que el curso.' },
+  { id: 'ic2', code: 'IC2', curso: 1, name: 'IC2', sub: 'C, Linux, redes y procesos', color: '#16794B', estado: 'Completa', url: 'https://sergiolearns.com/asignatura/ic2/',
+    temas: ['C', 'Linux', 'Redes', 'Qué es un sistema operativo', 'Concurrencia', 'Gestión de memoria', 'Memoria virtual', 'Sistemas de archivos'],
+    datos: ['58 artículos en cada idioma', 'Simuladores en el Laboratorio'],
+    curiosidad: 'Con la misma cadena de páginas, FIFO da 11 fallos, LRU 9 y el algoritmo óptimo 7. Está en el tema de memoria virtual.' },
+  { id: 'aedv', code: 'AEDV', curso: 2, name: 'Análisis Exploratorio de Datos y Visualización', sub: '2º curso', color: '#5A566E', estado: 'Pendiente', url: '', temas: [], datos: ['La estoy cursando ahora'], curiosidad: 'Llegará a la web cuando la estudie.' },
+  { id: 'fsi', code: 'FSI', curso: 2, name: 'Fundamentos de los Sistemas Inteligentes', sub: '2º curso', color: '#5A566E', estado: 'Pendiente', url: '', temas: [], datos: ['La estoy cursando ahora'], curiosidad: 'Llegará a la web cuando la estudie.' },
+  { id: 'is', code: 'IS', curso: 2, name: 'Ingeniería del Software', sub: '2º curso', color: '#5A566E', estado: 'Pendiente', url: '', temas: [], datos: ['Idea: un editor UML'], curiosidad: 'Llegará a la web cuando la estudie.' },
+  { id: 'fmcc', code: 'FMCC', curso: 2, name: 'Fundamentos de Marketing y Comportamiento del Consumidor', sub: '2º curso', color: '#5A566E', estado: 'Pendiente', url: '', temas: [], datos: ['La estoy cursando ahora'], curiosidad: 'Llegará a la web cuando la estudie.' },
+  { id: 'hpi', code: 'HPI', curso: 2, name: 'Habilidades Profesionales para Ingenieros', sub: '2º curso', color: '#5A566E', estado: 'Pendiente', url: '', temas: [], datos: ['La estoy cursando ahora'], curiosidad: 'Llegará a la web cuando la estudie.' }
+];
+const CARPETAS = [
+  { id: 'python', nombre: 'Python', n: 61, color: '#5B4BDB', url: 'https://sergiolearns.com/category/programacion/python/', dir: 'sergiolearns.com/category/programacion/python' },
+  { id: 'java', nombre: 'Java', n: 48, color: '#4638B8', url: 'https://sergiolearns.com/category/programacion/java/', dir: 'sergiolearns.com/category/programacion/java' },
+  { id: 'c', nombre: 'C', n: 30, color: '#16794B', url: 'https://sergiolearns.com/category/programacion/c-cat/', dir: 'sergiolearns.com/category/programacion/c-cat' },
+  { id: 'linux', nombre: 'Linux', n: 18, color: '#2F5FD0', url: 'https://sergiolearns.com/category/sistemas/linux/', dir: 'sergiolearns.com/category/sistemas/linux' },
+  { id: 'redes', nombre: 'Redes', n: 6, color: '#D9651C', url: 'https://sergiolearns.com/category/sistemas/redes/', dir: 'sergiolearns.com/category/sistemas/redes' },
+  { id: 'mips', nombre: 'MIPS', n: 0, sale: '20 nov', color: '#FF6B4A', url: '', dir: '' },
+  { id: 'computadores', nombre: 'Computadores', n: 0, sale: '27 nov', color: '#F5A524', url: '', dir: '' }
+];
+// Discos = simulacros de examen (E24). Fechas de publicación reales del calendario de la web.
+const SIMULACROS = [
+  { id: 'fp1', code: 'FP1', color: '#5B4BDB', partes: [['Teoría', '2026-11-17', 'https://sergiolearns.com/simulacro-examen-fp1-teoria/'], ['Práctica', '2026-11-18', 'https://sergiolearns.com/simulacro-examen-fp1-practica/']],
+    reverso: 'Examen real: 8 de enero de 2027.' },
+  { id: 'fp2', code: 'FP2', color: '#4638B8', partes: [['Teoría', '2026-11-14', 'https://sergiolearns.com/simulacro-examen-fp2-teoria/'], ['Práctica', '2026-11-15', 'https://sergiolearns.com/simulacro-examen-fp2-practica/']],
+    reverso: 'Pista: en el ordenador hay un archivo que no se ve a simple vista.' },
+  { id: 'ic2', code: 'IC2', color: '#16794B', partes: [['Teoría', '2026-11-12', 'https://sergiolearns.com/simulacro-examen-ic2-teoria/'], ['Práctica', '2026-11-13', 'https://sergiolearns.com/simulacro-examen-ic2-practica/']],
+    reverso: 'Grabado con los simuladores del Laboratorio.' },
+  { id: 'ic1', code: 'IC1', color: '#FF6B4A', partes: [['Práctica', '2026-11-26', 'https://sergiolearns.com/simulacro-examen-ic1-practica/']],
+    reverso: 'Todavía caliente: el de teoría llegará con los temas de papel.' }
+];
+// USB = simuladores (E24)
+const SIMULADORES = [
+  { id: 'cpu', nombre: 'Planificación de la CPU', corto: 'CPU', cmd: '$ planifica --algoritmo rr --quantum 2', color: '#5B4BDB', url: 'https://sergiolearns.com/laboratorio/simuladores/planificacion-cpu/' },
+  { id: 'pag', nombre: 'Reemplazo de páginas', corto: 'PÁGINAS', cmd: '$ reemplaza --algoritmo lru --marcos 3', color: '#FF6B4A', url: 'https://sergiolearns.com/laboratorio/simuladores/reemplazo-paginas/' },
+  { id: 'sub', nombre: 'Subredes IPv4', corto: 'SUBREDES', cmd: '$ subredes 192.168.10.0/26', color: '#16794B', url: 'https://sergiolearns.com/laboratorio/simuladores/subredes-ipv4/' },
+  { id: 'paq', nombre: 'El viaje de un paquete', corto: 'PAQUETE', cmd: '$ viaja --de portatil --a servidor', color: '#F5A524', url: 'https://sergiolearns.com/laboratorio/simuladores/viaje-paquete/' }
+];
+// El manual (E02, E23): un librito impreso de verdad, sin terminal
+const MANUAL = [
+  { t: 'Manual del escritorio', l: ['Bienvenido a mi mesa.', 'Aquí está todo lo de la carrera,', 'como objetos de verdad.', '', 'No hay botones: se coge, se gira,', 'se arrastra y se suelta.', '', 'Sergio'] },
+  { t: 'Mirar', l: ['Mueve el ratón para mirar.', 'Lleva el ratón al borde de la pantalla', 'para girar del todo (o usa A y D,', 'o las flechas).', '', 'Detrás de ti está la puerta:', 'por ahí se vuelve a la web.', '', 'Esc te devuelve siempre a tu sitio.'] },
+  { t: 'Coger y usar', l: ['Clic en un objeto: lo coges y lo', 'miras de cerca.', 'Arrastra para girarlo; la rueda acerca.', 'Busca detalles: hay curiosidades', 'y alguna pista escondida.', '', 'E: lo usas (abrir, meter, leer).', 'Esc: lo dejas en su sitio.'] },
+  { t: 'Llevar', l: ['Mantén pulsado y arrastra un disco,', 'un USB o una carpeta.', 'Donde encaja, brilla.', 'Suelta y entra solo.', '', 'Discos: simulacros de examen.', 'USB: simuladores.', 'Los dos van a la torre.'] },
+  { t: 'Cada cosa', l: ['Libros: pasa la página arrastrándola.', 'Cajón: tira del tirador.', 'Pizarra: escribe con el rotulador;', 'para responder, toca V o F.', 'Taza: acércala y habla con el vapor.', 'Lámpara: su interruptor está en la base.', 'Monitor: el ordenador, con su LEEME.txt.'] },
+  { t: 'Sin ratón', l: ['Tab: recorre los objetos.', 'Intro: lo coges. E: lo usas.', 'Flechas: giras el objeto o pasas', 'las páginas. V o F: responde', 'en la pizarra. Esc: vuelves.', '', 'La web normal, sin 3D:', 'sergiolearns.com'], enlace: 'https://sergiolearns.com/' }
+];
+const PREGUNTA = { texto: ['En Python,', '3 // 2 vale 1.5'], correcta: 'F', explica: ['// es la división entera:', '3 // 2 da 1. Con / sí da 1.5.'] };
+const EXAMEN = new Date(2027, 0, 8);
+function diasHasta(f) { const t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((f - t) / 86400000); }
+function fechaCorta(iso) { const [y, m, d] = iso.split('-').map(Number); return d + ' ' + ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][m - 1]; }
+function publicado(iso) { const [y, m, d] = iso.split('-').map(Number); return new Date() >= new Date(y, m - 1, d, 9, 0); }
+// Respuestas de ejemplo de la taza (el Sergio Bot de verdad vive en la web)
+const BOT = [
+  [/simulacro|examen/i, 'Los simulacros son los discos del estuche. Mete uno en la torre y el monitor te dice cuándo sale.'],
+  [/fp1|python/i, 'FP1 está completa: 43 artículos con teoría, práctica y ejercicios. Coge el libro violeta de la estantería.'],
+  [/fp2|java/i, 'FP2 también está entera: de Python a Java, con colecciones e iteradores.'],
+  [/ic1|mips/i, 'IC1 se está escribiendo: MIPS sale del 20 al 25 de noviembre.'],
+  [/ic2|linux|redes|memoria/i, 'IC2 está completa. Los simuladores son los USB del portalápices.'],
+  [/hola|buenas|hey/i, 'Hola. Pregúntame por una asignatura o por los simulacros.'],
+  [/gracias/i, 'A ti. Ánimo con el estudio.']
+];
+const BOT_OTRA = 'Eso lo responde mejor el Sergio Bot de la web, que lee los artículos. Está en sergiolearns.com, abajo a la derecha.';
+
+/* ===================== 03 · habitación =====================
+   Lo que no se mueve: paredes (con el hueco de la puerta), mesa, monitor, teclado,
+   torre, lámpara, estantería, póster, marco de la pizarra y la puerta. */
+const wallM = mat(0x221E33), floorM = mat(0x16131F);
+const FONDO = 1.8;   // pared de atrás: 1,25 m detrás de la silla, para que la puerta se vea entera al girarse
+plano(2.45, 3.0, floorM, 0.025, 0, 0.3, -Math.PI / 2);
+plano(2.45, 2.6, wallM, 0.025, 1.3, -1.2);
+plano(3.0, 2.6, wallM, -1.2, 1.3, 0.3, 0, Math.PI / 2);
+plano(3.0, 2.6, wallM, 1.25, 1.3, 0.3, 0, -Math.PI / 2);
+plano(2.45, 3.0, mat(0x1E1B2E), 0.025, 2.6, 0.3, Math.PI / 2);
+// pared de atrás con el hueco de la puerta (x de 0,03 a 0,88; alto 2,0)
+plano(1.23, 2.6, wallM, -0.585, 1.3, FONDO, 0, Math.PI);
+plano(0.37, 2.6, wallM, 1.065, 1.3, FONDO, 0, Math.PI);
+plano(0.85, 0.6, wallM, 0.455, 2.3, FONDO, 0, Math.PI);
+box(2.45, 0.08, 0.01, mat(0x1E1B2E), 0.025, 0.04, -1.19);
+box(2.45, 0.01, 0.005, mat(0xFF6B4A, { e: 0xFF6B4A, ei: 0.35 }), 0.025, 0.95, -1.195);
+
+/* mesa */
+const deskM = mat(0x2E2A42, { r: 0.7 });
+box(1.9, 0.04, 0.75, deskM, 0, 0.72, -0.35);
+[[-0.9, -0.69], [0.9, -0.69], [-0.9, -0.02], [0.9, -0.02]].forEach(p => box(0.04, 0.7, 0.04, mat(0x2E2A42), p[0], 0.35, p[1]));
+box(0.5, 0.1, 0.02, deskM, -0.7, 0.65, 0.015);
+box(0.5, 0.1, 0.02, deskM, 0.7, 0.65, 0.015);
+
+/* monitor */
+const screenTex = texFrom(1024, 592);
+const bezel = box(0.68, 0.41, 0.03, mat(0x1E1B2E, { r: 0.5 }), 0, 1.06, -0.6);
+const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.64, 0.37), new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false }));
+screen.position.set(0, 1.06, -0.584); scene.add(screen);
+box(0.05, 0.24, 0.04, mat(0x5A566E, { r: 0.5, m: 0.3 }), 0, 0.86, -0.63);
+box(0.24, 0.012, 0.16, mat(0x5A566E, { r: 0.5, m: 0.3 }), 0, 0.746, -0.62);
+const screenLight = new THREE.PointLight(0xA99EF5, 1.2, 0, 2); screenLight.position.set(0, 1.06, -0.4); scene.add(screenLight);
+
+/* teclado: una sola malla instanciada; las teclas se hunden al escribir */
+box(0.46, 0.018, 0.15, mat(0x1E1B2E, { r: 0.55 }), 0, 0.749, -0.2);
+const KC = 14, KR = 4;
+const keys = new THREE.InstancedMesh(new THREE.BoxGeometry(0.026, 0.01, 0.026), mat(0x3A3552, { r: 0.6 }), KC * KR); scene.add(keys);
+const keyBase = [], dummy = new THREE.Object3D();
+for (let r = 0; r < KR; r++) for (let c = 0; c < KC; c++) {
+  const kx = -0.198 + c * 0.0305 + (r % 2) * 0.008, kz = -0.248 + r * 0.032;
+  keyBase.push([kx, 0.762, kz]); dummy.position.set(kx, 0.762, kz); dummy.updateMatrix(); keys.setMatrixAt(r * KC + c, dummy.matrix);
+}
+const space = box(0.17, 0.01, 0.026, mat(0x5B4BDB, { r: 0.55, e: 0x5B4BDB, ei: 0.15 }), 0, 0.762, -0.12);
+const kbHit = box(0.46, 0.04, 0.15, new THREE.MeshBasicMaterial({ visible: false }), 0, 0.765, -0.2);
+const keyPress = {};
+function pressKey(i) { i = ((i % (KC * KR)) + KC * KR) % (KC * KR); keyPress[i] = performance.now(); }
+function updateKeys(now) {
+  let any = false;
+  for (const k in keyPress) {
+    const dt = now - keyPress[k], d = dt < 70 ? -0.006 : (dt < 160 ? -0.006 * (1 - (dt - 70) / 90) : 0);
+    const b = keyBase[k]; dummy.position.set(b[0], b[1] + d, b[2]); dummy.updateMatrix(); keys.setMatrixAt(+k, dummy.matrix); any = true;
+    if (dt >= 160) delete keyPress[k];
+  }
+  if (any) keys.instanceMatrix.needsUpdate = true;
+}
+box(0.055, 0.02, 0.09, mat(0x1E1B2E, { r: 0.4 }), 0.33, 0.75, -0.2); // ratón
+
+/* lámpara con su interruptor (E09) y el polvo en la luz */
+const metalM = () => mat(0x5A566E, { m: 0.3, r: 0.4 });
+const lampBase = box(0.14, 0.02, 0.14, metalM(), -0.62, 0.75, -0.6);
+box(0.016, 0.45, 0.016, metalM(), -0.62, 0.975, -0.6);
+box(0.22, 0.016, 0.016, metalM(), -0.52, 1.2, -0.6);
+const shade = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.11, 32, 1, true), mat(0xFF6B4A, { r: 0.55, side: THREE.DoubleSide })); shade.position.set(-0.42, 1.15, -0.6); scene.add(shade);
+const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.026, 20, 12), mat(0xF5C06B, { e: 0xF5C06B, ei: 2.2 })); bulb.position.set(-0.42, 1.11, -0.6); scene.add(bulb);
+const lampLight = new THREE.PointLight(0xF5C06B, 2.6, 0, 2); lampLight.position.set(-0.42, 1.06, -0.55); scene.add(lampLight);
+const hemi = new THREE.HemisphereLight(0xA99EF5, 0x1E1B2E, 0.75); scene.add(hemi);
+const techo = new THREE.PointLight(0xC9C5DC, 0.9, 0, 2); techo.position.set(0.2, 2.45, 0.8); scene.add(techo);   // para que la pared de atrás no quede negra
+// interruptor: una pieza que bascula sobre su eje (x)
+const switchBox = box(0.034, 0.012, 0.022, mat(0x2E2A42, { r: 0.5 }), -0.62, 0.765, -0.546);
+const rocker = new THREE.Group(); rocker.position.set(-0.62, 0.772, -0.546); scene.add(rocker);
+const rockerMesh = box(0.022, 0.006, 0.016, mat(0xFAFAF7, { r: 0.4 }), 0, 0, 0, rocker); rocker.rotation.x = -0.28;
+// polvo: puntos que flotan en el haz de la lámpara
+const polvo = (() => {
+  const N = 90, pos = new Float32Array(N * 3), sem = [];
+  for (let i = 0; i < N; i++) { sem.push([Math.random(), Math.random(), Math.random(), 0.3 + Math.random()]); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const tex = texFrom(32, 32, (c, w, h) => { const gr = c.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,240,210,1)'); gr.addColorStop(1, 'rgba(255,240,210,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
+  const m = new THREE.PointsMaterial({ size: 0.006, map: tex, transparent: true, depthWrite: false, opacity: 0.55, blending: THREE.AdditiveBlending });
+  const p = new THREE.Points(g, m); scene.add(p);
+  return { p, pos, sem, N };
+})();
+function corrPolvo(t, encendida) {
+  polvo.p.visible = encendida; if (!encendida) return;
+  const { pos, sem, N } = polvo, s = reduced ? 0 : t / 1000;
+  for (let i = 0; i < N; i++) {
+    const [a, b, c, v] = sem[i];
+    const y = 0.78 + ((b + s * 0.012 * v) % 1) * 0.3;           // sube despacio y vuelve a empezar
+    const r = 0.03 + (1.1 - y) * 0.4 * a;                         // el cono se abre hacia abajo
+    const ang = c * Math.PI * 2 + s * 0.15 * v;
+    pos[i * 3] = -0.42 + Math.cos(ang) * r; pos[i * 3 + 1] = y; pos[i * 3 + 2] = -0.58 + Math.sin(ang) * r;
+  }
+  polvo.p.geometry.attributes.position.needsUpdate = true;
+}
+
+/* torre: disquetera, puerto USB, botón de expulsar, botón de encendido y LED */
+const tower = box(0.2, 0.46, 0.4, mat(0x1E1B2E, { r: 0.45, m: 0.2 }), 0.82, 0.97, -0.42);
+const slot = box(0.16, 0.022, 0.003, mat(0x141221, { e: 0xFF6B4A, ei: 0 }), 0.82, 1.1, -0.2185);
+for (let v = 0; v < 6; v++) box(0.12, 0.004, 0.002, mat(0x3A3552), 0.82, 0.83 + v * 0.022, -0.219);
+const led = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), mat(0xFF6B4A, { e: 0xFF6B4A, ei: 1.2 })); led.position.set(0.885, 1.16, -0.218); scene.add(led);
+const ejectBtn = box(0.022, 0.008, 0.006, mat(0x5A566E, { r: 0.4 }), 0.885, 1.08, -0.218);
+const powerBtn = cyl(0.011, 0.011, 0.006, mat(0x3A3552, { r: 0.4, e: 0x5B4BDB, ei: 0.3 }), 0.775, 1.16, -0.218); powerBtn.rotation.x = Math.PI / 2;
+const usbPort = box(0.03, 0.012, 0.004, mat(0x0E0C16, { e: 0xFF6B4A, ei: 0 }), 0.87, 0.97, -0.2185);
+const tray = new THREE.Group(); tray.position.set(0.82, 1.1, -0.287); scene.add(tray);
+const trayMesh = box(0.15, 0.008, 0.13, mat(0x2E2A42, { r: 0.5, e: 0xFF6B4A, ei: 0 }), 0, 0, 0, tray);
+const TRAY_CERRADA = -0.287, TRAY_ABIERTA = -0.152;
+
+/* estantería */
+const shelfM = mat(0x3A3552, { r: 0.6 });
+box(1.45, 0.025, 0.24, shelfM, 0, 1.62, -1.08);
+box(1.45, 0.025, 0.24, shelfM, 0, 2.0, -1.08);
+
+/* póster (físico: un póster impreso, sin terminal) */
+const posterTex = texFrom(512, 720, (c, w, h) => {
+  c.fillStyle = '#1E1B2E'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = '#FF6B4A'; c.lineWidth = 6; c.strokeRect(20, 20, w - 40, h - 40);
+  c.fillStyle = '#FAFAF7'; c.font = '600 72px ' + DISP; c.fillText('sergio', 52, 160);
+  c.fillStyle = '#A99EF5'; c.fillText('learns', 52, 236); c.fillStyle = '#FF6B4A'; c.fillText('_', 52 + c.measureText('learns').width + 4, 236);
+  c.fillStyle = '#E8E6F5'; c.font = '500 30px ' + BODY; c.fillText('Aprendiendo', 52, 360); c.fillText('en público', 52, 400);
+  c.fillStyle = '#C9C5DC'; c.font = '400 24px ' + BODY; c.fillText('Ciencia e Ingeniería de Datos', 52, 470); c.fillText('Gran Canaria · 2026', 52, 506);
+});
+plano(0.5, 0.7, new THREE.MeshStandardMaterial({ map: posterTex, roughness: 0.6 }), 1.24, 1.5, -0.3, 0, -Math.PI / 2);
+
+/* marco de la pizarra y su bandeja (la pizarra en sí está en el módulo 09) */
+const boardFrame = box(0.02, 0.92, 1.36, mat(0x5A566E, { r: 0.5 }), -1.19, 1.45, -0.35);
+const boardTray = box(0.06, 0.012, 1.1, mat(0x5A566E, { r: 0.5 }), -1.165, 0.985, -0.35);
+
+/* la puerta (detrás): bisagra en x = 0,03, se abre hacia dentro */
+const door = new THREE.Group(); door.position.set(0.03, 0, FONDO - 0.01); scene.add(door);
+const doorSlab = box(0.85, 2.0, 0.04, mat(0x3A3552, { r: 0.65 }), 0.425, 1.0, 0, door);
+const doorPanelM = mat(0x2E2A42, { r: 0.7 });
+box(0.6, 0.7, 0.006, doorPanelM, 0.425, 1.45, -0.022, door); box(0.6, 0.7, 0.006, doorPanelM, 0.425, 0.55, -0.022, door);
+const doorKnob = new THREE.Group(); doorKnob.position.set(0.77, 1.0, -0.04); door.add(doorKnob);
+const knobMesh = box(0.11, 0.018, 0.018, mat(0xC9C5DC, { m: 0.7, r: 0.3 }), -0.04, 0, 0, doorKnob);
+cyl(0.024, 0.024, 0.012, mat(0xC9C5DC, { m: 0.7, r: 0.3 }), 0, 0, 0.012, doorKnob).rotation.x = Math.PI / 2;
+const notaTex = texFrom(256, 200, (c, w, h) => {
+  c.fillStyle = '#F7F1D9'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#2E2A42'; c.font = '700 46px ' + MANO; c.fillText('Volver', 30, 80); c.fillText('a la web', 30, 132);
+  c.strokeStyle = '#C93F22'; c.lineWidth = 5; c.beginPath(); c.moveTo(150, 170); c.lineTo(220, 170); c.lineTo(205, 158); c.moveTo(220, 170); c.lineTo(205, 182); c.stroke();
+});
+const nota = plano(0.16, 0.125, new THREE.MeshStandardMaterial({ map: notaTex, roughness: 0.9 }), 0.425, 1.62, -0.027, 0, Math.PI, door); nota.rotation.z = 0.04;
+// marco y la luz del pasillo detrás
+const frameM = mat(0x2E2A42, { r: 0.6 });
+box(0.04, 2.04, 0.06, frameM, 0.01, 1.02, FONDO); box(0.04, 2.04, 0.06, frameM, 0.9, 1.02, FONDO); box(0.93, 0.04, 0.06, frameM, 0.455, 2.02, FONDO);
+const pasillo = plano(0.85, 2.0, new THREE.MeshBasicMaterial({ color: 0xFFE9C9 }), 0.455, 1.0, FONDO + 0.22, 0, Math.PI);
+const pasilloLuz = new THREE.PointLight(0xFFE2B8, 0, 0, 2); pasilloLuz.position.set(0.45, 1.3, FONDO - 0.1); scene.add(pasilloLuz);
+const luzPuerta = new THREE.PointLight(0xC9C5DC, 0.5, 0, 2); luzPuerta.position.set(0.45, 1.8, FONDO - 0.6); scene.add(luzPuerta);
+box(0.02, 2.0, 0.22, mat(0x221E33), 0.03, 1.0, FONDO + 0.11); box(0.02, 2.0, 0.22, mat(0x221E33), 0.88, 1.0, FONDO + 0.11);
+// un perchero con la mochila, para que la pared de atrás no esté vacía
+box(0.4, 0.03, 0.04, mat(0x5A566E), -0.55, 1.62, FONDO - 0.02);
+const mochila = box(0.3, 0.38, 0.14, mat(0x4638B8, { r: 0.85 }), -0.55, 1.36, FONDO - 0.08); mochila.rotation.z = 0.03;
+box(0.22, 0.12, 0.03, mat(0x5B4BDB, { r: 0.85 }), -0.55, 1.28, FONDO - 0.155);
+
+/* ===================== 04 · objetos =====================
+   El registro de objetos (qué se puede tocar, cómo se llama, qué hace) y los
+   objetos que se cogen: discos en su estuche, USB en el portalápices, carpetas
+   en el cajón, libros y manual en la estantería, y la taza con su vapor. */
+const objetos = new Map(), pickables = [];
+function mats(m) { return Array.isArray(m.material) ? m.material : [m.material]; }
+/* registrar(clave, {nombre, mallas, raiz, movil, alClic, alUsar, alArrastrar, insp, activo}) */
+function registrar(clave, o) {
+  o.clave = clave;
+  o.activo = o.activo || (() => gesto.estado === 'libre');
+  objetos.set(clave, o);
+  o.mallas.forEach(m => {
+    m.userData.clave = clave; pickables.push(m);
+    m.material = Array.isArray(m.material) ? m.material.map(x => x.clone()) : m.material.clone();
+    mats(m).forEach(x => { if (x.emissive) { x.userData.e0 = x.emissive.getHex(); x.userData.ei0 = x.emissiveIntensity; } });
+  });
+  if (o.raiz) guardaCasa(o);
+  return o;
+}
+function guardaCasa(o) { const r = o.raiz; o.casa = { padre: r.parent, pos: r.position.clone(), quat: r.quaternion.clone() }; }
+// Brillo coral al pasar por encima (k = 0 apaga, 1 = resaltado normal, más = zona de destino)
+function brillo(mallas, k, color = 0xFF6B4A) {
+  mallas.forEach(m => mats(m).forEach(x => {
+    if (!x.emissive) return;
+    if (k <= 0) { x.emissive.setHex(x.userData.e0 ?? 0); x.emissiveIntensity = x.userData.ei0 ?? 0; }
+    else { x.emissive.setHex(color); x.emissiveIntensity = Math.max(0.22 * k, x.userData.ei0 ?? 0); }
+  }));
+}
+
+/* ---------- discos (simulacros) en su estuche ---------- */
+const estuche = new THREE.Group(); estuche.position.set(0.5, MESA_Y, -0.08); scene.add(estuche);
+const estM = mat(0x4638B8, { r: 0.6 });
+box(0.16, 0.006, 0.15, estM, 0, 0.003, 0, estuche);
+box(0.16, 0.05, 0.006, estM, 0, 0.025, 0.072, estuche);          // frente bajo
+box(0.16, 0.14, 0.006, estM, 0, 0.07, -0.072, estuche);          // fondo alto
+box(0.006, 0.14, 0.15, estM, -0.077, 0.07, 0, estuche); box(0.006, 0.14, 0.15, estM, 0.077, 0.07, 0, estuche);
+const estFrente = estuche.children[1];
+const tapaEst = new THREE.Group(); tapaEst.position.set(0, 0.14, -0.075); estuche.add(tapaEst);
+const tapaTex = texFrom(256, 240, (c, w, h) => { c.fillStyle = '#4638B8'; c.fillRect(0, 0, w, h); c.fillStyle = '#F7F1D9'; c.fillRect(40, 70, 176, 90); c.fillStyle = '#2E2A42'; c.font = '700 44px ' + MANO; c.fillText('Simulacros', 52, 126); });
+const tapaMesh = box(0.164, 0.006, 0.152, [estM, estM, new THREE.MeshStandardMaterial({ map: tapaTex, roughness: 0.6 }), estM, estM, estM], 0, 0.003, 0.076, tapaEst);
+const discos = [];
+function etiquetaDisco(s) {
+  return texFrom(256, 256, (c, w, h) => {
+    c.fillStyle = '#D8D5E6'; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#F7F4EA'; c.beginPath(); c.arc(128, 128, 124, 0, Math.PI * 2); c.fill();          // etiqueta de papel
+    c.fillStyle = s.color; c.fillRect(0, 0, w, 64);                                                 // franja de color
+    c.fillStyle = '#C9C5DC'; c.beginPath(); c.arc(128, 128, 30, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#1E1B2E'; c.beginPath(); c.arc(128, 128, 11, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FAFAF7'; c.font = '600 30px ' + DISP; c.textAlign = 'center'; c.fillText(s.code, 128, 48);
+    c.fillStyle = '#2E2A42'; c.font = '700 34px ' + MANO; c.fillText('Simulacro', 128, 92);
+    c.font = '500 26px ' + MANO; s.partes.forEach((p, i) => c.fillText(p[0] + ' · ' + fechaCorta(p[1]), 128, 196 + i * 26));
+  });
+}
+function reversoDisco(s) {
+  return texFrom(256, 256, (c, w, h) => {
+    const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#C9C5DC'); g.addColorStop(0.45, '#E8E6F5'); g.addColorStop(0.55, '#A99EF5'); g.addColorStop(1, '#C9C5DC');
+    c.fillStyle = g; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#1E1B2E'; c.beginPath(); c.arc(128, 128, 11, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#2E2A42'; c.font = '600 22px ' + MANO; c.textAlign = 'center';
+    wrapCentro(c, s.reverso, 128, 168, 170, 22);
+  });
+}
+function wrapCentro(c, texto, cx, y, maxW, lh) { const pal = texto.split(' '); let l = ''; for (const p of pal) { const t = l ? l + ' ' + p : p; if (c.measureText(t).width > maxW && l) { c.fillText(l, cx, y); l = p; y += lh; } else l = t; } if (l) c.fillText(l, cx, y); }
+SIMULACROS.forEach((s, i) => {
+  const borde = mat(0xC9C5DC, { r: 0.3, m: 0.6 });
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(0.058, 0.058, 0.004, 48),
+    [borde, new THREE.MeshStandardMaterial({ map: etiquetaDisco(s), roughness: 0.5 }), new THREE.MeshStandardMaterial({ map: reversoDisco(s), roughness: 0.25, metalness: 0.4 })]);
+  // de pie en el estuche, mirando a la silla; cada uno un poco más atrás y más alto
+  m.position.set(0.5 + (i % 2 ? 0.004 : -0.004), MESA_Y + 0.064 + i * 0.006, -0.08 + 0.045 - i * 0.026);
+  m.rotation.set(Math.PI / 2 - 0.22, 0, 0);
+  scene.add(m);
+  const o = registrar('disco-' + s.id, {
+    nombre: 'Disco · Simulacro ' + s.code, mallas: [m], raiz: m, movil: true, tipo: 'disco', datos: s,
+    insp: { dist: 0.3, rot: new THREE.Euler(Math.PI / 2, 0, 0) }
+  });
+  discos.push(o);
+});
+
+/* ---------- USB (simuladores) en el portalápices ---------- */
+const vaso = cyl(0.042, 0.038, 0.1, mat(0x5B4BDB, { r: 0.7, side: THREE.DoubleSide }), 0.52, MESA_Y + 0.05, -0.5, scene, 32);
+vaso.geometry.dispose(); vaso.geometry = new THREE.CylinderGeometry(0.042, 0.038, 0.1, 32, 1, true);
+cyl(0.038, 0.038, 0.004, mat(0x4638B8), 0.52, MESA_Y + 0.002, -0.5);
+const usbs = [];
+SIMULADORES.forEach((s, i) => {
+  const g = new THREE.Group();
+  const cuerpo = box(0.024, 0.07, 0.01, mat(new THREE.Color(s.color).getHex(), { r: 0.55 }), 0, 0, 0, g);
+  const conector = box(0.013, 0.016, 0.0055, mat(0xC9C5DC, { m: 0.8, r: 0.3 }), 0, -0.04, 0, g);
+  const pegTex = texFrom(64, 192, (c, w, h) => { c.fillStyle = '#F7F4EA'; c.fillRect(0, 0, w, h); c.save(); c.translate(w / 2, h / 2); c.rotate(-Math.PI / 2); c.fillStyle = '#2E2A42'; c.font = '700 40px ' + MANO; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s.corto.toLowerCase(), 0, 2); c.restore(); });
+  const pegatina = plano(0.019, 0.052, new THREE.MeshStandardMaterial({ map: pegTex, roughness: 0.8 }), 0, 0.004, 0.0052, 0, 0, g);
+  const ang = i * Math.PI / 2 + 0.6;
+  g.position.set(0.52 + Math.cos(ang) * 0.016, MESA_Y + 0.1, -0.5 + Math.sin(ang) * 0.016);
+  g.rotation.set(Math.sin(ang) * 0.12, -ang + Math.PI / 2, -Math.cos(ang) * 0.12);
+  scene.add(g);
+  usbs.push(registrar('usb-' + s.id, {
+    nombre: 'USB · ' + s.nombre, mallas: [cuerpo, conector, pegatina], raiz: g, movil: true, tipo: 'usb', datos: s,
+    insp: { dist: 0.2, rot: new THREE.Euler(0, 0, 0) }
+  }));
+});
+
+/* ---------- cajón con carpetas ---------- */
+const drawer = new THREE.Group(); drawer.position.set(-0.2, 0.64, 0); scene.add(drawer);
+const drawerFront = box(0.5, 0.12, 0.02, mat(0x2E2A42, { r: 0.6 }), 0, 0, 0.035, drawer);
+const drawerHandle = box(0.14, 0.016, 0.016, mat(0xFF6B4A, { e: 0xFF6B4A, ei: 0.2 }), 0, 0, 0.052, drawer);
+box(0.46, 0.008, 0.4, mat(0x26223A), 0, -0.05, -0.17, drawer);
+box(0.008, 0.1, 0.4, mat(0x26223A), -0.226, 0, -0.17, drawer); box(0.008, 0.1, 0.4, mat(0x26223A), 0.226, 0, -0.17, drawer);
+box(0.46, 0.1, 0.008, mat(0x26223A), 0, 0, -0.366, drawer);
+const carpetas = [];
+function portadaCarpeta(f) {
+  return texFrom(512, 380, (c, w, h) => {
+    c.fillStyle = f.color; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(255,255,255,.07)'; for (let x = 0; x < w; x += 14) c.fillRect(x, 0, 1, h);
+    // la etiqueta va en el borde de delante (arriba del lienzo = +z): es lo que asoma en el cajón
+    c.fillStyle = '#F7F4EA'; rr(c, 16, 6, w - 32, 46, 8); c.fill();
+    c.fillStyle = '#1E1B2E'; c.font = '600 34px ' + DISP; c.fillText(f.nombre, 30, 41);
+    c.fillStyle = '#5A566E'; c.font = '700 32px ' + MANO; c.textAlign = 'right'; c.fillText(f.n ? f.n + ' apuntes' : 'sale el ' + f.sale, w - 30, 41); c.textAlign = 'left';
+    c.fillStyle = 'rgba(250,250,247,.9)'; c.font = '600 64px ' + DISP; c.fillText(f.nombre, 40, 230);
+    c.fillStyle = 'rgba(250,250,247,.7)'; c.font = '500 26px ' + BODY; c.fillText('Apuntes · Sergio Medina', 40, 280);
+  });
+}
+function hojaCarpeta(f) {
+  return texFrom(512, 372, (c, w, h) => {
+    c.fillStyle = '#FBFAF4'; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(47,95,208,.18)'; for (let y = 70; y < h; y += 30) c.fillRect(24, y, w - 48, 2);
+    c.fillStyle = '#C2362B'; c.fillRect(56, 0, 2, h);
+    c.fillStyle = '#1E1B2E'; c.font = '600 34px ' + DISP; c.fillText('Apuntes de ' + f.nombre, 72, 52);
+    c.fillStyle = '#2E2A42'; c.font = '600 30px ' + MANO;
+    const l = f.n ? [f.n + ' artículos en cada idioma', 'teoría, práctica y ejercicios', 'con chuletario y cuestionario'] : ['Ya está escrita y programada.', 'Sale el ' + f.sale + '.'];
+    l.forEach((t, i) => c.fillText(t, 72, 116 + i * 30));
+    if (f.url) {
+      c.fillStyle = '#4638B8'; c.font = '700 28px ' + MANO; c.fillText('Léelos en:', 72, 236);
+      c.font = '600 21px ' + BODY; c.fillText(f.dir, 72, 270);
+      c.fillRect(72, 276, c.measureText(f.dir).width, 2);
+    }
+  });
+}
+CARPETAS.forEach((f, i) => {
+  const g = new THREE.Group();
+  // cada una más atrás: asoma su borde con la etiqueta
+  g.position.set(-0.02 + (i % 2) * 0.02, -0.042 + i * 0.0072, -0.125 - i * 0.025); g.rotation.y = (i % 2 ? -0.04 : 0.05); drawer.add(g);
+  const tapaTrasera = box(0.3, 0.003, 0.2, mat(new THREE.Color(f.color).getHex(), { r: 0.75 }), 0, 0.0015, 0, g);
+  const hoja = plano(0.28, 0.182, new THREE.MeshStandardMaterial({ map: hojaCarpeta(f), roughness: 0.9 }), 0.004, 0.0034, 0, -Math.PI / 2, 0, g);
+  const bisagra = new THREE.Group(); bisagra.position.set(-0.15, 0.0045, 0); g.add(bisagra);
+  const fM = mat(new THREE.Color(f.color).getHex(), { r: 0.75 });
+  const tapa = box(0.3, 0.003, 0.2, [fM, fM, new THREE.MeshStandardMaterial({ map: portadaCarpeta(f), roughness: 0.75 }), fM, fM, fM], 0.15, 0.0015, 0, bisagra);
+  carpetas.push(registrar('carpeta-' + f.id, {
+    nombre: 'Carpeta · ' + f.nombre, mallas: [tapa, tapaTrasera], raiz: g, movil: true, tipo: 'carpeta', datos: f, bisagra, hoja,
+    insp: { dist: 0.42, rot: new THREE.Euler(Math.PI / 2 - 0.05, 0, 0) },
+    activo: () => gesto.estado === 'libre' && cajonAbierto()
+  }));
+});
+
+/* ---------- libros y manual en la estantería ---------- */
+const libros = [];
+function lomoTex(b) {
+  return texFrom(96, 512, (c, w, h) => {
+    const fondo = b.manual ? '#F7F1D9' : (b.curso === 2 ? '#2E2A42' : b.color); c.fillStyle = fondo; c.fillRect(0, 0, w, h);
+    if (b.curso === 2) { c.strokeStyle = '#8E8AA3'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6); }
+    c.fillStyle = b.manual ? '#C93F22' : 'rgba(250,250,247,.85)'; c.fillRect(0, 36, w, 6); c.fillRect(0, h - 70, w, 6);
+    c.save(); c.translate(w / 2, h / 2); c.rotate(-Math.PI / 2); c.fillStyle = b.manual ? '#1E1B2E' : '#FAFAF7';
+    c.font = (b.manual ? '600 40px ' : '600 46px ') + DISP; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.manual ? 'Manual' : b.code, 0, 0); c.restore();
+  });
+}
+function portadaTex(b) {
+  return texFrom(512, 720, (c, w, h) => {
+    c.fillStyle = b.manual ? '#F7F1D9' : (b.curso === 2 ? '#2E2A42' : b.color); c.fillRect(0, 0, w, h);
+    if (b.manual) {
+      c.fillStyle = '#1E1B2E'; c.font = '600 64px ' + DISP; c.fillText('Manual', 44, 150); c.fillText('del escritorio', 44, 222);
+      c.fillStyle = '#C93F22'; c.fillRect(44, 262, 120, 8);
+      c.fillStyle = '#5A566E'; c.font = '500 30px ' + BODY; c.fillText('Cómo se usa todo', 44, 330); c.fillText('lo que hay en esta mesa', 44, 370);
+      c.font = '700 40px ' + MANO; c.fillStyle = '#2E2A42'; c.fillText('Léeme primero', 44, h - 70); return;
+    }
+    c.fillStyle = 'rgba(255,255,255,.08)'; for (let y = 0; y < h; y += 32) c.fillRect(0, y, w, 1);
+    c.fillStyle = '#FAFAF7'; c.font = '600 120px ' + DISP; c.fillText(b.code, 44, 220);
+    c.font = '500 34px ' + DISP; let y = wrap(c, b.sub, 44, 290, w - 88, 44);
+    c.font = '400 26px ' + BODY; c.fillStyle = 'rgba(250,250,247,.8)'; wrap(c, b.name === b.code ? '' : b.name, 44, y + 60, w - 88, 34);
+    c.fillStyle = 'rgba(250,250,247,.9)'; c.font = '500 24px ' + BODY; c.fillText('Sergio Medina · SergioLearns', 44, h - 60);
+  });
+}
+function contraTex(b) {
+  return texFrom(512, 720, (c, w, h) => {
+    c.fillStyle = b.manual ? '#F2EBCF' : (b.curso === 2 ? '#2A2640' : b.color); c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(0, 0, w, h);
+    c.fillStyle = b.manual ? '#2E2A42' : '#FAFAF7'; c.font = '600 30px ' + DISP; c.fillText(b.manual ? 'Antes de empezar' : '¿Sabías que…?', 44, 110);
+    c.font = '400 28px ' + BODY; wrap(c, b.manual ? 'Todo se hace con las manos: coger, girar, arrastrar y soltar. Si te pierdes, Esc te devuelve a tu silla.' : b.curiosidad, 44, 170, w - 88, 40);
+    c.fillStyle = b.manual ? '#5A566E' : 'rgba(250,250,247,.75)'; c.font = '500 24px ' + BODY; c.fillText('sergiolearns.com', 44, h - 60);
+  });
+}
+const shelfX = { 1: -0.55, 2: -0.4 };
+function creaLibro(b) {
+  const t = b.manual ? 0.034 : 0.045 + (b.code.length % 3) * 0.006, hgt = b.manual ? 0.21 : (b.curso === 2 ? 0.22 + (b.code.length % 2) * 0.02 : 0.25 + (b.code.charCodeAt(2) % 3) * 0.01), d = b.manual ? 0.15 : 0.17;
+  const g = new THREE.Group();
+  const colorCuerpo = b.manual ? 0xF7F1D9 : (b.curso === 2 ? 0x2E2A42 : new THREE.Color(b.color).getHex());
+  const bodyM = mat(colorCuerpo, { r: 0.7 });
+  const bloque = box(t - 0.01, hgt - 0.012, d - 0.008, mat(0xF2F0F8, { r: 0.9 }), 0, 0, -0.002, g);
+  const trasera = box(0.005, hgt, d, bodyM, -t / 2 + 0.0025, 0, 0, g);
+  const contra = plano(d, hgt, new THREE.MeshStandardMaterial({ map: contraTex(b), roughness: 0.7 }), -t / 2 - 0.0002, 0, 0, 0, -Math.PI / 2, g);
+  const lomo = plano(t, hgt, new THREE.MeshStandardMaterial({ map: lomoTex(b), roughness: 0.7 }), 0, 0, d / 2 + 0.001, 0, 0, g);
+  const lomoCaja = box(t, hgt, 0.004, bodyM, 0, 0, d / 2 - 0.0015, g);
+  const delantera = box(0.005, hgt, d, bodyM, t / 2 - 0.0025, 0, 0, g);
+  const portada = plano(d, hgt, new THREE.MeshStandardMaterial({ map: portadaTex(b), roughness: 0.7 }), t / 2 + 0.0002, 0, 0, 0, Math.PI / 2, g);
+  const fila = b.curso;
+  let x = shelfX[fila]; shelfX[fila] += t + 0.012 + (b.code.length > 3 ? 0.004 : 0);
+  if (b.manual) x = 0.12;
+  g.position.set(x + t / 2, (fila === 1 ? 1.6325 : 2.0125) + hgt / 2, -1.2 + 0.03 + d / 2); scene.add(g);
+  const o = registrar(b.manual ? 'manual' : 'libro-' + b.id, {
+    nombre: b.manual ? 'Manual del escritorio' : 'Libro · ' + b.code + (b.estado === 'Pendiente' ? ' (2º curso)' : ''),
+    mallas: [lomo, lomoCaja, trasera, delantera, bloque, portada, contra], raiz: g, movil: false, tipo: 'libro', datos: b,
+    dims: { t, h: hgt, d }, tex: { portada: portada.material.map, contra: contra.material.map, color: colorCuerpo },
+    insp: { dist: 0.42, rot: new THREE.Euler(0.05, -Math.PI / 2, 0) }
+  });
+  libros.push(o); return o;
+}
+LIBROS.forEach(creaLibro);
+const manualObj = creaLibro({ id: 'manual', code: 'Manual', manual: true, curso: 1, name: 'Manual', sub: '', estado: '', url: '', paginas: MANUAL });
+[[0.25, 1, 0x3A3552], [0.31, 1, 0x26223A], [0.36, 1, 0x4638B8], [0.42, 1, 0x3A3552], [0.3, 2, 0x26223A], [0.36, 2, 0x3A3552]].forEach((p, i) => {
+  const hh = 0.2 + (i % 3) * 0.03; box(0.04, hh, 0.17, mat(p[2], { r: 0.8 }), p[0], (p[1] === 1 ? 1.6325 : 2.0125) + hh / 2, -1.085);
+});
+
+/* ---------- taza con su vapor ---------- */
+const taza = new THREE.Group(); taza.position.set(-0.5, MESA_Y + 0.05, -0.16); scene.add(taza);
+const tazaTex = texFrom(512, 128, (c, w, h) => {
+  c.fillStyle = '#FF6B4A'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#FAFAF7'; c.font = '600 44px ' + DISP; c.fillText('sergio', 150, 80); c.fillStyle = '#1E1B2E'; c.fillText('learns', 150 + c.measureText('sergio').width, 80);
+});
+const fondoTazaTex = texFrom(128, 128, (c, w, h) => { c.fillStyle = '#F7F4EA'; c.fillRect(0, 0, w, h); c.fillStyle = '#2E2A42'; c.font = '700 22px ' + MANO; c.textAlign = 'center'; c.fillText('Hecha en', 64, 52); c.fillText('Gran Canaria', 64, 74); c.font = '600 16px ' + MANO; c.fillText('(y con café)', 64, 98); });
+const cafeM = mat(0x3B2418, { r: 0.25 });
+const tazaCuerpo = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.1, 40), [new THREE.MeshStandardMaterial({ map: tazaTex, roughness: 0.45 }), cafeM, new THREE.MeshStandardMaterial({ map: fondoTazaTex, roughness: 0.8 })]);
+taza.add(tazaCuerpo);
+const asa = new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.008, 12, 24, Math.PI), mat(0xFF6B4A, { r: 0.5 })); asa.position.set(0.04, 0, 0); asa.rotation.z = -Math.PI / 2; taza.add(asa);
+taza.rotation.y = 2.2;
+const vapor = (() => {
+  const N = 46, pos = new Float32Array(N * 3), sem = [];
+  for (let i = 0; i < N; i++) sem.push([Math.random(), Math.random(), Math.random()]);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const tex = texFrom(64, 64, (c, w, h) => { const gr = c.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(240,238,250,.9)'); gr.addColorStop(1, 'rgba(240,238,250,0)'); c.fillStyle = gr; c.fillRect(0, 0, w, h); });
+  const m = new THREE.PointsMaterial({ size: 0.03, map: tex, transparent: true, depthWrite: false, opacity: 0.16 });
+  const p = new THREE.Points(g, m); scene.add(p);
+  return { p, pos, sem, N, espeso: 0 };
+})();
+function corrVapor(t) {
+  const { pos, sem, N } = vapor, s = reduced ? 0.4 : t / 1000, o = new THREE.Vector3();
+  tazaCuerpo.getWorldPosition(o);
+  const alto = 0.12 + vapor.espeso * 0.1;
+  for (let i = 0; i < N; i++) {
+    const [a, b, c] = sem[i], f = (b + s * (0.09 + a * 0.05)) % 1;        // de 0 (sale) a 1 (se deshace)
+    pos[i * 3] = o.x + Math.sin(f * 6 + c * 9 + s) * 0.012 * (1 + f * 2);
+    pos[i * 3 + 1] = o.y + 0.05 + f * alto;
+    pos[i * 3 + 2] = o.z + Math.cos(f * 5 + a * 7) * 0.01 * (1 + f * 2);
+  }
+  vapor.p.geometry.attributes.position.needsUpdate = true;
+  vapor.p.material.opacity = 0.14 + vapor.espeso * 0.22;
+  vapor.p.material.size = 0.03 + vapor.espeso * 0.03;
+}
+const tazaObj = registrar('taza', {
+  nombre: 'Taza', mallas: [tazaCuerpo, asa], raiz: taza, movil: true, tipo: 'taza',
+  insp: { dist: 0.3, rot: new THREE.Euler(0.15, 0, 0) }
+});
+
+/* ===================== 05 · cámara =====================
+   giro = rumbo + mirada. La mirada sigue al ratón como en la v0.1 (±1,05 rad);
+   el rumbo crece mientras el ratón está en el borde (o con A/D y las flechas),
+   y así se puede dar la vuelta entera y ver la puerta. Un «foco» fija la cámara
+   en un sitio (la pizarra, el libro abierto, el monitor). */
+const cam = { pos: BASE.clone(), yaw: 0, pitch: -0.12, fov: 62 };
+const rig = { rumbo: 0, mx: 0, my: 0, foco: null, teclaGiro: 0, sensib: 1, bordeListo: false };
+const BORDE = 0.86, VEL_BORDE = 1.6, VEL_TECLA = 1.8;
+function anglesTo(from, to) { const d = to.clone().sub(from); return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y / d.length()) }; }
+function enfoca(punto, desde = BASE, fov = 50, extra = {}) {
+  const a = anglesTo(desde, punto);
+  // el giro más corto desde donde mira ahora (evita dar la vuelta entera)
+  let yaw = a.yaw; while (yaw - cam.yaw > Math.PI) yaw -= 2 * Math.PI; while (yaw - cam.yaw < -Math.PI) yaw += 2 * Math.PI;
+  rig.foco = Object.assign({ yaw, pitch: a.pitch, pos: desde.clone(), fov }, extra);
+}
+function sueltaFoco() {
+  // al soltar el foco, el rumbo pasa a ser el giro actual menos la mirada, para que no haya salto
+  if (rig.foco) rig.rumbo = cam.yaw + rig.mx * 1.05;
+  rig.foco = null;
+}
+function rumboACero() {
+  // Esc en LIBRE: vuelve a mirar a la mesa por el camino corto
+  const n = Math.round(rig.rumbo / (2 * Math.PI)) * 2 * Math.PI;
+  rig.rumbo -= n; cam.yaw -= n;
+  const r0 = rig.rumbo; anim(600, e => { rig.rumbo = r0 * (1 - e); });
+}
+function aplicaCamara(dt) {
+  let ty, tp, tpos, tfov;
+  const f = rig.foco;
+  if (f) { ty = f.yaw - rig.mx * (f.paralaje ?? 0.04); tp = f.pitch + rig.my * (f.paralaje ?? 0.03); tpos = f.pos; tfov = f.fov; }
+  else {
+    // el borde gira solo cuando no se está haciendo otra cosa con el ratón
+    // solo si el ratón ha entrado en el borde estando libre (si acabas de soltar un disco junto al borde, no gira solo)
+    if (Math.abs(rig.mx) <= BORDE) rig.bordeListo = gesto.estado === 'libre';
+    const puedeGirar = rig.bordeListo && gesto.estado === 'libre' && !gesto.pulsado && !teclado.activo;
+    if (puedeGirar && Math.abs(rig.mx) > BORDE) rig.rumbo -= Math.sign(rig.mx) * VEL_BORDE * ((Math.abs(rig.mx) - BORDE) / (1 - BORDE)) * dt;
+    rig.rumbo -= rig.teclaGiro * VEL_TECLA * dt;
+    ty = rig.rumbo - rig.mx * 1.05 * rig.sensib;
+    tp = rig.my > 0 ? -0.12 + rig.my * 0.75 : -0.12 + rig.my * 0.85;
+    tpos = BASE; tfov = 62;
+  }
+  const rate = f && f.rate ? f.rate : 5;
+  const k = reduced ? 1 : 1 - Math.exp(-dt * rate);      // suavizado exponencial: igual de suave a 30 o a 144 fps
+  cam.yaw += (ty - cam.yaw) * k; cam.pitch += (tp - cam.pitch) * k; cam.fov += (tfov - cam.fov) * k; cam.pos.lerp(tpos, k);
+  const respira = reduced || f ? 0 : Math.sin(performance.now() / 1400) * 0.004;
+  camera.position.set(cam.pos.x, cam.pos.y + respira, cam.pos.z);
+  const cp = Math.cos(cam.pitch);
+  camera.lookAt(cam.pos.x - Math.sin(cam.yaw) * cp, cam.pos.y + respira + Math.sin(cam.pitch), cam.pos.z - Math.cos(cam.yaw) * cp);
+  if (Math.abs(camera.fov - cam.fov) > 0.01) { camera.fov = cam.fov; camera.updateProjectionMatrix(); }
+}
+
+/* ===================== 06 · gestos =====================
+   El sistema que usan todos los objetos (diagrama: material/v0.2/bocetos/02):
+   LIBRE → ENCIMA → PULSADO → (clic) INSPECCIÓN → E: USAR · Esc: vuelve a su sitio
+                            → (arrastre) LLEVAR → zona cerca: brilla → soltar: ENCAJA
+   Cada modo especial (libro abierto, pizarra, taza…) se registra con modo(). */
+const gesto = { estado: 'cargando', pulsado: null, hover: null, obj: null, arrastre: null };
+const modos = {};
+function modo(nombre, h) { modos[nombre] = h; }
+function cambia(estado) { gesto.estado = estado; rig.bordeListo = false; bus.emit('estado', estado); actualizaPunto(); }
+const teclado = { activo: false };   // se usa el teclado (Tab) en vez del ratón
+
+/* ---------- el punto (E03) ---------- */
+const ICO = {
+  mano: 'M8 13V6.5a1.5 1.5 0 0 1 3 0V11 M11 10.5V4.5a1.5 1.5 0 0 1 3 0V11 M14 10.5V5.5a1.5 1.5 0 0 1 3 0V12 M17 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L5 15.5a1.6 1.6 0 0 1 2.4-2.1L8 14',
+  agarre: 'M7 11V9.5a1.5 1.5 0 0 1 3 0 M10 10V8.5a1.5 1.5 0 0 1 3 0V10 M13 10V9a1.5 1.5 0 0 1 3 0v1 M16 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6v-3.5a1.5 1.5 0 0 1 3 0',
+  girar: 'M20 12a8 8 0 1 1-2.3-5.7 M20 4v4h-4',
+  rotulador: 'M15 4l5 5-10 10H5v-5z M13 6l5 5',
+  borrador: 'M4 16l8-8 6 6-6 6H8z M12 20h8',
+  pagina: 'M14 6l-6 6 6 6',
+  enlace: 'M14 4h6v6 M20 4l-9 9 M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'
+};
+const punto = { el: $('#punto'), forma: '', nombre: '', x: -100, y: -100 };
+function setPunto(forma, nombre = '') {
+  if (forma !== punto.forma) {
+    punto.forma = forma;
+    const ico = punto.el.querySelector('.ico');
+    ico.innerHTML = forma === 'punto' || !ICO[forma] ? '<div class="dot"></div>' :
+      '<svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="' + ICO[forma] + '" stroke="#141221" stroke-width="4"/><path d="' + ICO[forma] + '" stroke="#FAFAF7" stroke-width="1.8"/></svg>';
+    ico.style.transform = 'scale(.6)'; requestAnimationFrame(() => { ico.style.transform = ''; });
+  }
+  if (nombre !== punto.nombre) { punto.nombre = nombre; if (nombre) punto.el.querySelector('.nombre').textContent = nombre; }
+  punto.el.classList.toggle('con-nombre', !!nombre);
+}
+function actualizaPunto() {
+  const s = gesto.estado, m = modos[s];
+  if (m && m.punto) { const r = m.punto(); setPunto(r[0], r[1] || ''); return; }
+  if (s === 'llevar') return setPunto('agarre');
+  if (s === 'inspeccion') return setPunto(gesto.arrastre ? 'agarre' : 'girar');
+  if (s === 'libre' && gesto.hover) { const o = objetos.get(gesto.hover); return setPunto(o.puntero || 'mano', o.nombre); }
+  setPunto('punto');
+}
+
+/* ---------- rayo: qué hay debajo del puntero ---------- */
+const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pick(lista = pickables) {
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObjects(lista, false);
+  for (const h of hits) { const k = h.object.userData.clave, o = k && objetos.get(k); if (o && o.activo()) return { o, hit: h }; }
+  return null;
+}
+function setHover(clave) {
+  if (gesto.hover === clave) return;
+  if (gesto.hover && objetos.get(gesto.hover)) brillo(objetos.get(gesto.hover).mallas, 0);
+  gesto.hover = clave;
+  if (clave) brillo(objetos.get(clave).mallas, objetos.get(clave).brilloK ?? 1);
+  bus.emit('hover', clave);
+  actualizaPunto();
+}
+
+/* ---------- puntero ---------- */
+let necesitaPick = false, ultimoPuntero = { x: 0, y: 0 }, ratonVisto = false;
+function aNdc(e) { ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); }
+canvas.addEventListener('pointermove', e => {
+  aNdc(e); necesitaPick = true; ratonVisto = true; teclado.activo = false; punto.el.classList.remove('oculto');
+  punto.x = e.clientX; punto.y = e.clientY; punto.el.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+  if (e.pointerType === 'mouse' || gesto.pulsado == null) { rig.mx = ndc.x; rig.my = ndc.y; }
+  else if (gesto.estado === 'libre' && gesto.pulsado && !gesto.pulsado.o) {      // táctil: arrastrar en vacío mira
+    rig.rumbo -= (e.clientX - ultimoPuntero.x) * 0.004; rig.my = clamp(rig.my - (e.clientY - ultimoPuntero.y) * 0.004, -1, 1);
+  }
+  ultimoPuntero = { x: e.clientX, y: e.clientY };
+  const m = modos[gesto.estado]; if (m && m.move) return m.move(e);
+  const p = gesto.pulsado;
+  if (p && p.o && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 6) {
+    gesto.pulsado = null;
+    if (p.o.movil) empiezaLlevar(p.o, p.hit);
+    else if (p.o.alArrastrar) { p.o.alArrastrar.empieza(p, e); gesto.arrastre = p.o; }
+  }
+  if (gesto.arrastre && gesto.arrastre.alArrastrar) gesto.arrastre.alArrastrar.mueve(e);
+});
+canvas.addEventListener('pointerdown', e => {
+  aNdc(e); canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+  ultimoPuntero = { x: e.clientX, y: e.clientY };
+  const m = modos[gesto.estado]; if (m && m.down) return m.down(e);
+  if (gesto.estado !== 'libre') return;
+  const r = pick();
+  gesto.pulsado = { x: e.clientX, y: e.clientY, o: r && r.o, hit: r && r.hit };
+});
+canvas.addEventListener('pointerup', e => {
+  aNdc(e);
+  const m = modos[gesto.estado]; if (m && m.up) return m.up(e);
+  if (gesto.arrastre) { const o = gesto.arrastre; gesto.arrastre = null; o.alArrastrar.suelta(e); return; }
+  const p = gesto.pulsado; gesto.pulsado = null;
+  if (p && p.o && gesto.estado === 'libre') clicEn(p.o, p.hit, e);
+});
+canvas.addEventListener('pointerleave', () => { if (gesto.estado === 'libre') setHover(null); punto.el.classList.add('oculto'); });
+canvas.addEventListener('wheel', e => { const m = modos[gesto.estado]; if (m && m.wheel) { e.preventDefault(); m.wheel(e); } }, { passive: false });
+function clicEn(o, hit, e) {
+  if (o.alClic) return o.alClic(o, hit, e);
+  if (o.movil || o.tipo === 'libro') return inspecciona(o);
+}
+
+/* ---------- INSPECCIÓN: el objeto en la mano (E03 · decisión de Sergio del 4 nov) ---------- */
+const insp = { o: null, q: new THREE.Quaternion(), dist: 0.4, llegando: false };
+const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _v = new THREE.Vector3(), _e = new THREE.Euler();
+function poseInspeccion(o, salidaPos, salidaQuat) {
+  // delante de la cámara, a «dist» metros; orientado según su «insp.rot» y lo que lo haya girado la persona
+  camera.getWorldDirection(_v);
+  salidaPos.copy(camera.position).addScaledVector(_v, insp.dist);
+  _q2.setFromEuler(o.insp.rot);
+  salidaQuat.copy(camera.quaternion).multiply(insp.q).multiply(_q2);
+}
+async function inspecciona(o) {
+  if (gesto.estado !== 'libre') return;
+  setHover(null); cambia('ocupado');
+  enfoca(camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3())), camera.position.clone(), cam.fov, { paralaje: 0 });
+  insp.o = o; insp.q.identity(); insp.dist = o.insp.dist; gesto.obj = o;
+  bus.emit('coge', o);
+  scene.attach(o.raiz);
+  $('#velo').classList.add('on');
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone(), p1 = new THREE.Vector3(), q1 = new THREE.Quaternion();
+  // sale de su sitio (un poco hacia la silla) y vuela a la mano
+  const salida = p0.clone().add(new THREE.Vector3(0, 0.03, 0.06));
+  await anim(180, e => o.raiz.position.lerpVectors(p0, salida, e), curva.sale);
+  await anim(560, e => { poseInspeccion(o, p1, q1); o.raiz.position.lerpVectors(salida, p1, e); o.raiz.quaternion.slerpQuaternions(q0, q1, e); }, curva.suave);
+  cambia('inspeccion'); recordatorioTeclas();
+  anuncia(o.nombre + ' en la mano. Arrastra o usa las flechas para girarlo, E para usarlo, Esc para dejarlo.');
+}
+function corrInspeccion(dt) {
+  if (gesto.estado !== 'inspeccion' || !insp.o) return;
+  const p1 = new THREE.Vector3(), q1 = new THREE.Quaternion();
+  poseInspeccion(insp.o, p1, q1);
+  const k = reduced ? 1 : 1 - Math.exp(-dt * 14);
+  insp.o.raiz.position.lerp(p1, k); insp.o.raiz.quaternion.slerp(q1, k);
+}
+function giraInspeccion(dx, dy) {
+  // girar en el espacio de la cámara: arrastrar a la derecha gira sobre el eje vertical de la pantalla
+  _q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), dx); insp.q.premultiply(_q);
+  _q.setFromAxisAngle(new THREE.Vector3(1, 0, 0), dy); insp.q.premultiply(_q);
+}
+modo('inspeccion', {
+  down(e) { gesto.arrastre = { x: e.clientX, y: e.clientY, movido: 0 }; actualizaPunto(); },
+  move(e) {
+    const a = gesto.arrastre; if (!a) return;
+    giraInspeccion((e.clientX - a.x) * 0.012, (e.clientY - a.y) * 0.012);
+    a.movido += Math.abs(e.clientX - a.x) + Math.abs(e.clientY - a.y); a.x = e.clientX; a.y = e.clientY;
+  },
+  up() { gesto.arrastre = null; actualizaPunto(); },
+  wheel(e) { insp.dist = clamp(insp.dist + Math.sign(e.deltaY) * 0.03, insp.o.insp.dist * 0.55, insp.o.insp.dist * 1.5); },
+  tecla(e) {
+    const k = e.key;
+    if (k === 'ArrowLeft') giraInspeccion(-0.2, 0); else if (k === 'ArrowRight') giraInspeccion(0.2, 0);
+    else if (k === 'ArrowUp') giraInspeccion(0, -0.2); else if (k === 'ArrowDown') giraInspeccion(0, 0.2);
+    else if (k === '+') insp.dist = Math.max(insp.o.insp.dist * 0.55, insp.dist - 0.03);
+    else if (k === '-') insp.dist = Math.min(insp.o.insp.dist * 1.5, insp.dist + 0.03);
+    else if (k === 'e' || k === 'E' || k === 'Enter') usa(insp.o);
+    else return false;
+    return true;
+  },
+  esc() { dejaInspeccion(); }
+});
+async function dejaInspeccion() {
+  const o = insp.o; if (!o) return;
+  cambia('ocupado'); $('#velo').classList.remove('on'); ocultaTeclas();
+  await volverACasa(o);
+  insp.o = null; gesto.obj = null; sueltaFoco(); cambia('libre'); bus.emit('vuelve');
+}
+function usa(o) {
+  const fn = o.alUsar || USOS[o.tipo];
+  if (!fn) return;
+  $('#velo').classList.remove('on'); ocultaTeclas();
+  insp.o = null;
+  fn(o);
+}
+const USOS = {};   // tipo → qué hace E (los rellena el módulo 07)
+async function volverACasa(o, dur = 620) {
+  const c = o.casa, p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone();
+  // destino en coordenadas del mundo (el padre puede ser el cajón, que se mueve)
+  c.padre.updateMatrixWorld(true);
+  const pW = c.pos.clone().applyMatrix4(c.padre.matrixWorld);
+  const qW = c.padre.getWorldQuaternion(new THREE.Quaternion()).multiply(c.quat);
+  const arriba = pW.clone().add(new THREE.Vector3(0, 0.05, 0.05));
+  await anim(dur, e => { o.raiz.position.lerpVectors(p0, arriba, e); o.raiz.quaternion.slerpQuaternions(q0, qW, e); }, curva.suave);
+  await anim(200, e => o.raiz.position.lerpVectors(arriba, pW, e), curva.sale);
+  c.padre.attach(o.raiz); o.raiz.position.copy(c.pos); o.raiz.quaternion.copy(c.quat);
+  bus.emit('deja', o);
+}
+let teclasVistas = guardado.get('teclas', 0);
+function recordatorioTeclas() {
+  if (teclasVistas >= 2) return;
+  teclasVistas++; guardado.set('teclas', teclasVistas);
+  const t = $('#teclas'); t.innerHTML = '<span><kbd>E</kbd>usar</span><span><kbd>Esc</kbd>dejar</span><span>arrastra para girarlo</span>'; t.classList.add('on');
+}
+function ocultaTeclas() { $('#teclas').classList.remove('on'); }
+
+/* ---------- LLEVAR y ZONAS de destino (E05, E24) ---------- */
+const zonas = [];
+function zona(z) { z.prox = 0; z.activa = false; zonas.push(z); return z; }
+const llevar = { o: null, obj: new THREE.Vector3(), prev: new THREE.Vector3(), vel: new THREE.Vector3(), zona: null, q: new THREE.Quaternion() };
+const planoTrabajo = new THREE.Plane(new THREE.Vector3(0, 1, 0), -PLANO_Y);
+function empiezaLlevar(o, hit) {
+  setHover(null); cambia('llevar'); gesto.obj = o; llevar.o = o;
+  bus.emit('coge', o);
+  scene.attach(o.raiz);
+  llevar.obj.copy(o.raiz.position); llevar.prev.copy(o.raiz.position); llevar.vel.set(0, 0, 0);
+  llevar.q.copy(o.raiz.quaternion);
+  rig.sensib = 0.45;   // mientras llevas algo, la cámara gira menos con el ratón
+  anuncia('Llevas ' + o.nombre + '. Suéltalo donde brille.');
+}
+const _hitP = new THREE.Vector3();
+const QLLEVAR = { disco: new THREE.Quaternion().setFromEuler(new THREE.Euler(0.85, 0, 0)),   // el disco se lleva inclinado hacia ti: se ve su etiqueta
+  usb: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, Math.PI, 0)), carpeta: new THREE.Quaternion(), taza: null };
+function corrLlevar(dt) {
+  const o = llevar.o; if (gesto.estado !== 'llevar' || !o) return;
+  raycaster.setFromCamera(ndc, camera);
+  const alturaBase = PLANO_Y + (o.tipo === 'taza' ? 0.06 : o.tipo === 'disco' ? 0.08 : 0.04);
+  planoTrabajo.constant = -alturaBase;
+  if (raycaster.ray.intersectPlane(planoTrabajo, _hitP)) {
+    // límites: encima de la mesa y siempre delante de la torre y del monitor (si no, el objeto se esconde detrás)
+    _hitP.x = clamp(_hitP.x, -0.85, 0.7); _hitP.z = clamp(_hitP.z, -0.5, 0.0);
+    // la zona más cercana que acepte este objeto
+    let mejor = null;
+    for (const z of zonas) {
+      if (!z.acepta(o)) { z.prox = 0; continue; }
+      if (z.prox_) { z.prox = z.prox_(_hitP); }
+      else {
+        // cerca = cerca EN LA PANTALLA: se compara dónde apunta el ratón con dónde se ve la zona
+        _v.copy(z.punto).project(camera);
+        const d = Math.hypot((ndc.x - _v.x) * camera.aspect, ndc.y - _v.y);
+        z.prox = _v.z < 1 ? clamp(1 - d / z.radio, 0, 1) : 0;
+      }
+      if (z.prox > 0 && (!mejor || z.prox > mejor.prox)) mejor = z;
+    }
+    zonas.forEach(z => {
+      const activa = z === mejor;
+      if (activa && !z.activa) { z.activa = true; z.alEntrar && z.alEntrar(o); }
+      if (!activa && z.activa) { z.activa = false; z.alSalir && z.alSalir(o); }
+      brillo(z.mallas, activa ? 1.4 + 2.4 * z.prox + Math.sin(performance.now() / 120) * 0.4 : 0);
+    });
+    llevar.zona = mejor;
+    // cerca de la zona, el objeto sube hacia ella y se orienta como encajará
+    const s = mejor ? curva.suave(mejor.prox) : 0;
+    llevar.obj.set(lerp(_hitP.x, mejor ? mejor.punto.x : _hitP.x, s), lerp(alturaBase, mejor ? mejor.punto.y : alturaBase, s), lerp(_hitP.z, mejor ? mejor.punto.z : _hitP.z, s));
+  }
+  const k = reduced ? 1 : 1 - Math.exp(-dt * 16);
+  o.raiz.position.lerp(llevar.obj, k);
+  // inclinación según la velocidad: el objeto «cuelga» un poco al moverlo
+  llevar.vel.subVectors(o.raiz.position, llevar.prev).divideScalar(Math.max(dt, 1e-3)); llevar.prev.copy(o.raiz.position);
+  const qBase = QLLEVAR[o.tipo] || llevar.q;
+  const qZona = llevar.zona && llevar.zona.quat ? llevar.zona.quat : qBase;
+  _q.copy(qBase).slerp(qZona, llevar.zona ? curva.suave(llevar.zona.prox) : 0);
+  _e.set(clamp(llevar.vel.z * 0.35, -0.35, 0.35), 0, clamp(-llevar.vel.x * 0.35, -0.35, 0.35));
+  _q2.setFromEuler(_e); _q2.multiply(_q);
+  o.raiz.quaternion.slerp(_q2, k);
+}
+modo('llevar', {
+  up() { sueltaLlevar(); },
+  esc() { sueltaLlevar(true); }
+});
+async function sueltaLlevar(cancelar = false) {
+  const o = llevar.o; if (!o) return;
+  const z = cancelar ? null : llevar.zona;
+  zonas.forEach(zz => { brillo(zz.mallas, 0); if (zz.activa && zz !== z) { zz.activa = false; zz.alSalir && zz.alSalir(o); } zz.activa = false; });
+  llevar.o = null; llevar.zona = null; rig.sensib = 1; cambia('ocupado');
+  if (z && z.prox > 0.12) { await z.encaja(o); return; }
+  if (o.dejaDondeSea && !cancelar) {           // la taza se queda donde la sueltes
+    const destino = o.raiz.position.clone(); destino.y = o.casa.pos.y;
+    const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone(), q1 = o.casa.quat.clone();
+    await anim(260, e => { o.raiz.position.lerpVectors(p0, destino, e); o.raiz.quaternion.slerpQuaternions(q0, q1, e); }, curva.rebote);
+    o.casa.pos.copy(destino); scene.attach(o.raiz); gesto.obj = null; cambia('libre'); bus.emit('deja', o); return;
+  }
+  await volverACasa(o, 520);
+  gesto.obj = null; cambia('libre'); bus.emit('vuelve');
+}
+function anuncia(t) { const a = $('#anuncio'); a.textContent = ''; setTimeout(() => { a.textContent = t; }, 30); }
+
+/* ===================== 07 · acciones =====================
+   Qué hace cada objeto: disco a la disquetera y USB al puerto (E05, E24),
+   cajón con peso (E09), carpeta que se abre en la mesa (E07), taza con
+   Sergio Bot en el vapor (E10), lámpara con interruptor (E09) y la puerta. */
+
+/* ---------- torre: disquetera ---------- */
+const torre = { disco: null, usb: null, bandeja: 0 };   // bandeja: 0 cerrada, 1 abierta
+function mueveBandeja(a, dur = 380) { const b0 = torre.bandeja; return anim(dur, e => { torre.bandeja = lerp(b0, a, e); tray.position.z = lerp(TRAY_CERRADA, TRAY_ABIERTA, torre.bandeja); }, curva.suave); }
+const zonaDisquetera = zona({
+  clave: 'disquetera', punto: v3(0.82, 1.105, -0.15), radio: 0.32, mallas: [slot, trayMesh], quat: new THREE.Quaternion(),
+  acepta: o => o.tipo === 'disco',
+  alEntrar: () => { if (!torre.disco) mueveBandeja(1); },
+  alSalir: () => { if (!torre.disco) mueveBandeja(0); },
+  encaja: o => meteDisco(o)
+});
+USOS.disco = o => meteDisco(o);
+async function meteDisco(o) {
+  cambia('ocupado'); gesto.obj = o;
+  if (torre.disco && torre.disco !== o) await sacaDisco(false);
+  if (torre.bandeja < 1) await mueveBandeja(1);
+  scene.attach(o.raiz);
+  tray.updateMatrixWorld(true);
+  const encima = new THREE.Vector3(0, 0.05, 0).applyMatrix4(tray.matrixWorld), dentro = new THREE.Vector3(0, 0.006, 0).applyMatrix4(tray.matrixWorld);
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone(), q1 = new THREE.Quaternion();
+  await anim(420, e => { o.raiz.position.lerpVectors(p0, encima, e); o.raiz.quaternion.slerpQuaternions(q0, q1, e); }, curva.suave);
+  await anim(420, e => o.raiz.position.lerpVectors(encima, dentro, e), curva.rebote);   // cae y rebota
+  tray.attach(o.raiz);                                                                  // a partir de aquí se mueve con la bandeja
+  await mueveBandeja(0, 460);
+  torre.disco = o; gesto.obj = null; $('#velo').classList.remove('on');
+  pantalla.pon('simulacro', o.datos); parpadeoLed(1400);
+  miraMonitor('Simulacro ' + o.datos.code + ' cargado en el monitor. Clic en la pantalla para abrirlo, Esc para volver.');
+}
+async function sacaDisco(volverLibre = true) {
+  const o = torre.disco; if (!o) return;
+  if (volverLibre) cambia('ocupado');
+  await mueveBandeja(1);
+  scene.attach(o.raiz); torre.disco = null; pantalla.pon('reposo');
+  await volverACasa(o, 520);
+  await mueveBandeja(0);
+  if (volverLibre) { cambia('libre'); bus.emit('vuelve'); }
+}
+registrar('expulsar', { nombre: 'Botón de expulsar', mallas: [ejectBtn], alClic: () => {
+  if (!torre.disco) { mueveBandeja(torre.bandeja > 0.5 ? 0 : 1); return; }
+  sacaDisco();
+} });
+
+/* ---------- torre: puerto USB ---------- */
+const PUERTO = v3(0.87, 0.97, -0.2185);
+const zonaPuerto = zona({
+  clave: 'puerto', punto: v3(0.87, 0.97, -0.15), radio: 0.3, mallas: [usbPort], quat: QLLEVAR.usb,
+  acepta: o => o.tipo === 'usb', encaja: o => enchufa(o)
+});
+USOS.usb = o => enchufa(o);
+async function enchufa(o) {
+  cambia('ocupado'); gesto.obj = o;
+  if (torre.usb && torre.usb !== o) { const viejo = torre.usb; torre.usb = null; scene.attach(viejo.raiz); volverACasa(viejo, 500); }
+  scene.attach(o.raiz);
+  // la punta del conector (0,048 m por debajo del centro) tiene que quedar 1,2 cm dentro del puerto
+  const fuera = v3(PUERTO.x, PUERTO.y, PUERTO.z + 0.048 + 0.03), dentro = v3(PUERTO.x, PUERTO.y, PUERTO.z - 0.012 + 0.048);
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone();
+  await anim(420, e => { o.raiz.position.lerpVectors(p0, fuera, e); o.raiz.quaternion.slerpQuaternions(q0, QLLEVAR.usb, e); }, curva.suave);
+  await anim(220, e => o.raiz.position.lerpVectors(fuera, dentro, e), curva.retroceso);  // el «clic» al entrar
+  torre.usb = o; gesto.obj = null; $('#velo').classList.remove('on');
+  pantalla.pon('simulador', o.datos); parpadeoLed(900);
+  miraMonitor('Simulador ' + o.datos.nombre + ' en el monitor. Clic en la pantalla para abrirlo, Esc para volver.');
+}
+bus.on('coge', o => { if (o === torre.usb) { torre.usb = null; if (!torre.disco) pantalla.pon('reposo'); } });
+let ledHasta = 0;
+function parpadeoLed(ms) { ledHasta = performance.now() + ms; }
+
+/* ---------- monitor de cerca (después de meter un disco o un USB) ---------- */
+function miraMonitor(texto) {
+  enfoca(v3(0, 1.06, -0.6), BASE.clone().add(v3(0, -0.1, -0.28)), 46);
+  cambia('monitor'); anuncia(texto);
+}
+function enlacePantalla() {
+  const d = pantalla.datos;
+  if (pantalla.estado === 'simulador') return d.url;
+  if (pantalla.estado === 'simulacro') { const p = d.partes.find(x => publicado(x[1])); return p ? p[2] : ''; }
+  return '';
+}
+modo('monitor', {
+  punto: () => { raycaster.setFromCamera(ndc, camera); const sobre = raycaster.intersectObject(screen).length > 0; return sobre && enlacePantalla() ? ['enlace', 'Abrir en la web'] : ['punto']; },
+  move() { actualizaPunto(); },
+  up() { const r = pick([screen]); if (r || raycaster.intersectObject(screen).length) { const u = enlacePantalla(); if (u) window.open(u, '_blank', 'noopener'); } },
+  tecla(e) { if (e.key === 'Enter' || e.key === 'e' || e.key === 'E') { const u = enlacePantalla(); if (u) window.open(u, '_blank', 'noopener'); return true; } return false; },
+  esc() { sueltaFoco(); cambia('libre'); }
+});
+
+/* ---------- cajón con peso: un muelle ---------- */
+const cajonM = new Muelle(0, 70, 11, 1.3);    // pesado: rigidez baja y algo de rebote
+const CAJON_ABIERTO = 0.3;
+function cajonAbierto() { return cajonM.obj > 0.15 && drawer.position.z > 0.12; }
+function abreCajon() { cajonM.obj = CAJON_ABIERTO; enfocaCajon(); anuncia('Cajón abierto: siete carpetas de apuntes.'); }
+function cierraCajon() { cajonM.obj = 0; sueltaFoco(); }
+function enfocaCajon() { enfoca(v3(-0.2, 0.6, 0.18), BASE.clone().add(v3(-0.08, 0.02, 0)), 54, { paralaje: 0.06 }); }
+bus.on('vuelve', () => { if (cajonM.obj > 0.15 && gesto.estado === 'libre') enfocaCajon(); });
+registrar('cajon', {
+  nombre: 'Cajón de los apuntes', mallas: [drawerFront, drawerHandle], puntero: 'mano',
+  alClic: () => (cajonM.obj > 0.15 ? cierraCajon() : abreCajon()),
+  alArrastrar: {
+    empieza(p) { this.y0 = p.y; this.z0 = cajonM.obj > 0.15 ? CAJON_ABIERTO : 0; },
+    mueve(e) { cajonM.obj = clamp(this.z0 + (e.clientY - this.y0) * 0.0016, 0, 0.33); setPunto('agarre'); },
+    suelta() { if (cajonM.obj > 0.14) abreCajon(); else cierraCajon(); actualizaPunto(); }
+  }
+});
+
+/* ---------- carpeta abierta sobre la mesa ---------- */
+const MESA_CARPETA = { pos: v3(0.08, 0.778, -0.05), quat: new THREE.Quaternion() };
+const carpetaAbierta = { o: null };
+zona({ clave: 'mesa', punto: v3(0.05, PLANO_Y + 0.04, -0.2), radio: 1, mallas: [], acepta: o => o.tipo === 'carpeta', encaja: o => abreCarpeta(o),
+  prox_: p => (p.z < -0.02 && p.z > -0.6 && Math.abs(p.x) < 0.7 ? 0.4 : 0) });   // cualquier sitio de la mesa vale
+USOS.carpeta = o => abreCarpeta(o);
+async function abreCarpeta(o) {
+  cambia('ocupado'); scene.attach(o.raiz);
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone(), alto = MESA_CARPETA.pos.clone().add(v3(0, 0.08, 0));
+  await anim(480, e => { o.raiz.position.lerpVectors(p0, alto, e); o.raiz.quaternion.slerpQuaternions(q0, MESA_CARPETA.quat, e); }, curva.suave);
+  await anim(220, e => o.raiz.position.lerpVectors(alto, MESA_CARPETA.pos, e), curva.sale);
+  enfoca(v3(-0.06, 0.77, -0.05), BASE.clone().add(v3(-0.02, -0.06, -0.12)), 50, { paralaje: 0.02 });
+  await anim(700, e => { o.bisagra.rotation.z = Math.PI * 0.985 * e; }, curva.suave);   // la tapa se abre hacia la izquierda
+  carpetaAbierta.o = o; cambia('carpeta');
+  anuncia('Carpeta de ' + o.datos.nombre + ' abierta.' + (o.datos.url ? ' Intro abre la dirección escrita en la hoja.' : ''));
+}
+function sobreDireccion() {
+  const o = carpetaAbierta.o; if (!o || !o.datos.url) return false;
+  raycaster.setFromCamera(ndc, camera);
+  const h = raycaster.intersectObject(o.hoja)[0];
+  return !!(h && h.uv && h.uv.x > 0.12 && h.uv.x < 0.95 && h.uv.y > 0.2 && h.uv.y < 0.44);
+}
+modo('carpeta', {
+  punto: () => (sobreDireccion() ? ['enlace', 'Abrir en la web'] : ['punto']),
+  move() { actualizaPunto(); },
+  up() { if (sobreDireccion()) window.open(carpetaAbierta.o.datos.url, '_blank', 'noopener'); },
+  tecla(e) { if (e.key === 'Enter' && carpetaAbierta.o.datos.url) { window.open(carpetaAbierta.o.datos.url, '_blank', 'noopener'); return true; } return false; },
+  async esc() {
+    const o = carpetaAbierta.o; cambia('ocupado');
+    await anim(500, e => { o.bisagra.rotation.z = Math.PI * 0.985 * (1 - e); }, curva.suave);
+    carpetaAbierta.o = null; sueltaFoco();
+    if (cajonM.obj < 0.15) abreCajon();
+    await volverACasa(o, 600); cambia('libre'); bus.emit('vuelve');
+  }
+});
+
+/* ---------- taza: Sergio Bot en el vapor (E10, decisión de Sergio del 4 nov) ---------- */
+const botTex = texFrom(1024, 600);
+const botPlano = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.27), new THREE.MeshBasicMaterial({ map: botTex, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
+botPlano.visible = false; scene.add(botPlano);
+const bot = { msgs: [{ de: 'bot', t: 'Hola, soy Sergio Bot. Pregúntame por una asignatura o por los simulacros.' }], escrito: '', revela: 0, t0: 0 };
+USOS.taza = async o => {
+  cambia('ocupado');
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone();
+  const dir = camera.getWorldDirection(new THREE.Vector3());
+  const cerca = camera.position.clone().addScaledVector(dir, 0.3).add(v3(0, -0.12, 0));
+  const q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, cam.yaw + 2.2, 0));
+  await anim(600, e => { o.raiz.position.lerpVectors(p0, cerca, e); o.raiz.quaternion.slerpQuaternions(q0, q1, e); vapor.espeso = e; }, curva.suave);
+  botPlano.position.copy(camera.position).addScaledVector(dir, 0.52).add(v3(0, 0.02, 0));
+  botPlano.quaternion.copy(camera.quaternion); botPlano.visible = true;
+  bot.revela = 1e9; dibujaBot(0);
+  await anim(500, e => { botPlano.material.opacity = e; botPlano.scale.setScalar(0.85 + 0.15 * e); }, curva.sale);
+  cambia('bot'); const inp = $('#entrada'); inp.value = ''; inp.focus({ preventScroll: true });
+  anuncia('Sergio Bot en el vapor. Escribe tu pregunta y pulsa Intro. Esc para dejar la taza.');
+};
+function respuestaBot(q) { for (const [re, r] of BOT) if (re.test(q)) return r; return BOT_OTRA; }
+function dibujaBot(t) {
+  redibuja(botTex, (c, w, h) => {
+    c.textBaseline = 'alphabetic';
+    c.shadowColor = 'rgba(169,158,245,.7)'; c.shadowBlur = 18;
+    c.fillStyle = 'rgba(250,250,247,.95)'; c.font = '600 40px ' + DISP; c.fillText('Sergio Bot', 40, 64);
+    c.font = '500 24px ' + BODY; c.fillStyle = 'rgba(232,230,245,.75)'; c.fillText('en el vapor del café · respuestas de ejemplo', 40, 102);
+    let y = 160;
+    const ult = bot.msgs.slice(-3);
+    ult.forEach((m, i) => {
+      const onda = reduced ? 0 : Math.sin(t / 700 + i) * 3;
+      c.font = (m.de === 'tu' ? '600 ' : '400 ') + '36px ' + BODY; c.fillStyle = m.de === 'tu' ? 'rgba(255,155,128,.98)' : 'rgba(250,250,247,.96)';
+      let txt = (m.de === 'tu' ? 'Tú: ' : '') + m.t;
+      if (i === ult.length - 1 && m.de === 'bot') txt = txt.slice(0, Math.floor(bot.revela));
+      y = wrap(c, txt, 40 + onda, y, w - 80, 46) + 56;
+    });
+    c.shadowBlur = 10; c.font = '400 34px ' + BODY; c.fillStyle = 'rgba(250,250,247,.9)';
+    const caret = Math.floor(t / 500) % 2 ? '' : '_';
+    c.fillText((bot.escrito || '') + caret, 40, h - 40);
+    if (!bot.escrito) { c.fillStyle = 'rgba(232,230,245,.55)'; c.fillText('Escribe tu pregunta…', 40 + c.measureText(caret).width + 4, h - 40); }
+  });
+}
+$('#entrada').addEventListener('keydown', e => {
+  if (gesto.estado !== 'bot') return;
+  if (e.key === 'Escape') return;          // lo trata el teclado general
+  if (e.key === 'Enter') {
+    e.preventDefault(); const q = bot.escrito.trim(); bot.escrito = ''; if (!q) return;
+    bot.msgs.push({ de: 'tu', t: q }, { de: 'bot', t: respuestaBot(q) }); bot.revela = 0; return;
+  }
+  if (e.key === 'Backspace') { e.preventDefault(); bot.escrito = bot.escrito.slice(0, -1); return; }
+  // las teclas normales se apuntan aquí; las letras compuestas (á, ¿) llegan por el evento «input»
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { e.preventDefault(); if (bot.escrito.length < 80) bot.escrito += e.key; }
+});
+$('#entrada').addEventListener('input', e => { if (gesto.estado === 'bot') { bot.escrito = (bot.escrito + (e.data || e.target.value)).slice(0, 80); e.target.value = ''; } });
+modo('bot', {
+  down() {}, up() { $('#entrada').focus({ preventScroll: true }); },
+  async esc() {
+    cambia('ocupado'); $('#entrada').value = ''; bot.escrito = ''; devuelveFoco('taza');
+    await anim(300, e => { botPlano.material.opacity = 1 - e; }, curva.entra);
+    botPlano.visible = false;
+    const v0 = vapor.espeso; anim(800, e => { vapor.espeso = v0 * (1 - e); });
+    await volverACasa(tazaObj, 560); sueltaFoco(); cambia('libre'); bus.emit('vuelve');
+  }
+});
+let botUlt = 0;
+function corrBot(t) {
+  if (!botPlano.visible) return;
+  if (bot.revela < 1e8) bot.revela += 1.4;
+  if (t - botUlt > 45) { botUlt = t; dibujaBot(t); }
+}
+
+/* ---------- lámpara: interruptor que bascula y luz que parpadea al encender ---------- */
+let lamparaOn = true;
+async function interruptor() {
+  lamparaOn = !lamparaOn;
+  const r0 = rocker.rotation.x, r1 = lamparaOn ? -0.28 : 0.28;
+  anim(160, e => { rocker.rotation.x = lerp(r0, r1, e); }, curva.retroceso);
+  const h0 = hemi.intensity;
+  if (lamparaOn) {
+    for (const [v, ms] of [[0.5, 50], [0.05, 60], [0.9, 50], [0.3, 70], [1, 0]]) {
+      lampLight.intensity = 2.6 * v; bulb.material.emissiveIntensity = 2.2 * v; hemi.intensity = lerp(0.35, 0.75, v);
+      if (ms) await espera(ms);
+    }
+  } else {
+    const l0 = lampLight.intensity;
+    await anim(320, e => { lampLight.intensity = l0 * (1 - e); bulb.material.emissiveIntensity = 2.2 * (1 - e); hemi.intensity = lerp(h0, 0.35, e); }, curva.sale);
+  }
+}
+registrar('lampara', { nombre: 'Interruptor de la lámpara', mallas: [rockerMesh, switchBox, lampBase, shade], alClic: interruptor });
+
+/* ---------- la puerta: salir a la web ---------- */
+let puertaAbierta = false;
+async function puerta(abrir) {
+  puertaAbierta = abrir;
+  if (abrir) await anim(260, e => { doorKnob.rotation.z = -0.6 * e; }, curva.sale);
+  const y0 = door.rotation.y, l0 = pasilloLuz.intensity;
+  await anim(abrir ? 900 : 600, e => { door.rotation.y = lerp(y0, abrir ? 0.42 : 0, e); pasilloLuz.intensity = lerp(l0, abrir ? 3 : 0, e); }, abrir ? curva.sale : curva.suave);
+  if (abrir) anim(220, e => { doorKnob.rotation.z = -0.6 * (1 - e); }, curva.sale);
+  if (abrir) anuncia('Puerta entreabierta. Clic en la luz del pasillo para volver a la web.');
+}
+registrar('puerta', { nombre: 'Puerta', mallas: [doorSlab, knobMesh], brilloK: 0.35, alClic: () => puerta(!puertaAbierta) });
+registrar('salida', { nombre: 'Volver a la web', mallas: [pasillo], puntero: 'enlace', activo: () => gesto.estado === 'libre' && puertaAbierta,
+  alClic: () => window.open('https://sergiolearns.com/', '_blank', 'noopener') });
+
+/* ---------- el estuche se abre al acercarse ---------- */
+let estucheAbierto = 0, estucheHasta = 0;
+function tapaEstuche(abrir) {
+  const objetivo = abrir ? 1 : 0; if (objetivo === estucheAbierto) return;
+  const a0 = estucheAbierto; estucheAbierto = objetivo;
+  anim(abrir ? 520 : 420, e => { tapaEst.rotation.x = -1.95 * lerp(a0, objetivo, e); }, abrir ? curva.retroceso : curva.suave);
+}
+registrar('estuche', { nombre: 'Estuche de los simulacros', mallas: [tapaMesh, estFrente], alClic: () => { tapaEstuche(!estucheAbierto); estucheHasta = performance.now() + 4000; } });
+bus.on('hover', k => { if (k && (k.startsWith('disco-') || k === 'estuche')) { tapaEstuche(true); estucheHasta = performance.now() + 1500; } });
+function corrEstuche(t) {
+  const cerca = (gesto.hover && (gesto.hover.startsWith('disco-') || gesto.hover === 'estuche')) || (gesto.obj && gesto.obj.tipo === 'disco');
+  if (cerca) estucheHasta = t + 1200;
+  if (estucheAbierto && t > estucheHasta && gesto.estado === 'libre') tapaEstuche(false);
+}
+
+/* ===================== 08 · libro abierto =====================
+   E06: hojas que se curvan al pasar, un bloque de páginas que adelgaza a la
+   derecha y engorda a la izquierda, y la tapa debajo de las páginas leídas.
+   Modelo y cuentas: material/v0.2/bocetos/04-libro-pagina-curva.svg
+   Ejes del libro abierto: el lomo en el origen, las páginas hacia +x (derecha)
+   o −x (izquierda) y la cara de lectura mirando a +z. */
+const lectura = { o: null, rig: null, k: 0, K: 0, paginas: [], giro: null };
+const SEG = 24, FILAS = 6, BETA = 0.9;
+
+function paginasDe(b) {
+  // Cada página es una función que dibuja en su lienzo. Todo físico: papel y tinta.
+  const P = [];
+  const papel = (c, w, h, n) => { c.fillStyle = '#FBF8EF'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(0,0,0,.05)'; c.fillRect(0, 0, 18, h); c.fillStyle = '#8E8AA3'; c.font = '400 20px ' + BODY; c.textAlign = 'center'; c.fillText(String(n), w / 2, h - 30); c.textAlign = 'left'; };
+  if (b.manual) {
+    b.paginas.forEach(pg => P.push((c, w, h, n) => {
+      papel(c, w, h, n);
+      c.fillStyle = '#C93F22'; c.fillRect(48, 64, 60, 6);
+      c.fillStyle = '#1E1B2E'; c.font = '600 40px ' + DISP; c.fillText(pg.t, 48, 120);
+      c.fillStyle = '#1E1B2E'; c.font = '500 26px ' + BODY; pg.l.forEach((l, i) => c.fillText(l, 48, 180 + i * 38));
+      if (pg.enlace) { c.fillStyle = '#4638B8'; c.fillRect(48, 180 + (pg.l.length - 1) * 38 + 8, c.measureText(pg.l[pg.l.length - 1]).width, 2); }
+    }));
+    P.enlaces = { [P.length - 1]: b.paginas[b.paginas.length - 1].enlace };
+    return P;
+  }
+  P.push((c, w, h, n) => {
+    papel(c, w, h, n);
+    c.fillStyle = b.curso === 2 ? '#5A566E' : b.color; c.fillRect(48, 64, 80, 8);
+    c.fillStyle = '#1E1B2E'; c.font = '600 96px ' + DISP; c.fillText(b.code, 48, 180);
+    c.font = '500 30px ' + DISP; let y = wrap(c, b.sub, 48, 232, w - 96, 38);
+    c.fillStyle = b.estado === 'Completa' ? '#16794B' : (b.estado === 'En curso' ? '#C2362B' : '#5A566E'); c.font = '600 26px ' + BODY; c.fillText(b.estado, 48, y + 64);
+    c.fillStyle = '#1E1B2E'; c.font = '500 25px ' + BODY; b.datos.forEach((l, i) => c.fillText(l, 48, y + 120 + i * 38));
+  });
+  for (let i = 0; i < Math.max(1, b.temas.length); i += 8) {
+    const parte = b.temas.slice(i, i + 8);
+    P.push((c, w, h, n) => {
+      papel(c, w, h, n);
+      c.fillStyle = '#1E1B2E'; c.font = '600 36px ' + DISP; c.fillText(i ? 'Índice (sigue)' : 'Índice', 48, 110);
+      c.font = '400 25px ' + BODY;
+      if (!parte.length) { c.fillStyle = '#8E8AA3'; c.fillText('Páginas en blanco por ahora.', 48, 180); return; }
+      parte.forEach((t, j) => { c.fillStyle = '#8E8AA3'; c.fillText(String(i + j + 1).padStart(2, '0'), 48, 180 + j * 44); c.fillStyle = '#2E2A42'; c.fillText(t, 100, 180 + j * 44); });
+    });
+  }
+  P.push((c, w, h, n) => {
+    papel(c, w, h, n);
+    c.fillStyle = '#1E1B2E'; c.font = '600 36px ' + DISP; c.fillText('¿Sabías que…?', 48, 110);
+    c.fillStyle = '#1E1B2E'; c.font = '500 26px ' + BODY; wrap(c, b.curiosidad, 48, 180, w - 96, 40);
+  });
+  P.push((c, w, h, n) => {
+    papel(c, w, h, n);
+    c.fillStyle = '#1E1B2E'; c.font = '600 36px ' + DISP; c.fillText(b.url ? 'Sigue en la web' : 'Próximamente', 48, 110);
+    c.fillStyle = '#1E1B2E'; c.font = '500 25px ' + BODY;
+    if (b.url) {
+      wrap(c, 'Cada tema tiene su teoría, su práctica y sus ejercicios en:', 48, 180, w - 96, 38);
+      const dir = b.url.replace('https://', '').replace(/\/$/, '');
+      c.fillStyle = '#4638B8'; c.font = '600 24px ' + BODY; c.fillText(dir, 48, 290); c.fillRect(48, 296, c.measureText(dir).width, 2);
+    } else wrap(c, 'Este libro se escribe a la vez que el curso. Cuando haya temas, aparecerán aquí.', 48, 180, w - 96, 38);
+  });
+  if (b.url) P.enlaces = { [P.length - 1]: b.url };
+  return P;
+}
+function texPagina(n) {
+  const L = lectura;
+  if (!L.tex[n]) {
+    const dib = L.paginas[n];
+    L.tex[n] = texFrom(512, 720, (c, w, h) => (dib ? dib(c, w, h, n + 1) : guarda(c, w, h)));
+  }
+  return L.tex[n];
+}
+function guarda(c, w, h) { c.fillStyle = '#' + new THREE.Color(lectura.o.tex.color).getHexString(); c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(255,255,255,.08)'; for (let y = 0; y < h; y += 24) c.fillRect(0, y, w, 1); }
+function texEspejo(t) { const m = new THREE.CanvasTexture(t.image); m.colorSpace = THREE.SRGBColorSpace; m.repeat.set(-1, 1); m.offset.set(1, 0); m.anisotropy = t.anisotropy; return m; }
+
+function construyeRig(o) {
+  const { t, h, d } = o.dims, W = d - 0.012, H = h - 0.016, T = t - 0.012;
+  const rig = new THREE.Group();
+  const tapaM = mat(o.tex.color, { r: 0.7 });
+  const trasera = box(d, h, 0.004, tapaM, d / 2, 0, -0.002, rig);
+  const pivote = new THREE.Group(); rig.add(pivote);
+  const portadaM = new THREE.MeshStandardMaterial({ map: o.tex.portada, roughness: 0.7 });
+  const delantera = box(d, h, 0.004, [tapaM, tapaM, tapaM, tapaM, portadaM, tapaM], d / 2, 0, 0.002, pivote);
+  const papelM = mat(0xF2F0F8, { r: 0.9 });
+  const bloqueDer = box(W, H, 1, papelM, W / 2 + 0.003, 0, 0, rig), bloqueIzq = box(W, H, 1, papelM.clone(), -W / 2 - 0.003, 0, 0, rig);
+  const pagDer = plano(W, H, new THREE.MeshStandardMaterial({ roughness: 0.92 }), W / 2 + 0.003, 0, 0, 0, 0, rig);
+  const pagIzq = plano(W, H, new THREE.MeshStandardMaterial({ roughness: 0.92 }), -W / 2 - 0.003, 0, 0, 0, 0, rig);
+  const geo = new THREE.PlaneGeometry(W, H, SEG, FILAS - 1);
+  const frente = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.92, side: THREE.FrontSide }));
+  const dorso = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.92, side: THREE.BackSide }));
+  rig.add(frente, dorso); frente.visible = dorso.visible = false;
+  scene.add(rig);
+  return { rig, pivote, delantera, trasera, bloqueDer, bloqueIzq, pagDer, pagIzq, geo, frente, dorso, W, H, T };
+}
+// Grosor de los bloques: lo leído pasa de la derecha a la izquierda
+function grosores(av) { const R = lectura.rig, f = clamp(av / Math.max(1, lectura.K - 1), 0, 1); return [R.T * f, R.T * (1 - f)]; }
+function colocaBloques(av) {
+  const R = lectura.rig, [tL, tR] = grosores(av);
+  R.bloqueDer.scale.z = Math.max(tR, 1e-4); R.bloqueDer.position.z = tR / 2; R.bloqueDer.visible = tR > 1e-4;
+  R.bloqueIzq.scale.z = Math.max(tL, 1e-4); R.bloqueIzq.position.z = tL / 2; R.bloqueIzq.visible = tL > 1e-4;
+  R.pagDer.position.z = tR + 0.0006; R.pagIzq.position.z = tL + 0.0006;
+  return [tL, tR];
+}
+// La hoja que se curva: a(s) = θ − β·sen(πp)·(s/W)^1,5 y se suma trozo a trozo (no se estira)
+function doblaHoja(p, agarre = 0) {
+  const R = lectura.rig, pos = R.geo.attributes.position, W = R.W, H = R.H, ds = W / SEG, th = Math.PI * p;
+  const av = lectura.k + (lectura.giro.dir > 0 ? p : p - 1);
+  const [tL, tR] = colocaBloques(av);
+  const zb = lerp(tR, tL, p) + 0.0012;
+  for (let j = 0; j < FILAS; j++) {
+    const y = H / 2 - (j / (FILAS - 1)) * H;                         // filas de arriba abajo, como PlaneGeometry
+    const beta = BETA * (1 + 0.55 * agarre * (y / (H / 2)));        // si se agarra por una esquina, se dobla en diagonal
+    let x = 0, z = 0;
+    for (let i = 0; i <= SEG; i++) {
+      const idx = j * (SEG + 1) + i;
+      pos.setXYZ(idx, x + 0.003 * Math.cos(th), y, zb + z);
+      const s = (i + 0.5) * ds, a = th - beta * Math.sin(Math.PI * p) * Math.pow(s / W, 1.5);
+      x += Math.cos(a) * ds; z += Math.sin(a) * ds;
+    }
+  }
+  pos.needsUpdate = true; R.geo.computeVertexNormals(); R.geo.computeBoundingSphere();
+}
+function ponPliego(k) {
+  // pliego k: a la izquierda la página 2k−1 (o la guarda), a la derecha la 2k (o la guarda del final)
+  const R = lectura.rig, N = lectura.paginas.length;
+  lectura.k = k;
+  R.pagIzq.material.map = k === 0 ? texGuarda() : texPagina(2 * k - 1); R.pagIzq.material.needsUpdate = true;
+  R.pagDer.material.map = 2 * k < N ? texPagina(2 * k) : texGuarda(); R.pagDer.material.needsUpdate = true;
+  colocaBloques(k);
+}
+let _guarda = null; function texGuarda() { if (!_guarda || _guarda.userData.color !== lectura.o.tex.color) { _guarda = texFrom(256, 360, guarda); _guarda.userData.color = lectura.o.tex.color; } return _guarda; }
+
+USOS.libro = o => abreLibro(o);
+async function abreLibro(o) {
+  cambia('ocupado');
+  const b = o.datos;
+  lectura.o = o; lectura.tex = {}; lectura.paginas = paginasDe(b); lectura.enlaces = lectura.paginas.enlaces || {};
+  lectura.K = Math.floor(lectura.paginas.length / 2) + 1;
+  lectura.rig = construyeRig(o);
+  const R = lectura.rig;
+  // el libro abierto empieza exactamente donde está el libro cerrado (el lomo en el origen)
+  o.raiz.updateMatrixWorld(true);
+  const m = new THREE.Matrix4().compose(v3(-o.dims.t / 2, 0, o.dims.d / 2), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0)), v3(1, 1, 1));
+  m.premultiply(o.raiz.matrixWorld);
+  m.decompose(R.rig.position, R.rig.quaternion, new THREE.Vector3());
+  ponPliego(0); R.pivote.position.z = R.T; R.pivote.rotation.y = 0;
+  o.raiz.visible = false;
+  // destino: delante de la cámara, algo más abajo, inclinado como en un atril
+  // la cámara pasa a mirar un poco hacia abajo, como cuando lees en la mesa; la pose se calcula con esa cámara de destino
+  const ojo = BASE.clone(), yaw = cam.yaw, pitch = -0.2;
+  rig.foco = { yaw, pitch, pos: ojo, fov: 58, paralaje: 0.015 };
+  const camDestino = new THREE.Object3D(); camDestino.position.copy(ojo);
+  camDestino.lookAt(ojo.x - Math.sin(yaw) * Math.cos(pitch), ojo.y + Math.sin(pitch), ojo.z - Math.cos(yaw) * Math.cos(pitch));
+  const dir = camDestino.getWorldDirection(new THREE.Vector3());   // un Object3D mira con su +z (la cámara, con su −z)
+  const qCam = camDestino.quaternion.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI, 0)));
+  const p1 = ojo.clone().addScaledVector(dir, 0.36).add(v3(0, -0.04, 0));
+  const q1 = qCam.multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.3, 0, 0)));
+  const p0 = R.rig.position.clone(), q0 = R.rig.quaternion.clone();
+  await anim(650, e => { R.rig.position.lerpVectors(p0, p1, e); R.rig.quaternion.slerpQuaternions(q0, q1, e); }, curva.suave);
+  await anim(800, e => { const th = Math.PI * e; R.pivote.rotation.y = -th; R.pivote.position.z = R.T * (1 - e); }, curva.suave);
+  cambia('lectura');
+  anuncia((b.manual ? 'Manual' : 'Libro de ' + b.code) + ' abierto. Arrastra la página o usa las flechas para pasarla. Esc para cerrarlo.');
+}
+async function pasa(dir, desde = 0, agarre = 0) {
+  const L = lectura; if (L.giro && L.giro.anim) return;
+  if (dir > 0 && L.k >= L.K - 1) return; if (dir < 0 && L.k <= 0) return;
+  empiezaGiro(dir, agarre);
+  await terminaGiro(desde, true);
+}
+function empiezaGiro(dir, agarre) {
+  const L = lectura, R = L.rig, N = L.paginas.length, k = L.k;
+  L.giro = { dir, p: dir > 0 ? 0 : 1, agarre };
+  const frente = dir > 0 ? 2 * k : 2 * k - 2, dorso = dir > 0 ? 2 * k + 1 : 2 * k - 1;
+  R.frente.material.map = frente < N ? texPagina(frente) : texGuarda(); R.frente.material.needsUpdate = true;
+  R.dorso.material.map = texEspejo(dorso < N ? texPagina(dorso) : texGuarda()); R.dorso.material.needsUpdate = true;
+  // lo que queda debajo de la hoja mientras gira
+  if (dir > 0) { R.pagDer.material.map = 2 * k + 2 < N ? texPagina(2 * k + 2) : texGuarda(); }
+  else { R.pagIzq.material.map = k - 1 === 0 ? texGuarda() : texPagina(2 * k - 3); }
+  R.pagDer.material.needsUpdate = R.pagIzq.material.needsUpdate = true;
+  R.frente.visible = R.dorso.visible = true;
+  doblaHoja(L.giro.p, agarre);
+}
+async function terminaGiro(_, completar) {
+  const L = lectura, g = L.giro, p0 = g.p, p1 = completar ? (g.dir > 0 ? 1 : 0) : (g.dir > 0 ? 0 : 1);
+  g.anim = true;
+  await anim(Math.max(160, 680 * Math.abs(p1 - p0)), e => { g.p = lerp(p0, p1, e); doblaHoja(g.p, g.agarre); }, curva.suave);
+  L.rig.frente.visible = L.rig.dorso.visible = false;
+  const pasada = (g.dir > 0 && p1 === 1) || (g.dir < 0 && p1 === 0);
+  L.giro = null;
+  ponPliego(pasada ? L.k + g.dir : L.k);
+}
+function paginaBajo() {
+  raycaster.setFromCamera(ndc, camera);
+  const R = lectura.rig, h = raycaster.intersectObjects([R.pagDer, R.pagIzq, R.bloqueDer, R.bloqueIzq])[0];
+  if (!h) return null;
+  return { lado: (h.object === R.pagDer || h.object === R.bloqueDer) ? 1 : -1, uv: h.uv, malla: h.object };
+}
+function enlaceBajo(pb) {
+  if (!pb || !pb.uv || (pb.malla !== lectura.rig.pagDer && pb.malla !== lectura.rig.pagIzq)) return '';
+  const n = pb.lado > 0 ? 2 * lectura.k : 2 * lectura.k - 1, url = lectura.enlaces[n];
+  return url && pb.uv.y < 0.62 && pb.uv.y > 0.38 ? url : '';
+}
+modo('lectura', {
+  punto() { const pb = paginaBajo(); if (lectura.giro && !lectura.giro.anim) return ['agarre']; if (enlaceBajo(pb)) return ['enlace', 'Abrir en la web']; return pb ? ['pagina'] : ['punto']; },
+  down(e) {
+    const pb = paginaBajo(); if (!pb || (lectura.giro && lectura.giro.anim)) return;
+    const dir = pb.lado;
+    lectura.arr = { x: e.clientX, y: e.clientY, dir, pb, empezado: false };
+  },
+  move(e) {
+    actualizaPunto();
+    const a = lectura.arr; if (!a) return;
+    const dx = e.clientX - a.x;
+    if (!a.empezado && Math.abs(dx) > 6) {
+      if ((a.dir > 0 && lectura.k >= lectura.K - 1) || (a.dir < 0 && lectura.k <= 0)) { lectura.arr = null; return; }
+      a.empezado = true; empiezaGiro(a.dir, a.pb.uv ? (a.pb.uv.y - 0.5) * 2 : 0);
+    }
+    if (a.empezado) {
+      const f = clamp((a.dir > 0 ? -dx : dx) / (innerWidth * 0.32), 0, 1);
+      lectura.giro.p = a.dir > 0 ? f : 1 - f; doblaHoja(lectura.giro.p, lectura.giro.agarre);
+    }
+  },
+  up() {
+    const a = lectura.arr; lectura.arr = null; if (!a) return;
+    if (!a.empezado) {
+      const url = enlaceBajo(a.pb); if (url) { window.open(url, '_blank', 'noopener'); return; }
+      pasa(a.dir); return;
+    }
+    const g = lectura.giro, avance = g.dir > 0 ? g.p : 1 - g.p;
+    terminaGiro(null, avance > 0.3);
+  },
+  tecla(e) {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { pasa(1); return true; }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { pasa(-1); return true; }
+    if (e.key === 'Enter') { const url = lectura.enlaces[2 * lectura.k] || lectura.enlaces[2 * lectura.k - 1]; if (url) window.open(url, '_blank', 'noopener'); return true; }
+    return false;
+  },
+  esc() { cierraLibro(); }
+});
+async function cierraLibro() {
+  const L = lectura, R = L.rig, o = L.o; if (!R || (L.giro && L.giro.anim)) return;
+  cambia('ocupado');
+  // las páginas vuelven a la derecha de golpe (sin animación) y se cierra la tapa
+  ponPliego(0);
+  await anim(600, e => { R.pivote.rotation.y = -Math.PI * (1 - e); R.pivote.position.z = R.T * e; }, curva.suave);
+  o.raiz.updateMatrixWorld(true);
+  const m = new THREE.Matrix4().compose(v3(-o.dims.t / 2, 0, o.dims.d / 2), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI / 2, 0)), v3(1, 1, 1));
+  // el libro cerrado se coloca donde está el abierto y vuelve solo a su hueco
+  const inv = m.clone().invert(); const mb = new THREE.Matrix4().compose(R.rig.position, R.rig.quaternion, v3(1, 1, 1)).multiply(inv);
+  mb.decompose(o.raiz.position, o.raiz.quaternion, new THREE.Vector3());
+  o.raiz.visible = true; scene.remove(R.rig);
+  R.rig.traverse(x => { if (x.geometry) x.geometry.dispose(); });
+  Object.values(L.tex).forEach(t => t.dispose());
+  L.rig = null; L.o = null;
+  await volverACasa(o, 650); sueltaFoco(); cambia('libre'); bus.emit('vuelve');
+}
+
+/* ===================== 09 · pizarra =====================
+   E08: se escribe con el rotulador a mano alzada y se borra con el borrador.
+   Para responder la pregunta del día se toca V o F: el rotulador va a la
+   casilla y escribe la letra trazo a trazo, y después la explicación.
+   Todo a mano (letra Caveat): es una pizarra de verdad, sin terminal. */
+const PW = 1024, PH = 672;
+const capa = n => { const c = document.createElement('canvas'); c.width = PW; c.height = PH; return c; };
+const capaBase = capa(), capaTrazos = capa(), capaGuiada = capa();
+const boardTex = texFrom(PW, PH);
+const board = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.853), new THREE.MeshStandardMaterial({ map: boardTex, roughness: 0.5 }));
+board.rotation.y = Math.PI / 2; board.position.set(-1.178, 1.45, -0.35); scene.add(board);
+const CAJA_V = [560, 318, 120, 100], CAJA_F = [740, 318, 120, 100];
+const TINTA = '#2F5FD0', TINTA_ROJA = '#C93F22';
+function dibujaBase() {
+  const c = capaBase.getContext('2d');
+  c.fillStyle = '#F4F3F8'; c.fillRect(0, 0, PW, PH);
+  c.fillStyle = 'rgba(30,27,46,.03)'; for (let i = 0; i < 40; i++) c.fillRect(Math.random() * PW, Math.random() * PH, 120, 2);   // restos de borrado
+  c.fillStyle = '#1E1B2E'; c.font = '700 64px ' + MANO; c.fillText('Enero 2027', 48, 84);
+  const dias = ['L', 'M', 'X', 'J', 'V', 'S', 'D'], cw = 58, x0 = 50, y0 = 146;
+  c.font = '700 30px ' + MANO; c.fillStyle = '#5A566E'; dias.forEach((d, i) => c.fillText(d, x0 + i * cw + 18, y0));
+  c.font = '600 32px ' + MANO;
+  for (let d = 1; d <= 31; d++) {
+    const idx = d + 3, col = idx % 7, fila = Math.floor(idx / 7), x = x0 + col * cw, y = y0 + 22 + fila * 54;   // el 1 de enero de 2027 es viernes
+    c.fillStyle = '#2E2A42'; c.fillText(String(d), x + (d < 10 ? 18 : 9), y + 33);
+    if (d === 8) { c.strokeStyle = '#FF6B4A'; c.lineWidth = 4; c.beginPath(); c.ellipse(x + 26, y + 22, 27, 22, -0.1, 0.2, Math.PI * 2.1); c.stroke(); }
+  }
+  const quedan = diasHasta(EXAMEN);
+  c.fillStyle = TINTA_ROJA; c.font = '700 38px ' + MANO;
+  c.fillText('8 ene: examen de FP1', 50, 520);
+  c.fillText(quedan > 0 ? '¡Faltan ' + quedan + ' días!' : (quedan === 0 ? '¡Es hoy!' : 'Ya pasó'), 50, 566);
+  c.strokeStyle = '#C9C5DC'; c.lineWidth = 3; c.beginPath(); c.moveTo(500, 50);
+  for (let y = 50; y <= 630; y += 20) c.lineTo(500 + Math.sin(y / 37) * 2, y); c.stroke();
+  c.fillStyle = '#1E1B2E'; c.font = '700 54px ' + MANO; c.fillText('Pregunta del día', 540, 84);
+  c.fillStyle = '#2E2A42'; c.font = '600 42px ' + MANO; c.fillText(PREGUNTA.texto[0], 540, 156); c.fillText(PREGUNTA.texto[1], 540, 206);
+  c.fillStyle = '#4638B8'; c.font = '700 44px ' + MANO; c.fillText('¿V o F?', 540, 276);
+  c.strokeStyle = '#5A566E'; c.lineWidth = 3;
+  [CAJA_V, CAJA_F].forEach(([x, y, w, h], i) => { c.strokeRect(x, y, w, h); c.fillStyle = '#8E8AA3'; c.font = '600 26px ' + MANO; c.fillText(i ? 'falso' : 'verdadero', x, y + h + 30); });
+}
+function componePizarra() {
+  const g = boardTex.userData.g;
+  g.drawImage(capaBase, 0, 0); g.drawImage(capaTrazos, 0, 0); g.drawImage(capaGuiada, 0, 0);
+  boardTex.needsUpdate = true;
+}
+
+/* el rotulador y el borrador, en la bandeja */
+const rotulador = new THREE.Group(); scene.add(rotulador);
+box(0.018, 0.1, 0.018, mat(0xFAFAF7, { r: 0.5 }), 0, 0.01, 0, rotulador);
+const capuchon = box(0.02, 0.03, 0.02, mat(0x2F5FD0, { r: 0.5 }), 0, 0.07, 0, rotulador);
+box(0.008, 0.016, 0.008, mat(0x1E1B2E), 0, -0.048, 0, rotulador);       // la punta (−y)
+const borrador = new THREE.Group(); scene.add(borrador);
+box(0.05, 0.03, 0.11, mat(0x4638B8, { r: 0.7 }), 0, 0.015, 0, borrador);
+box(0.05, 0.008, 0.11, mat(0xE8E6F5, { r: 0.95 }), 0, -0.004, 0, borrador);
+const ROT_BANDEJA = { pos: v3(-1.155, 1.0, -0.2), quat: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2, 0, 0)) };
+const BOR_BANDEJA = { pos: v3(-1.155, 1.003, -0.55), quat: new THREE.Quaternion() };
+rotulador.position.copy(ROT_BANDEJA.pos); rotulador.quaternion.copy(ROT_BANDEJA.quat);
+borrador.position.copy(BOR_BANDEJA.pos);
+// apoyado en la pizarra: la punta (−y) toca la pizarra (que mira a +x) y el cuerpo sale inclinado
+const Q_ESCRIBE = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI / 2 + 0.45));
+const Q_BORRA = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, -Math.PI / 2));
+const piz = { herramienta: 'rotulador', trazando: false, ultimo: null, respuesta: '', escribiendo: false, punta: new THREE.Vector3() };
+
+function uvPizarra() {
+  raycaster.setFromCamera(ndc, camera);
+  const h = raycaster.intersectObject(board)[0];
+  return h ? { x: h.uv.x * PW, y: (1 - h.uv.y) * PH, p: h.point } : null;
+}
+function enPizarra(x, y) { return v3(-1.178, 1.45 + (0.5 - y / PH) * 0.853, -0.35 + (0.5 - x / PW) * 1.3); }   // de lienzo a mundo (la u crece hacia −z)
+function herramientaA(punto, dt = 1) {
+  const g = piz.herramienta === 'rotulador' ? rotulador : borrador;
+  const dentro = punto.clone().add(v3(piz.herramienta === 'rotulador' ? 0.055 : 0.03, piz.herramienta === 'rotulador' ? 0.02 : 0, 0));
+  const k = reduced ? 1 : 1 - Math.exp(-dt * 30);
+  g.position.lerp(dentro, k); g.quaternion.slerp(piz.herramienta === 'rotulador' ? Q_ESCRIBE : Q_BORRA, k);
+}
+function trazo(c, a, b, borrar) {
+  c.save();
+  if (borrar) { c.globalCompositeOperation = 'destination-out'; c.lineWidth = 46; } else { c.strokeStyle = TINTA; c.lineWidth = 6; }
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); c.restore();
+}
+async function vaHerramienta(nombre) {
+  // deja la que tenía en la bandeja y coge la otra
+  if (piz.herramienta === nombre) return;
+  const vieja = piz.herramienta === 'rotulador' ? [rotulador, ROT_BANDEJA] : [borrador, BOR_BANDEJA];
+  piz.herramienta = nombre;
+  const p0 = vieja[0].position.clone(), q0 = vieja[0].quaternion.clone();
+  anim(380, e => { vieja[0].position.lerpVectors(p0, vieja[1].pos, e); vieja[0].quaternion.slerpQuaternions(q0, vieja[1].quat, e); }, curva.suave);
+  actualizaPunto();
+}
+async function responde(letra) {
+  if (piz.escribiendo) return;
+  piz.escribiendo = true; await vaHerramienta('rotulador');
+  const c = capaGuiada.getContext('2d'); c.clearRect(0, 0, PW, PH); componePizarra();
+  const [x, y, w, h] = letra === 'V' ? CAJA_V : CAJA_F;
+  const TRAZOS = letra === 'V' ? [[[0.2, 0.14], [0.5, 0.86], [0.8, 0.14]]] : [[[0.32, 0.1], [0.32, 0.9]], [[0.32, 0.12], [0.8, 0.12]], [[0.32, 0.48], [0.68, 0.48]]];
+  for (const t of TRAZOS) {
+    const pts = t.map(([u, v]) => ({ x: x + u * w, y: y + v * h }));
+    // el rotulador va al principio del trazo, «levantado»
+    const p0 = rotulador.position.clone(), destino = enPizarra(pts[0].x, pts[0].y).add(v3(0.075, 0.02, 0));
+    await anim(220, e => rotulador.position.lerpVectors(p0, destino, e), curva.suave);
+    let largo = 0; for (let i = 1; i < pts.length; i++) largo += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    let prev = pts[0];
+    await anim(160 + largo * 2.2, e => {
+      // recorre la polilínea hasta la distancia e·largo
+      let resto = e * largo, i = 1, q = pts[0];
+      while (i < pts.length) { const s = Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y); if (resto <= s) { const f = resto / s; q = { x: lerp(pts[i - 1].x, pts[i].x, f), y: lerp(pts[i - 1].y, pts[i].y, f) }; break; } resto -= s; q = pts[i]; i++; }
+      trazo(c, prev, q); prev = q; componePizarra();
+      rotulador.position.copy(enPizarra(q.x, q.y).add(v3(0.055, 0.02, 0))); rotulador.quaternion.copy(Q_ESCRIBE);
+    }, curva.lineal);
+  }
+  const bien = letra === PREGUNTA.correcta;
+  const lineas = [[bien ? '¡Bien! Es falso.' : 'Casi: es falso.', bien ? '#16794B' : TINTA_ROJA, 44], ...PREGUNTA.explica.map(t => [t, TINTA, 34])];
+  let yy = 494;
+  for (const [txt, color, tam] of lineas) { await escribeLinea(c, txt, 540, yy, color, tam); yy += tam + 10; }
+  piz.respuesta = letra; piz.escribiendo = false;
+  anuncia((bien ? 'Correcto. ' : 'No es correcto. ') + PREGUNTA.explica.join(' '));
+}
+async function escribeLinea(c, txt, x, y, color, tam) {
+  // la línea se escribe de izquierda a derecha y el rotulador va siguiendo el borde
+  const tmp = document.createElement('canvas'); tmp.width = PW; tmp.height = tam + 30; const t = tmp.getContext('2d');
+  t.font = '700 ' + tam + 'px ' + MANO; t.fillStyle = color; t.fillText(txt, x, tam); const ancho = t.measureText(txt).width;
+  let hecho = 0;
+  await anim(260 + ancho * 3.2, e => {
+    const hasta = x + ancho * e;
+    c.drawImage(tmp, x + hecho, 0, hasta - x - hecho + 1, tmp.height, x + hecho, y - tam, hasta - x - hecho + 1, tmp.height);
+    hecho = hasta - x; componePizarra();
+    rotulador.position.copy(enPizarra(hasta, y - tam * 0.35).add(v3(0.055, 0.02, 0)));
+  }, curva.lineal);
+}
+registrar('pizarra', {
+  nombre: 'Pizarra · pregunta del día', mallas: [board, boardFrame], puntero: 'rotulador', brilloK: 0.5,
+  alClic: async () => {
+    cambia('ocupado');
+    enfoca(v3(-1.18, 1.43, -0.35), v3(-0.25, 1.32, 0.12), 50, { paralaje: 0.015 });
+    piz.herramienta = 'rotulador';
+    const p0 = rotulador.position.clone(), q0 = rotulador.quaternion.clone(), p1 = enPizarra(PW / 2, PH * 0.72).add(v3(0.08, 0.02, 0));
+    await anim(600, e => { rotulador.position.lerpVectors(p0, p1, e); rotulador.quaternion.slerpQuaternions(q0, Q_ESCRIBE, e); }, curva.suave);
+    cambia('pizarra');
+    anuncia('En la pizarra, con el rotulador. Arrastra para escribir; toca V o F para responder, o pulsa las teclas V o F. Esc para volver.');
+  }
+});
+function herramientaBajo() {
+  raycaster.setFromCamera(ndc, camera);
+  const h = raycaster.intersectObjects([...rotulador.children, ...borrador.children])[0];
+  return h ? (rotulador.children.includes(h.object) ? 'rotulador' : 'borrador') : null;
+}
+modo('pizarra', {
+  punto() { const hb = herramientaBajo(); if (hb && hb !== piz.herramienta) return ['mano', hb === 'rotulador' ? 'Rotulador' : 'Borrador']; return [piz.herramienta]; },
+  down(e) {
+    if (piz.escribiendo) return;
+    const hb = herramientaBajo(); if (hb && hb !== piz.herramienta) { vaHerramienta(hb); return; }
+    const u = uvPizarra(); if (!u) return;
+    for (const [L, [x, y, w, h]] of [['V', CAJA_V], ['F', CAJA_F]]) if (piz.herramienta === 'rotulador' && u.x > x && u.x < x + w && u.y > y && u.y < y + h) { responde(L); return; }
+    piz.trazando = true; piz.ultimo = u;
+  },
+  move() {
+    actualizaPunto();
+    const u = uvPizarra(); if (!u || piz.escribiendo) return;
+    piz.punta.copy(u.p);
+    if (piz.trazando) {
+      trazo(capaTrazos.getContext('2d'), piz.ultimo, u, piz.herramienta === 'borrador');
+      if (piz.herramienta === 'borrador') trazo(capaGuiada.getContext('2d'), piz.ultimo, u, true);
+      piz.ultimo = u; componePizarra();
+    }
+  },
+  up() { piz.trazando = false; },
+  tecla(e) { const k = e.key.toUpperCase(); if (k === 'V' || k === 'F') { responde(k); return true; } return false; },
+  async esc() {
+    if (piz.escribiendo) return;
+    cambia('ocupado');
+    const viejas = [[rotulador, ROT_BANDEJA], [borrador, BOR_BANDEJA]];
+    await Promise.all(viejas.map(([g, d]) => { const p0 = g.position.clone(), q0 = g.quaternion.clone(); return anim(520, e => { g.position.lerpVectors(p0, d.pos, e); g.quaternion.slerpQuaternions(q0, d.quat, e); }, curva.suave); }));
+    piz.herramienta = 'rotulador'; sueltaFoco(); cambia('libre'); bus.emit('vuelve');
+  }
+});
+function corrPizarra(dt) {
+  if (gesto.estado !== 'pizarra' || piz.escribiendo) return;
+  if (piz.punta.lengthSq() > 0) herramientaA(piz.punta, dt);
+}
+
+/* ===================== 10 · pantalla y PC =====================
+   El mundo virtual: aquí sí hay terminal. El monitor enseña el reposo, el
+   arranque, el simulacro del disco o la vista previa del simulador del USB.
+   SergioLearns OS es el de la v0.1 con su LEEME.txt (se rehace en la v0.3). */
+const pantalla = { estado: 'reposo', datos: null, t0: 0, ult: 0, escrito: '', salida: [] };
+pantalla.pon = (estado, datos = null) => { pantalla.estado = estado; pantalla.datos = datos; pantalla.t0 = performance.now(); };
+const ARRANQUE = ['[ OK ] montando ~/apuntes', '[ OK ] cargando entornos: python, java, c, mips', '[ OK ] simuladores: 4 · simulacros: 4', '[ OK ] calendario: examen de FP1 el 8 ene', 'SergioLearns OS v0.2'];
+function texto(c, partes, x, y) { for (const [t, col] of partes) { c.fillStyle = col; c.fillText(t, x, y); x += c.measureText(t).width; } }
+function dibujaPantalla(ahora) {
+  const t = screenTex, c = t.userData.g, w = 1024, h = 592, s = (ahora - pantalla.t0) / 1000;
+  c.fillStyle = '#2A2640'; c.fillRect(0, 0, w, h); c.textBaseline = 'alphabetic'; c.textAlign = 'left';
+  c.font = '400 30px ' + MONO;
+  if (pantalla.estado === 'reposo') {
+    texto(c, [['sergio@learns', '#A99EF5'], [':~', '#E8E6F5'], ['$', '#FF6B4A'], [' uptime', '#E8E6F5']], 48, 80);
+    c.fillStyle = '#8E8AA3'; c.fillText('ahora', 48, 130); c.fillStyle = '#E8E6F5'; c.fillText('IC1 · MIPS y temas de papel', 170, 130);
+    c.fillStyle = '#8E8AA3'; c.fillText('mesa', 48, 176); c.fillStyle = '#E8E6F5'; c.fillText('discos: simulacros · usb: simuladores', 170, 176);
+    let y = 236; pantalla.salida.slice(-4).forEach(l => { c.fillStyle = l.c; c.fillText(l.t, 48, y); y += 44; });
+    texto(c, [['$', '#FF6B4A'], [' ' + pantalla.escrito, '#E8E6F5']], 48, y);
+    if (Math.floor(ahora / 500) % 2 === 0) { const cw = c.measureText('$ ' + pantalla.escrito).width; c.fillStyle = '#FF6B4A'; c.fillRect(52 + cw, y - 26, 16, 32); }
+    c.fillStyle = '#C9C5DC'; c.font = '400 22px ' + MONO; c.fillText(gesto.estado === 'escribir' ? 'escribe startx y pulsa Intro · help · Esc para salir' : 'clic en la pantalla: encender · clic en el teclado: escribir', 48, h - 36);
+  } else if (pantalla.estado === 'arranque') {
+    ARRANQUE.forEach((l, i) => {
+      if (s * 1000 < 140 + i * 170) return;
+      if (l.startsWith('[ OK ]')) { c.font = '400 28px ' + MONO; texto(c, [['[ OK ]', '#5BD39A'], [l.slice(6), '#E8E6F5']], 48, 80 + i * 46); }
+      else { c.fillStyle = '#FF6B4A'; c.font = '600 44px ' + DISP; c.fillText(l, 48, 100 + i * 46); }
+    });
+  } else if (pantalla.estado === 'simulacro') {
+    const d = pantalla.datos, n = Math.floor(s * 6);
+    c.font = '400 28px ' + MONO;
+    const L = [[['$', '#FF6B4A'], [' mount /dev/cdrom /mnt/simulacro', '#E8E6F5']], [['[ OK ]', '#5BD39A'], [' disco: simulacro de ' + d.code, '#E8E6F5']]];
+    L.slice(0, n).forEach((l, i) => texto(c, l, 48, 70 + i * 44));
+    if (n >= 3) {
+      c.fillStyle = '#FAFAF7'; c.font = '600 54px ' + DISP; c.fillText('Simulacro de examen · ' + d.code, 48, 220);
+      c.font = '400 28px ' + MONO;
+      d.partes.forEach((p, i) => {
+        const listo = publicado(p[1]);
+        texto(c, [[p[0].toLowerCase().padEnd(10), '#A99EF5'], [fechaCorta(p[1]).padEnd(9), '#F5C06B'], [listo ? 'disponible' : 'se publica ese día a las 9:00', listo ? '#5BD39A' : '#C9C5DC']], 48, 290 + i * 46);
+      });
+      c.fillStyle = '#C9C5DC'; c.font = '400 22px ' + MONO;
+      c.fillText(enlacePantalla() ? 'clic en la pantalla o Intro: abrir en la web · Esc: volver' : 'todavía no está publicado · Esc: volver', 48, h - 36);
+    }
+  } else if (pantalla.estado === 'simulador') {
+    dibujaSim(c, w, h, pantalla.datos, s);
+  }
+  t.needsUpdate = true;
+}
+const RR = [['P1', 2], ['P2', 2], ['P3', 1], ['P4', 2], ['P1', 2], ['P2', 1], ['P1', 1]];
+const PCOL = { P1: '#5B4BDB', P2: '#FF6B4A', P3: '#5BD39A', P4: '#F5C06B' };
+const REF = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3];
+const LRU = (() => { const fr = [], used = [], out = []; REF.forEach((p, i) => { const k = fr.indexOf(p); let fault = false; if (k >= 0) used[k] = i; else { fault = true; if (fr.length < 3) { fr.push(p); used.push(i); } else { let m = 0; for (let j = 1; j < 3; j++) if (used[j] < used[m]) m = j; fr[m] = p; used[m] = i; } } out.push({ fr: fr.slice(), fault }); }); return out; })();
+function dibujaSim(c, w, h, d, s) {
+  c.font = '400 26px ' + MONO; texto(c, [['$', '#FF6B4A'], [d.cmd.slice(1), '#E8E6F5']], 40, 56);
+  if (d.id === 'cpu') {
+    const total = 11, tt = Math.min(total, (s % 7) * 2.2), x0 = 60, unit = 78, y = 170; let acc = 0;
+    c.font = '600 24px ' + MONO;
+    RR.forEach(p => { const st = acc, en = acc + p[1]; acc = en; if (st >= tt) return; const vis = Math.min(en, tt) - st; c.fillStyle = PCOL[p[0]]; rr(c, x0 + st * unit, y, vis * unit - 4, 90, 8); c.fill(); if (vis > 0.6) { c.fillStyle = '#1E1B2E'; c.fillText(p[0], x0 + st * unit + 12, y + 55); } });
+    c.fillStyle = '#C9C5DC'; c.font = '400 20px ' + MONO; for (let k = 0; k <= total; k++) c.fillText(String(k), x0 + k * unit - 6, y + 126);
+    c.fillStyle = '#E8E6F5'; c.font = '400 24px ' + MONO; c.fillText('Round Robin, quantum 2 · 4 procesos', 60, 380);
+    if (tt >= total) { c.fillStyle = '#5BD39A'; c.fillText('[ OK ] todos terminados en t = 11', 60, 430); }
+  } else if (d.id === 'pag') {
+    const n = Math.min(REF.length, Math.floor(s * 1.6) % (REF.length + 3)); c.font = '600 26px ' + MONO;
+    for (let i = 0; i < n; i++) {
+      const col = LRU[i], x = 60 + i * 88;
+      c.fillStyle = '#A99EF5'; c.fillText(String(REF[i]), x + 30, 120);
+      for (let f = 0; f < 3; f++) { c.fillStyle = '#1E1B2E'; rr(c, x + 8, 140 + f * 64, 70, 56, 6); c.fill(); if (col.fr[f] !== undefined) { c.fillStyle = '#E8E6F5'; c.fillText(String(col.fr[f]), x + 34, 178 + f * 64); } }
+      if (col.fault) { c.fillStyle = '#FF8A7A'; c.fillText('F', x + 34, 360); }
+    }
+    c.fillStyle = '#E8E6F5'; c.font = '400 24px ' + MONO; c.fillText('LRU con 3 marcos · F = fallo de página', 60, 430);
+    c.fillStyle = '#F5C06B'; c.fillText('fallos: ' + LRU.slice(0, n).filter(x => x.fault).length, 60, 474);
+  } else if (d.id === 'sub') {
+    const k2 = Math.min(8, Math.floor(s * 2.2) % 12);
+    c.font = '600 30px ' + MONO; c.fillStyle = '#E8E6F5'; c.fillText('192.168.10.', 60, 150);
+    for (let b = 0; b < 8; b++) { const on = b < 2 && b < k2; c.fillStyle = b < 2 ? (on ? '#FF6B4A' : '#3A3552') : (b < k2 ? '#5BD39A' : '#3A3552'); rr(c, 300 + b * 62, 110, 52, 56, 6); c.fill(); c.fillStyle = '#1E1B2E'; c.fillText('0', 316 + b * 62, 148); }
+    c.font = '400 24px ' + MONO; c.fillStyle = '#FF9B80'; c.fillText('2 bits de subred', 300, 210); c.fillStyle = '#5BD39A'; c.fillText('6 bits de host', 430, 240);
+    if (k2 >= 8) { c.fillStyle = '#E8E6F5'; c.fillText('/26 → 4 subredes · 62 hosts en cada una', 60, 330); c.fillStyle = '#C9C5DC'; c.fillText('.0  .64  .128  .192', 60, 380); }
+  } else if (d.id === 'paq') {
+    const capas = [['Aplicación', 'HTTP', '#5B4BDB'], ['Transporte', 'TCP', '#FF6B4A'], ['Red', 'IP', '#16794B'], ['Enlace', 'Ethernet', '#F5A524']], k3 = Math.min(4, Math.floor(s * 1.3) % 7);
+    for (let L = 0; L < k3; L++) { const ins = (3 - L) * 34; c.fillStyle = capas[L][2]; c.globalAlpha = 0.9; rr(c, 60 + ins, 100 + L * 4, 900 - ins * 2, 300 - L * 8, 12); c.fill(); c.globalAlpha = 1; }
+    c.font = '600 24px ' + MONO; for (let L = 0; L < k3; L++) { c.fillStyle = '#FAFAF7'; c.fillText(capas[L][0] + ' · ' + capas[L][1], 80 + (3 - L) * 34, 140 + L * 60); }
+    c.fillStyle = '#E8E6F5'; c.font = '400 24px ' + MONO; c.fillText('cada capa envuelve a la anterior', 60, 470);
+  }
+  c.fillStyle = '#C9C5DC'; c.font = '400 20px ' + MONO; c.fillText('vista previa · clic o Intro: el simulador completo en la web · Esc: volver', 40, h - 30);
+}
+
+/* ---------- teclado: escribir en el monitor ---------- */
+registrar('teclado', { nombre: 'Teclado', mallas: [kbHit, space], alClic: () => {
+  enfoca(v3(0, 0.95, -0.45), BASE.clone().add(v3(0, -0.02, -0.12)), 54); cambia('escribir');
+  const k = $('#entrada'); k.value = ''; k.focus({ preventScroll: true }); anuncia('Escribe en el teclado. startx enciende el ordenador. Esc para salir.');
+} });
+$('#entrada').addEventListener('keydown', e => {
+  if (gesto.estado !== 'escribir') return;
+  if (e.key === 'Escape') return;
+  if (e.key === 'Enter') {
+    e.preventDefault(); pressKey(41);
+    const cmd = pantalla.escrito.trim(); pantalla.escrito = '';
+    if (cmd === 'startx') { $('#entrada').blur(); sueltaFoco(); arranca(); return; }
+    pantalla.salida.push({ t: '$ ' + cmd, c: '#A99EF5' });
+    if (cmd === 'help') pantalla.salida.push({ t: 'órdenes: startx, help, clear', c: '#E8E6F5' });
+    else if (cmd === 'clear') pantalla.salida = [];
+    else if (cmd) pantalla.salida.push({ t: cmd.split(' ')[0] + ': orden no encontrada (prueba help)', c: '#FF8A7A' });
+    return;
+  }
+  if (e.key === 'Backspace') { pantalla.escrito = pantalla.escrito.slice(0, -1); pressKey(13); return; }
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { e.preventDefault(); if (pantalla.escrito.length < 40) { pantalla.escrito += e.key; pressKey(e.key.charCodeAt(0) * 7); } }
+});
+modo('escribir', { down() {}, up() { $('#entrada').focus({ preventScroll: true }); }, esc() { devuelveFoco('teclado'); sueltaFoco(); cambia('libre'); } });
+
+/* ---------- monitor y botón de encendido ---------- */
+registrar('monitor', { nombre: 'Monitor', mallas: [bezel, screen], alClic: () => {
+  if (torre.disco || torre.usb) return miraMonitor('Monitor. Clic en la pantalla para abrir en la web, Esc para volver.');
+  arranca();
+} });
+registrar('encendido', { nombre: 'Botón de encendido de la torre', mallas: [powerBtn], alClic: () => arranca() });
+function arranca() {
+  if (gesto.estado !== 'libre' && gesto.estado !== 'escribir') return;
+  cambia('ocupado');
+  rig.foco = { yaw: 0, pitch: 0, pos: v3(0, 1.06, -0.07), fov: 40, rate: 3.2, paralaje: 0 };
+  pantalla.pon('arranque');
+  setTimeout(abreOS, reduced ? 50 : 1400);
+}
+function apaga() {
+  const os = $('#os'); os.classList.remove('on'); os.classList.add('off');
+  setTimeout(() => { os.hidden = true; os.classList.remove('off'); paraFondo(); pantalla.pon(torre.disco ? 'simulacro' : (torre.usb ? 'simulador' : 'reposo'), torre.disco ? torre.disco.datos : (torre.usb ? torre.usb.datos : null)); sueltaFoco(); cambia('libre'); canvas.focus({ preventScroll: true }); }, reduced ? 10 : 460);
+}
+modo('os', { esc() { apaga(); } });
+
+/* ---------- SergioLearns OS ---------- */
+const ICONOS = {
+  terminal: 'M4 5h16v14H4z M7 10l3 2-3 2 M12 15h5', lab: 'M9 3h6 M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3',
+  log: 'M12 3v6 M12 15v6 M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6', leeme: 'M6 3h9l3 3v15H6z M14 3v4h4 M9 11h6 M9 15h6'
+};
+const LEEME = [
+  'LEEME(1)          Escritorio de SergioLearns          LEEME(1)', '',
+  'NOMBRE', '       escritorio - la mesa de Sergio, en 3D', '',
+  'SINOPSIS', '       mirar · coger · girar · llevar · soltar', '',
+  'DESCRIPCIÓN',
+  '       Mueve el ratón para mirar. En el borde de la pantalla',
+  '       (o con A y D) giras del todo: detrás está la puerta,',
+  '       que vuelve a la web.',
+  '       Clic en un objeto: lo coges y lo inspeccionas',
+  '       (arrastra para girarlo, rueda para acercarlo).',
+  '       E: lo usas. Esc: lo dejas.',
+  '       Mantén pulsado y arrastra discos, USB y carpetas:',
+  '       donde encajan, brilla.', '',
+  'OBJETOS',
+  '       discos     simulacros, del estuche a la disquetera',
+  '       usb        simuladores, del portalápices al puerto',
+  '       carpetas   apuntes, del cajón a la mesa',
+  '       libros     una asignatura cada uno, en la estantería',
+  '       pizarra    calendario y pregunta del día (V o F)',
+  '       taza       Sergio Bot, en el vapor', '',
+  'TECLAS',
+  '       Tab recorre los objetos · Intro coge · E usa',
+  '       Esc vuelve · flechas: girar el objeto o pasar',
+  '       páginas · A y D: girar la vista', '',
+  'VÉASE TAMBIÉN', '       la web normal, sin 3D: https://sergiolearns.com/', '',
+  'SergioLearns OS 0.2         4 nov 2026         LEEME(1)'
+];
+const APPS = [['terminal', 'terminal'], ['lab', 'laboratorio'], ['log', 'git log'], ['leeme', 'LEEME.txt']];
+const dock = $('#dock');
+APPS.forEach(a => {
+  const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', a[1]);
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + ICONOS[a[0]] + '"></path></svg><span>' + a[1] + '</span>';
+  b.onclick = () => abreVentana(a[0]); dock.appendChild(b);
+});
+let zTop = 10;
+function abreVentana(id) {
+  const ex = document.getElementById('win-' + id); if (ex) { ex.style.zIndex = ++zTop; return; }
+  const W = document.createElement('section'); W.className = 'win'; W.id = 'win-' + id; W.setAttribute('aria-label', id);
+  const vw = innerWidth, n = $('#wins').children.length;
+  W.style.left = Math.max(16, Math.min(vw - 656, vw / 2 - 320 + n * 28)) + 'px'; W.style.top = (64 + n * 26) + 'px'; W.style.zIndex = ++zTop;
+  const titulo = { terminal: 'terminal · misiones', lab: 'laboratorio', log: 'git log --oneline', leeme: 'less LEEME.txt' }[id];
+  W.innerHTML = '<div class="win-bar"><span>' + titulo + '</span><button type="button" aria-label="Cerrar ' + titulo + '">cerrar</button></div><div class="win-body"></div>';
+  const body = W.querySelector('.win-body');
+  if (id === 'terminal') terminal(body);
+  if (id === 'lab') body.innerHTML = SIMULADORES.map(d => '<div><a href="' + d.url + '" target="_blank" rel="noopener">' + d.nombre + '</a> <span class="c-dim">' + d.cmd + '</span></div>').join('') + '<div style="margin-top:10px"><a href="https://sergiolearns.com/laboratorio/" target="_blank" rel="noopener">Entornos</a> <span class="c-dim">Python, Java, C y MIPS en el navegador</span></div>';
+  if (id === 'log') body.innerHTML = [['4 nov', 'escritorio v0.2: coger, girar, llevar y soltar'], ['3 nov', 'Sergio Bot v2: bot propio que lee la página'], ['2 nov', 'renovación de los artículos antiguos terminada'], ['31 oct', 'calculadora «¿Cuánto necesito?» y simuladores de IC2']].map(l => '<div><span class="c-num">' + l[0] + '</span>  ' + l[1] + '</div>').join('');
+  if (id === 'leeme') { const pre = document.createElement('pre'); pre.textContent = LEEME.join('\n'); body.appendChild(pre); }
+  W.querySelector('.win-bar button').onclick = () => W.remove();
+  W.addEventListener('pointerdown', () => { W.style.zIndex = ++zTop; });
+  arrastraVentana(W, W.querySelector('.win-bar'));
+  $('#wins').appendChild(W);
+  if (id === 'terminal') { const inp = W.querySelector('input'); if (inp) inp.focus({ preventScroll: true }); }
+}
+function arrastraVentana(W, bar) {
+  let sx, sy, ox, oy, on = false;
+  bar.addEventListener('pointerdown', e => { if (e.target.tagName === 'BUTTON') return; on = true; sx = e.clientX; sy = e.clientY; ox = W.offsetLeft; oy = W.offsetTop; bar.setPointerCapture(e.pointerId); });
+  bar.addEventListener('pointermove', e => { if (!on) return; W.style.left = clamp(ox + e.clientX - sx, -200, innerWidth - 120) + 'px'; W.style.top = clamp(oy + e.clientY - sy, 44, innerHeight - 80) + 'px'; });
+  bar.addEventListener('pointerup', () => { on = false; });
+}
+function terminal(body) {
+  const out = document.createElement('div'); body.appendChild(out);
+  const linea = (t, cls) => { const d = document.createElement('div'); d.className = 'term-line ' + (cls || ''); d.textContent = t; out.appendChild(d); body.scrollTop = body.scrollHeight; };
+  linea('SergioLearns OS v0.2 · terminal'); linea('Escribe help. Hay una misión activa: escribe misiones.', 'c-dim');
+  const row = document.createElement('div'); row.className = 'term-in';
+  row.innerHTML = '<label for="t-in">sergio@learns:~<span class="dollar">$</span></label><input id="t-in" autocomplete="off" spellcheck="false">';
+  body.appendChild(row);
+  const inp = row.querySelector('input');
+  inp.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    const c = inp.value.trim(); inp.value = ''; if (!c) return; linea('$ ' + c, 'c-cmd');
+    if (c === 'help') linea('órdenes: ls, ls -a, cat <archivo>, misiones, clear, shutdown');
+    else if (c === 'ls') linea('LEEME.txt   apuntes/   misiones/   simuladores/   novedades.log');
+    else if (/^ls -(a|la|al)$/.test(c)) linea('.   ..   .pista   LEEME.txt   apuntes/   misiones/   simuladores/   novedades.log');
+    else if (c === 'misiones') { linea('Misión 1 · El archivo escondido'); linea('Hay un archivo que ls no enseña. Encuéntralo y léelo con cat.'); linea('pista: los archivos ocultos empiezan por un punto', 'c-dim'); }
+    else if (c === 'cat .pista') { linea('[ OK ] Misión 1 completada: ls -a enseña los archivos ocultos.', 'c-ok'); linea('En la v0.3, los logros y misiones nuevas.', 'c-dim'); }
+    else if (c === 'cat LEEME.txt') LEEME.forEach(l => linea(l));
+    else if (c === 'cat novedades.log') { linea('4 nov  escritorio v0.2'); linea('3 nov  Sergio Bot v2'); }
+    else if (c.startsWith('cat ')) linea('cat: ' + c.slice(4) + ': no existe o es un directorio', 'c-err');
+    else if (c === 'clear') out.innerHTML = '';
+    else if (c === 'shutdown' || c === 'exit' || c === 'poweroff') apaga();
+    else linea(c.split(' ')[0] + ': orden no encontrada. Prueba help', 'c-err');
+  });
+}
+let fondoRAF = null;
+function arrancaFondo() {
+  const cv = $('#wall'), g = cv.getContext('2d'), dpr = Math.min(devicePixelRatio || 1, 2);
+  const size = () => { cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }; size(); addEventListener('resize', size);
+  const dots = []; for (let i = 0; i < 70; i++) dots.push({ x: Math.random(), y: Math.random(), s: 0.2 + Math.random() * 0.8, c: Math.random() < 0.15 ? '#FF6B4A' : '#A99EF5' });
+  const frame = t => {
+    const w = cv.width, h = cv.height; g.fillStyle = '#141221'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(169,158,245,.06)'; g.lineWidth = dpr; const step = 36 * dpr, off = reduced ? 0 : (t / 60) % step;
+    g.beginPath(); for (let x = -step + off; x < w; x += step) { g.moveTo(x, 0); g.lineTo(x, h); } for (let y = -step + off; y < h; y += step) { g.moveTo(0, y); g.lineTo(w, y); } g.stroke();
+    dots.forEach(d => { const yy = ((d.y + (reduced ? 0 : t / 90000 * d.s)) % 1) * h; g.fillStyle = d.c; g.globalAlpha = 0.25 + d.s * 0.35; g.beginPath(); g.arc(d.x * w, yy, 1.6 * dpr + d.s * dpr, 0, Math.PI * 2); g.fill(); });
+    g.globalAlpha = 1; g.fillStyle = 'rgba(232,230,245,.07)'; g.font = '600 ' + Math.round(64 * dpr) + 'px ' + DISP; g.textAlign = 'center'; g.fillText('~/sergiolearns', w / 2, h / 2);
+    fondoRAF = requestAnimationFrame(frame);
+  };
+  fondoRAF = requestAnimationFrame(frame);
+}
+function paraFondo() { if (fondoRAF) cancelAnimationFrame(fondoRAF); fondoRAF = null; }
+function reloj() { const d = new Date(); $('#clock').textContent = 'sergio@learns · ' + d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+setInterval(reloj, 15000); reloj();
+function abreOS() {
+  const os = $('#os'); os.hidden = false; os.classList.remove('off'); os.classList.add('on'); cambia('os'); arrancaFondo();
+  $('#wins').innerHTML = ''; abreVentana('terminal'); abreVentana('leeme');
+}
+
+/* ===================== 11 · teclado y accesibilidad =====================
+   E20: sin botones a la vista, pero todo se puede hacer con el teclado.
+   Tab recorre los objetos (la cámara los mira, brillan y se dice su nombre),
+   Intro los coge, E los usa y Esc vuelve. El primer Tab enseña el enlace a la
+   web normal. Los lectores de pantalla oyen cada paso (región aria-live). */
+const ORDEN = ['manual', ...LIBROS.map(b => 'libro-' + b.id), 'pizarra', 'lampara', 'monitor', 'teclado', 'encendido', 'cajon', ...CARPETAS.map(f => 'carpeta-' + f.id),
+  'estuche', ...SIMULACROS.map(s => 'disco-' + s.id), 'expulsar', ...SIMULADORES.map(s => 'usb-' + s.id), 'taza', 'puerta', 'salida'];
+const nav = $('#objetos'), etiqueta = $('#etiqueta');
+let enfocado = null;
+ORDEN.forEach(clave => {
+  const o = objetos.get(clave); if (!o) return;
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = o.nombre; b.dataset.clave = clave;
+  b.addEventListener('focus', () => {
+    teclado.activo = true; enfocado = clave; punto.el.classList.add('oculto');
+    if (gesto.estado === 'libre') {
+      if (gesto.hover) setHover(null);
+      brillo(o.mallas, 1.6);
+      enfoca(centroDe(o), BASE, 56, { paralaje: 0, rate: 4 });
+    }
+    const ok = o.activo();
+    anuncia(o.nombre + (ok ? '. Intro para ' + (o.movil || o.tipo === 'libro' ? 'cogerlo' : 'usarlo') + '.' : (clave.startsWith('carpeta') ? '. Abre antes el cajón.' : clave === 'salida' ? '. Abre antes la puerta.' : '.')));
+  });
+  b.addEventListener('blur', () => {
+    brillo(o.mallas, 0); if (enfocado === clave) enfocado = null;
+    setTimeout(() => { if (!enfocado && gesto.estado === 'libre' && rig.foco && rig.foco.rate === 4) sueltaFoco(); }, 0);
+  });
+  b.addEventListener('click', e => {
+    if (gesto.estado !== 'libre' || !o.activo()) return;
+    brillo(o.mallas, 0); clicEn(o, null, e);
+  });
+  nav.appendChild(b);
+});
+// al salir de un modo que escribe (taza, teclado), el foco vuelve a su objeto en la lista (si se usaba el teclado) o al lienzo,
+// para que el siguiente Tab siga por los objetos y no salte al enlace del principio
+function devuelveFoco(clave) {
+  const b = teclado.activo && nav.querySelector('[data-clave="' + clave + '"]');
+  if (b) b.focus({ preventScroll: true }); else canvas.focus({ preventScroll: true });
+}
+function centroDe(o) { const caja = new THREE.Box3(); o.mallas.forEach(m => caja.expandByObject(m)); return caja.getCenter(new THREE.Vector3()); }
+function aPantalla(p) { const v = p.clone().project(camera); return [(v.x + 1) / 2, (1 - v.y) / 2, v.z]; }
+function corrEtiqueta() {
+  if (!teclado.activo || !enfocado || gesto.estado !== 'libre') { etiqueta.hidden = true; return; }
+  const o = objetos.get(enfocado), [x, y, z] = aPantalla(centroDe(o));
+  if (z > 1) { etiqueta.hidden = true; return; }
+  etiqueta.textContent = o.nombre; etiqueta.hidden = false;
+  etiqueta.style.left = (x * innerWidth) + 'px'; etiqueta.style.top = (y * innerHeight) + 'px';
+}
+
+/* ---------- teclas ---------- */
+addEventListener('keydown', e => {
+  if (gesto.estado === 'cargando') return;
+  const enNav = e.target && e.target.dataset && e.target.dataset.clave;
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    const m = modos[gesto.estado];
+    if (m && m.esc) return m.esc();
+    if (gesto.estado === 'libre') {
+      if (puertaAbierta) return puerta(false);
+      if (cajonM.obj > 0.15) return cierraCajon();
+      if (rig.foco) sueltaFoco();
+      rumboACero(); if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+    }
+    return;
+  }
+  if (gesto.estado === 'os') return;                              // dentro del PC, el teclado es del sistema
+  if ((gesto.estado === 'bot' || gesto.estado === 'escribir')) return;
+  if (enNav && (e.key === 'Enter' || e.key === ' ') && gesto.estado === 'libre') return;   // lo hace el botón
+  const m = modos[gesto.estado];
+  if (m && m.tecla && m.tecla(e)) { e.preventDefault(); return; }
+  if (gesto.estado === 'libre') {
+    const k = e.key.toLowerCase();
+    if (k === 'a' || e.key === 'ArrowLeft') { rig.teclaGiro = -1; e.preventDefault(); }
+    if (k === 'd' || e.key === 'ArrowRight') { rig.teclaGiro = 1; e.preventDefault(); }
+  }
+});
+addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'a' || k === 'd' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') rig.teclaGiro = 0;
+});
+
+/* ===================== 12 · bucle y arranque =====================
+   Un fotograma: animaciones → muelles → cámara → lo que está en la mano →
+   partículas → qué hay bajo el puntero → dibujar. */
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+let ultimo = performance.now(), diaPizarra = new Date().getDate();
+const luzMano = new THREE.PointLight(0xFFF1DE, 0, 0, 2); scene.add(luzMano);
+function bucle(ahora) {
+  const dt = Math.min(0.05, (ahora - ultimo) / 1000); ultimo = ahora;
+  corrAnims(ahora);
+  drawer.position.z = cajonM.paso(dt);
+  updateKeys(ahora);
+  aplicaCamara(dt);
+  corrInspeccion(dt); corrLlevar(dt); corrPizarra(dt);
+  corrVapor(ahora); corrPolvo(ahora, lamparaOn); corrBot(ahora); corrEstuche(ahora);
+  if (ratonVisto && gesto.estado === 'libre' && !teclado.activo && !gesto.pulsado && !gesto.arrastre) { const r = pick(); setHover(r ? r.o.clave : null); }
+  else if (gesto.estado !== 'libre' && gesto.hover) setHover(null);
+  corrEtiqueta();
+  // luz de la mano: ilumina lo que tienes delante (libro, carpeta, objeto inspeccionado) con luz blanca cálida
+  const cerca = ['inspeccion', 'lectura', 'carpeta', 'bot'].includes(gesto.estado) || (gesto.estado === 'ocupado' && gesto.obj);
+  luzMano.intensity = lerp(luzMano.intensity, cerca ? 0.5 : 0, reduced ? 1 : 1 - Math.exp(-dt * 6));
+  luzMano.position.copy(camera.position).add(v3(0.08, 0.12, 0).applyQuaternion(camera.quaternion));
+  if (ahora - pantalla.ult > 40) { pantalla.ult = ahora; dibujaPantalla(ahora); }
+  const leyendo = ahora < ledHasta;
+  led.material.emissiveIntensity = reduced ? 1 : (leyendo ? (Math.sin(ahora / 60) > 0 ? 1.8 : 0.1) : 1.0 + Math.sin(ahora / 900) * 0.3);
+  screenLight.intensity = $('#os').hidden ? (pantalla.estado === 'reposo' ? 1.2 : 2.0) : 0;
+  if (new Date().getDate() !== diaPizarra) { diaPizarra = new Date().getDate(); dibujaBase(); componePizarra(); }
+  if ($('#os').hidden) renderer.render(scene, camera);
+  fps.cuenta++;
+  requestAnimationFrame(bucle);
+}
+const fps = { cuenta: 0 };
+
+/* ---------- para los guiones de grabar.js y las pruebas ---------- */
+// __slPantalla(clave) → [x, y] de 0 a 1: dónde cae el centro del objeto en la pantalla
+window.__slPantalla = clave => {
+  let p = null;
+  if (clave === 'disquetera') p = tray.getWorldPosition(new THREE.Vector3()).add(v3(0, 0, 0.05));
+  else if (clave === 'puerto-usb') p = PUERTO.clone();
+  else if (clave === 'pizarra-v' || clave === 'pizarra-f') { const [x, y, w, h] = clave === 'pizarra-v' ? CAJA_V : CAJA_F; p = enPizarra(x + w / 2, y + h / 2); }
+  else if (clave === 'pagina-derecha' && lectura.rig) p = lectura.rig.pagDer.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(lectura.rig.W * 0.3, 0, 0).applyQuaternion(lectura.rig.rig.quaternion));
+  else if (clave === 'pagina-izquierda' && lectura.rig) p = lectura.rig.pagIzq.getWorldPosition(new THREE.Vector3());
+  else if (clave === 'mesa') p = v3(0.02, PLANO_Y, -0.08);
+  else if (clave.endsWith('-etiqueta') && objetos.get(clave.replace('-etiqueta', ''))) p = objetos.get(clave.replace('-etiqueta', '')).raiz.localToWorld(v3(0, 0.005, 0.088));
+  else if (objetos.get(clave)) p = centroDe(objetos.get(clave));
+  if (!p) return [0.5, 0.5];
+  camera.updateMatrixWorld(); const [x, y] = aPantalla(p);
+  return [clamp(x, 0, 1), clamp(y, 0, 1)];
+};
+window.__slEstado = () => gesto.estado;
+window.__slHover = () => gesto.hover;
+window.__slObj = k => objetos.get(k);
+window.__slPos = clave => { const o = objetos.get(clave); if (!o || !o.raiz) return null; const p = o.raiz.getWorldPosition(new THREE.Vector3()); return [+p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3), o.raiz.visible]; };
+window.__slRumbo = r => { rig.rumbo = r; cam.yaw = r; };
+window.__slFps = () => fps.cuenta;
+window.__slVersion = VERSION;
+window.__slInfo = () => ({ llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles, geometrias: renderer.info.memory.geometries, texturas: renderer.info.memory.textures, objetos: objetos.size });
+
+/* ---------- arranque: espera a las fuentes y redibuja los lienzos con ellas ---------- */
+const fuentes = document.fonts && document.fonts.load ? Promise.all(['600 40px "Space Grotesk"', '400 20px "JetBrains Mono"', '600 20px "JetBrains Mono"', '400 20px Inter', '700 40px Caveat', '500 30px Caveat'].map(f => document.fonts.load(f))) : Promise.resolve();
+Promise.race([fuentes, new Promise(r => setTimeout(r, 2500))]).then(() => {
+  TEXTURAS.forEach(t => redibuja(t));
+  dibujaBase(); componePizarra();
+  cambia('libre');
+  requestAnimationFrame(bucle);
+  setTimeout(() => { $('#carga').classList.add('fuera'); setTimeout(() => { $('#carga').hidden = true; }, 650); }, 200);
+});
+
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 36 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 13 de computadores), en 76 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 36 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 13 de computadores), en 76 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión del Proyecto Escritorio (el escritorio en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -139,6 +139,12 @@ Temas de papel de IC1: los simuladores de «Compruébalo con Python» de la teor
 | Subrutinas y la pila (`jal` y `jr $ra`, argumentos en `$a0`-`$a3` y resultados en `$v0`/`$v1`, `$t` frente a `$s`, la pila con `$sp`, hoja y no hoja, recursión y datos locales) | [`mips/subrutinas/`](mips/subrutinas): [3 programas](https://sergiolearns.com/subrutinas-en-mips-practica/) y [3 ejercicios](https://sergiolearns.com/subrutinas-en-mips-ejercicios/) | [Teoría](https://sergiolearns.com/subrutinas-en-mips/) · [Práctica](https://sergiolearns.com/subrutinas-en-mips-practica/) · [Ejercicios](https://sergiolearns.com/subrutinas-en-mips-ejercicios/) |
 | Simulacro del examen práctico de IC1 (soluciones de las versiones A, B y C de la ordinaria —apartado 1 y apartado 2 por teclado— y de la extraordinaria —apartado 1, subrutina y teclado—; `<versión>-<convocatoria>-apartadoN-….s`) | [`mips/examenes/ic1/`](mips/examenes/ic1): [15 soluciones](https://sergiolearns.com/simulacro-examen-ic1-practica/) | [Simulacro práctico](https://sergiolearns.com/simulacro-examen-ic1-practica/) |
 
+### Proyectos
+
+| Proyecto | Versiones | Artículos |
+|---|---|---|
+| Proyecto Escritorio: mi escritorio en 3D dentro de la web (three.js, máquina de estados, muelles, zonas de destino, páginas que se curvan) | [`proyectos/escritorio/`](proyectos/escritorio): [v0.1](proyectos/escritorio/v0.1) (un archivo) y [v0.2](proyectos/escritorio/v0.2) (12 módulos) | [Memoria](https://sergiolearns.com/proyecto-escritorio/) · [1. La idea](https://sergiolearns.com/proyecto-escritorio-la-idea/) · [2. v0.1](https://sergiolearns.com/proyecto-escritorio-v0-1-prototipo-3d/) · [3. v0.2](https://sergiolearns.com/proyecto-escritorio-v0-2-interaccion-sin-botones/) |
+
 ## Cómo ejecutarlos
 
 ```bash
@@ -172,6 +178,10 @@ lenguaje/
     ├── programas/    ← programas resueltos (artículos de práctica)
     ├── ejercicios/   ← soluciones de los ejercicios
     └── simuladores/  ← «Compruébalo con Python» de las teorías de IC2 (redes/ y sistemas-operativos/) y de IC1 (computadores/)
+
+proyectos/
+└── escritorio/
+    └── vX.Y/         ← el código completo de cada versión del Proyecto Escritorio
 ```
 
 Un consejo: intenta resolver el ejercicio en la web antes de mirar la solución aquí. Se aprende el doble.

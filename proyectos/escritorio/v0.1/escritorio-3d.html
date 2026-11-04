@@ -1,0 +1,925 @@
+<title>Escritorio 3D de SergioLearns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Una habitación de noche vista desde la silla: una sola apariencia oscura a propósito (la «terminal cálida» de SergioLearns). */
+:root{
+  --ink:#1E1B2E; --ink-2:#2A2640; --ink-3:#141221; --line:#3A3552;
+  --violet:#5B4BDB; --violet-l:#A99EF5; --coral:#FF6B4A; --coral-l:#FF9B80;
+  --text:#E8E6F5; --muted:#C9C5DC; --ok:#5BD39A; --err:#FF8A7A; --amber:#F5C06B; --blue-l:#9CC3FF;
+  --f-display:'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --f-body:Inter, 'Segoe UI', system-ui, sans-serif;
+  --f-mono:'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  color-scheme: dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--ink);color:var(--text);font-family:var(--f-body);overflow:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:default}
+#gl.pointer{cursor:pointer}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--coral);outline-offset:3px}
+.mono{font-family:var(--f-mono);font-variant-ligatures:none}
+.hud{position:fixed;z-index:5;font:600 13px var(--f-mono);font-variant-ligatures:none;pointer-events:none}
+.hud-top{left:calc(18px + env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));color:var(--text)}
+.hud-top .v{color:var(--muted);font-weight:400;margin-left:10px}
+.dollar,.cur{color:var(--coral)}
+.cur{animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.hud-bottom{left:calc(16px + env(safe-area-inset-left,0px));right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hint{color:var(--muted);font-weight:400;background:rgba(20,18,33,.72);padding:8px 12px;border-radius:10px}
+.hud-bottom .btns{display:flex;gap:8px;pointer-events:auto}
+.chip{background:rgba(20,18,33,.86);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-height:44px;cursor:pointer;font:600 13px var(--f-mono);font-variant-ligatures:none}
+.chip:hover{border-color:var(--coral)}
+.chip.primary{background:var(--violet);border-color:var(--violet);color:#fff}
+#tip{position:fixed;z-index:6;pointer-events:none;font:600 12px var(--f-mono);font-variant-ligatures:none;background:var(--ink);border:1px solid var(--coral);border-radius:7px;padding:5px 9px;color:var(--text);white-space:nowrap;transform:translate(14px,14px)}
+#tip .d{color:var(--coral)}
+#menu{position:fixed;z-index:7;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(74px + env(safe-area-inset-bottom,0px));width:min(320px,calc(100vw - 32px));max-height:min(70vh,560px);overflow:auto;background:var(--ink);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 0 0 1px rgba(255,107,74,.25),0 20px 50px rgba(0,0,0,.5)}
+#menu h2{margin:0 0 8px;font:600 13px var(--f-mono);color:var(--muted)}
+#menu .grp{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+#menu button{background:var(--ink-2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-height:40px;cursor:pointer;font:500 12px var(--f-mono);font-variant-ligatures:none}
+#menu button:hover{border-color:var(--coral)}
+.ctx{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}
+.panel{position:fixed;z-index:8;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));max-height:calc(100vh - 140px);overflow:auto;background:var(--ink);border-radius:20px;padding:22px 24px;box-shadow:0 0 0 1px rgba(255,107,74,.55),0 0 70px rgba(255,107,74,.2);font:400 14px/1.65 var(--f-mono);font-variant-ligatures:none;animation:pop .28s cubic-bezier(.2,.9,.3,1.2)}
+.panel h2{margin:0 0 12px;font:600 15px var(--f-mono)}
+.panel .row{display:grid;grid-template-columns:64px 52px 1fr;gap:10px}
+.panel a{color:var(--violet-l)}
+.panel a:hover{color:var(--coral-l)}
+.panel .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+@keyframes pop{from{opacity:0;transform:translate(-50%,-46%) scale(.96)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#kbd{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0}
+#loading{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--ink);font:600 15px var(--f-mono);transition:opacity .6s}
+#loading.out{opacity:0;pointer-events:none}
+#fallback{position:fixed;inset:0;z-index:31;display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-left,0px));background:var(--ink);font:400 14px/1.7 var(--f-mono)}
+#fallback a{color:var(--violet-l)}
+/* SergioLearns OS */
+#os{position:fixed;inset:0;z-index:20;background:var(--ink-3);overflow:hidden;transform-origin:50% 50%}
+#os.on{animation:crtOn .55s cubic-bezier(.2,.8,.2,1)}
+#os.off{animation:crtOff .45s ease-in forwards}
+@keyframes crtOn{0%{transform:scale(1,.004);filter:brightness(3)}45%{transform:scale(1,.004)}100%{transform:scale(1,1);filter:brightness(1)}}
+@keyframes crtOff{0%{transform:scale(1,1)}55%{transform:scale(1,.004);filter:brightness(2.5)}100%{transform:scale(0,.004);filter:brightness(4)}}
+#wall{position:absolute;inset:0;width:100%;height:100%}
+.os-bar{position:absolute;left:0;right:0;top:0;height:44px;padding:env(safe-area-inset-top,0px) max(14px,env(safe-area-inset-right,0px)) 0 max(14px,env(safe-area-inset-left,0px));display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(20,18,33,.9);border-bottom:1px solid var(--line);font:600 13px var(--f-mono);font-variant-ligatures:none}
+.os-bar .clock{color:var(--muted);font-weight:400}
+.os-bar button{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font:600 12px var(--f-mono)}
+.os-bar button:hover{border-color:var(--coral)}
+.dock{position:absolute;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);display:flex;gap:6px;align-items:flex-end;background:rgba(20,18,33,.9);border:1px solid var(--line);border-radius:20px;padding:8px 10px;max-width:calc(100vw - 32px);overflow-x:auto}
+.dock button{background:none;border:1px solid transparent;border-radius:14px;padding:8px 10px;min-width:70px;min-height:56px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font:500 11px var(--f-mono);font-variant-ligatures:none;transition:transform .18s cubic-bezier(.2,.9,.3,1.3)}
+.dock button:hover,.dock button:focus-visible{transform:translateY(-6px) scale(1.12);border-color:var(--coral)}
+.dock svg{width:26px;height:26px;stroke:var(--text);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.win{position:absolute;width:min(620px,calc(100vw - 32px));background:var(--ink-2);border-radius:14px;box-shadow:0 0 0 1px rgba(255,107,74,.45),0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:winIn .3s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes winIn{from{opacity:0;transform:scale(.9) translateY(14px)}to{opacity:1;transform:none}}
+.win-bar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;background:var(--ink);cursor:grab;font:600 13px var(--f-mono);font-variant-ligatures:none;touch-action:none;user-select:none}
+.win-bar button{background:none;border:0;cursor:pointer;color:var(--muted);padding:6px 10px;min-height:32px;font:600 12px var(--f-mono)}
+.win-bar button:hover{color:var(--coral-l)}
+.win-body{padding:16px 18px;font:400 14px/1.65 var(--f-mono);font-variant-ligatures:none;max-height:min(52vh,420px);overflow:auto}
+.win-body a{color:var(--violet-l)}
+.term-line{white-space:pre-wrap}
+.term-in{display:flex;gap:8px;align-items:center;margin-top:6px}
+.term-in label{color:var(--violet-l);white-space:nowrap}
+.term-in input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font:400 14px var(--f-mono);caret-color:var(--coral)}
+.c-ok{color:var(--ok)}.c-err{color:var(--err)}.c-cmd{color:var(--violet-l)}.c-dim{color:var(--muted)}.c-num{color:var(--amber)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.card-grid a{display:block;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;text-decoration:none;color:var(--text)}
+.card-grid a:hover{border-color:var(--coral)}
+.card-grid b{display:block;color:var(--violet-l);margin-bottom:4px}
+@media (prefers-reduced-motion: reduce){
+  .cur{animation:none}#os.on,#os.off,.win,.panel{animation:none}
+  .dock button{transition:none}.dock button:hover{transform:none}
+}
+</style>
+
+<canvas id="gl" aria-label="Escritorio en 3D de SergioLearns. Usa el botón Objetos para manejarlo sin ratón."></canvas>
+
+<div class="hud hud-top" aria-hidden="true">~/escritorio <span class="dollar">$</span> startx<span class="cur">_</span><span class="v">SergioLearns OS v0.1 · prototipo</span></div>
+
+<div id="tip" hidden></div>
+
+<div class="hud hud-bottom">
+  <span class="hint" id="hint">Mueve el ratón para mirar · pulsa un objeto · Esc para volver</span>
+  <div class="btns">
+    <button class="chip" id="btn-back" type="button" hidden>Volver</button>
+    <button class="chip" id="btn-menu" type="button" aria-expanded="false" aria-controls="menu">Objetos</button>
+  </div>
+</div>
+
+<nav id="menu" hidden aria-label="Objetos del escritorio">
+  <h2>$ ls ~/escritorio</h2>
+  <div class="grp" id="menu-main"></div>
+  <h2>$ ls ~/estanteria</h2>
+  <div class="grp" id="menu-books"></div>
+  <h2>$ ls ~/discos</h2>
+  <div class="grp" id="menu-discs"></div>
+</nav>
+
+<div class="ctx" id="ctx" hidden></div>
+<div class="panel" id="panel" role="dialog" aria-modal="false" aria-labelledby="panel-title" hidden></div>
+<input id="kbd" type="text" aria-label="Teclado del escritorio: escribe una orden" autocomplete="off" spellcheck="false">
+
+<div id="os" hidden role="application" aria-label="SergioLearns OS">
+  <canvas id="wall" aria-hidden="true"></canvas>
+  <div class="os-bar">
+    <span>SergioLearns OS <span style="color:var(--coral)">v0.1</span></span>
+    <span class="clock" id="clock"></span>
+    <button type="button" id="btn-off">apagar</button>
+  </div>
+  <div id="wins"></div>
+  <nav class="dock" id="dock" aria-label="Aplicaciones"></nav>
+</div>
+
+<div id="loading" aria-live="polite"><div>~/escritorio <span class="dollar">$</span> cargando la habitación<span class="cur">_</span></div></div>
+<div id="fallback" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+'use strict';
+var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function $(s) { return document.querySelector(s); }
+
+/* ---------- datos reales de la web (3 nov 2026) ---------- */
+var BOOKS = [
+  { id: 'fp1', code: 'FP1', curso: 1, name: 'Python desde cero', color: '#5B4BDB', state: 'drwx', estado: 'completa', url: 'https://sergiolearns.com/asignatura/fp1/',
+    lines: ['43 artículos por idioma', 'teoría, práctica y ejercicios', 'cuestionario y chuletario por tema', 'simulacro de teoría: 17 nov', 'simulacro práctico: 18 nov'] },
+  { id: 'fp2', code: 'FP2', curso: 1, name: 'Python y Java con objetos', color: '#4638B8', state: 'drwx', estado: 'completa', url: 'https://sergiolearns.com/asignatura/fp2/',
+    lines: ['70 artículos por idioma', 'clases, herencia, excepciones', 'colecciones e iteradores', 'simulacro de teoría: 14 nov', 'simulacro práctico: 15 nov'] },
+  { id: 'ic1', code: 'IC1', curso: 1, name: 'Computadores y MIPS', color: '#FF6B4A', state: 'drw-', estado: 'en curso', url: '',
+    lines: ['MIPS: 6 temas (20-25 nov)', 'temas de papel: 4 de 14', '(27-30 nov)', 'simulacro práctico: 26 nov', 'guía de la asignatura: 19 nov'] },
+  { id: 'ic2', code: 'IC2', curso: 1, name: 'C, Linux, redes y procesos', color: '#16794B', state: 'drwx', estado: 'completa', url: 'https://sergiolearns.com/asignatura/ic2/',
+    lines: ['58 artículos por idioma', 'C, Linux, redes y SO', 'simuladores en el Laboratorio', 'simulacro de teoría: 12 nov', 'simulacro práctico: 13 nov'] },
+  { id: 'aedv', code: 'AEDV', curso: 2, name: 'Análisis Exploratorio de Datos y Visualización', color: '#5A566E', state: 'd---', estado: 'pendiente', url: '', lines: ['2º curso, primer semestre', 'la estás cursando ahora', 'entra en la web cuando', 'la estudies (propuesta M2)'] },
+  { id: 'fsi', code: 'FSI', curso: 2, name: 'Fundamentos de los Sistemas Inteligentes', color: '#5A566E', state: 'd---', estado: 'pendiente', url: '', lines: ['2º curso, primer semestre', 'la estás cursando ahora', 'propuesta M2'] },
+  { id: 'is', code: 'IS', curso: 2, name: 'Ingeniería del Software', color: '#5A566E', state: 'd---', estado: 'pendiente', url: '', lines: ['2º curso, primer semestre', 'idea: editor UML', 'con código Java'] },
+  { id: 'fmcc', code: 'FMCC', curso: 2, name: 'Fundamentos de Marketing y Comportamiento del Consumidor', color: '#5A566E', state: 'd---', estado: 'pendiente', url: '', lines: ['2º curso, primer semestre', 'propuesta M2'] },
+  { id: 'hpi', code: 'HPI', curso: 2, name: 'Habilidades Profesionales para Ingenieros', color: '#5A566E', state: 'd---', estado: 'pendiente', url: '', lines: ['2º curso, primer semestre', 'propuesta M2'] }
+];
+var FOLDERS = [
+  { dir: 'python/', n: '61', color: '#5B4BDB', url: 'https://sergiolearns.com/category/programacion/python/' },
+  { dir: 'java/', n: '48', color: '#4638B8', url: 'https://sergiolearns.com/category/programacion/java/' },
+  { dir: 'c/', n: '30', color: '#16794B', url: 'https://sergiolearns.com/category/programacion/c-cat/' },
+  { dir: 'linux/', n: '18', color: '#2F5FD0', url: 'https://sergiolearns.com/category/sistemas/linux/' },
+  { dir: 'redes/', n: '6', color: '#D9651C', url: 'https://sergiolearns.com/category/sistemas/redes/' },
+  { dir: 'mips/', n: '20 nov', color: '#FF6B4A', url: '' },
+  { dir: 'computadores/', n: '27 nov', color: '#F5A524', url: '' }
+];
+var DISCS = [
+  { id: 'cpu', label: 'CPU', name: 'Planificación de la CPU', cmd: '$ planifica --algoritmo rr --quantum 2', color: '#5B4BDB', url: 'https://sergiolearns.com/laboratorio/simuladores/planificacion-cpu/' },
+  { id: 'pag', label: 'PÁGINAS', name: 'Reemplazo de páginas', cmd: '$ reemplaza --algoritmo lru --marcos 3', color: '#FF6B4A', url: 'https://sergiolearns.com/laboratorio/simuladores/reemplazo-paginas/' },
+  { id: 'sub', label: 'SUBREDES', name: 'Subredes IPv4', cmd: '$ subredes 192.168.10.0/26', color: '#16794B', url: 'https://sergiolearns.com/laboratorio/simuladores/subredes-ipv4/' },
+  { id: 'paq', label: 'PAQUETE', name: 'El viaje de un paquete', cmd: '$ viaja --de portatil --a servidor', color: '#F5A524', url: 'https://sergiolearns.com/laboratorio/simuladores/viaje-paquete/' }
+];
+
+/* ---------- WebGL ---------- */
+var canvas = $('#gl'), renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+  if (!renderer.getContext()) throw new Error('sin WebGL');
+} catch (e) {
+  var fb = $('#fallback');
+  fb.innerHTML = '<div><p><span class="dollar">$</span> startx<br><span style="color:var(--err)">error: este navegador no puede dibujar en 3D (WebGL)</span></p>' +
+    '<p>Todo lo de la habitación está también en la web:<br><a href="https://sergiolearns.com/aprende/">Aprende</a> · <a href="https://sergiolearns.com/laboratorio/">Laboratorio</a> · <a href="https://sergiolearns.com/universidad/">Universidad</a></p></div>';
+  fb.hidden = false; $('#loading').hidden = true; return;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(0x141221);
+scene.fog = new THREE.Fog(0x141221, 3.2, 6);
+var camera = new THREE.PerspectiveCamera(62, 1, 0.02, 20);
+var BASE = new THREE.Vector3(0, 1.22, 0.55);
+
+function mat(color, o) {
+  o = o || {};
+  return new THREE.MeshStandardMaterial({ color: color, roughness: o.r !== undefined ? o.r : 0.82, metalness: o.m || 0.04,
+    emissive: o.e || 0x000000, emissiveIntensity: o.ei || 0, map: o.map || null, transparent: !!o.t, opacity: o.op !== undefined ? o.op : 1, side: o.side || THREE.FrontSide });
+}
+function box(w, h, d, m, x, y, z, parent) {
+  var mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m);
+  mesh.position.set(x || 0, y || 0, z || 0);
+  (parent || scene).add(mesh);
+  return mesh;
+}
+function texFrom(w, h, draw) {
+  var c = document.createElement('canvas'); c.width = w; c.height = h;
+  var g = c.getContext('2d'); draw(g, w, h);
+  var t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  t.userData = { canvas: c, g: g };
+  return t;
+}
+function rr(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
+var MONO = '"JetBrains Mono", ui-monospace, Consolas, monospace', DISP = '"Space Grotesk", "Segoe UI", sans-serif';
+
+/* ---------- tweens ---------- */
+var tweens = [];
+function ease(x) { return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; }
+function tween(dur, fn, done) { var t = { t0: performance.now(), dur: reduced ? 1 : dur, fn: fn, done: done }; tweens.push(t); return t; }
+function runTweens(now) {
+  for (var i = tweens.length - 1; i >= 0; i--) {
+    var t = tweens[i], p = Math.min(1, (now - t.t0) / t.dur);
+    t.fn(ease(p), p);
+    if (p >= 1) { tweens.splice(i, 1); if (t.done) t.done(); }
+  }
+}
+
+/* ---------- interacción ---------- */
+var objs = {}, pickables = [];
+function reg(key, meshes, label, onClick, enabled) {
+  objs[key] = { meshes: meshes, label: label, onClick: onClick, enabled: enabled || function () { return mode === 'free'; } };
+  meshes.forEach(function (m) { m.userData.key = key; pickables.push(m); m.material = Array.isArray(m.material) ? m.material.map(function (x) { return x.clone(); }) : m.material.clone(); });
+}
+function mats(m) { return Array.isArray(m.material) ? m.material : [m.material]; }
+var hovered = null;
+function setHover(key) {
+  if (hovered === key) return;
+  if (hovered && objs[hovered]) objs[hovered].meshes.forEach(function (m) { mats(m).forEach(function (x) { if (x.emissive && x.userData.baseE !== undefined) { x.emissive.setHex(x.userData.baseE); x.emissiveIntensity = x.userData.baseEI; } }); });
+  hovered = key;
+  var tip = $('#tip');
+  if (key && objs[key]) {
+    objs[key].meshes.forEach(function (m) {
+      mats(m).forEach(function (x) {
+        if (!x.emissive) return;
+        x.userData.baseE = x.emissive.getHex(); x.userData.baseEI = x.emissiveIntensity;
+        x.emissive.setHex(0xFF6B4A); x.emissiveIntensity = Math.max(0.28, x.userData.baseEI || 0);
+      });
+    });
+    tip.innerHTML = '<span class="d">$</span> ' + objs[key].label; tip.hidden = false; canvas.classList.add('pointer');
+  } else { tip.hidden = true; canvas.classList.remove('pointer'); }
+}
+
+/* ---------- habitación ---------- */
+var wallM = mat(0x221E33), floorM = mat(0x16131F);
+function plane(w, h, m, x, y, z, rx, ry) { var p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m); p.position.set(x, y, z); p.rotation.set(rx || 0, ry || 0, 0); scene.add(p); return p; }
+plane(2.5, 2.6, floorM, 0, 0, 0, -Math.PI / 2, 0);
+plane(2.5, 2.6, wallM, 0, 1.3, -1.2, 0, 0);
+plane(2.6, 2.6, wallM, -1.2, 1.3, 0, 0, Math.PI / 2);
+plane(2.6, 2.6, wallM, 1.25, 1.3, 0, 0, -Math.PI / 2);
+plane(2.5, 2.6, wallM, 0, 1.3, 1.2, 0, Math.PI);
+plane(2.5, 2.6, mat(0x1E1B2E), 0, 2.6, 0, Math.PI / 2, 0);
+/* rodapié y franja coral de la pared */
+box(2.5, 0.08, 0.01, mat(0x1E1B2E), 0, 0.04, -1.19);
+box(2.5, 0.01, 0.005, mat(0xFF6B4A, { e: 0xFF6B4A, ei: 0.35 }), 0, 0.95, -1.195);
+
+/* mesa */
+var deskM = mat(0x2E2A42, { r: 0.7 });
+box(1.9, 0.04, 0.75, deskM, 0, 0.72, -0.35);
+[[-0.9, -0.69], [0.9, -0.69], [-0.9, -0.02], [0.9, -0.02]].forEach(function (p) { box(0.04, 0.7, 0.04, mat(0x2E2A42), p[0], 0.35, p[1]); });
+box(0.5, 0.1, 0.02, deskM, -0.7, 0.65, 0.015);
+box(0.5, 0.1, 0.02, deskM, 0.7, 0.65, 0.015);
+
+/* cajón */
+var drawer = new THREE.Group(); drawer.position.set(-0.2, 0.64, 0); scene.add(drawer);
+var drawerFront = box(0.5, 0.12, 0.02, mat(0x2E2A42, { r: 0.6 }), 0, 0, 0.035, drawer);
+var drawerHandle = box(0.14, 0.016, 0.016, mat(0xFF6B4A, { e: 0xFF6B4A, ei: 0.2 }), 0, 0, 0.052, drawer);
+box(0.46, 0.008, 0.4, mat(0x26223A), 0, -0.05, -0.17, drawer);
+box(0.008, 0.1, 0.4, mat(0x26223A), -0.226, 0, -0.17, drawer);
+box(0.008, 0.1, 0.4, mat(0x26223A), 0.226, 0, -0.17, drawer);
+box(0.46, 0.1, 0.008, mat(0x26223A), 0, 0, -0.366, drawer);
+var folderMeshes = [];
+FOLDERS.forEach(function (f, i) {
+  var g = new THREE.Group(); g.position.set(-0.02 + (i % 2) * 0.03, -0.04 + i * 0.007, -0.09 - i * 0.032); g.rotation.y = (i % 2 ? -0.04 : 0.05); drawer.add(g);
+  var fm = box(0.32, 0.004, 0.16, mat(f.color, { r: 0.75 }), 0, 0, 0, g);
+  var lt = texFrom(512, 64, function (c, w, h) { c.fillStyle = f.color; c.fillRect(0, 0, w, h); c.fillStyle = '#FAFAF7'; c.font = '600 34px ' + MONO; c.textBaseline = 'middle'; c.fillText(f.dir, 18, h / 2); c.textAlign = 'right'; c.fillStyle = '#1E1B2E'; c.fillText(f.n, w - 18, h / 2); });
+  var lp = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.04), new THREE.MeshStandardMaterial({ map: lt, roughness: 0.8 }));
+  lp.rotation.x = -Math.PI / 2; lp.position.set(0, 0.0025, 0.06); g.add(lp);
+  folderMeshes.push({ f: f, meshes: [fm, lp], g: g });
+});
+
+/* monitor */
+var screenTex = texFrom(1024, 592, function () {});
+var bezel = box(0.68, 0.41, 0.03, mat(0x1E1B2E, { r: 0.5 }), 0, 1.06, -0.6);
+var screenM = new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false });
+var screen = new THREE.Mesh(new THREE.PlaneGeometry(0.64, 0.37), screenM); screen.position.set(0, 1.06, -0.584); scene.add(screen);
+box(0.05, 0.24, 0.04, mat(0x5A566E, { r: 0.5, m: 0.3 }), 0, 0.86, -0.63);
+box(0.24, 0.012, 0.16, mat(0x5A566E, { r: 0.5, m: 0.3 }), 0, 0.746, -0.62);
+var screenLight = new THREE.PointLight(0xA99EF5, 0.55, 2.2, 2); screenLight.position.set(0, 1.06, -0.4); scene.add(screenLight);
+
+/* teclado con teclas que se hunden */
+box(0.46, 0.018, 0.15, mat(0x1E1B2E, { r: 0.55 }), 0, 0.749, -0.2);
+var KC = 14, KR = 4, keyGeo = new THREE.BoxGeometry(0.026, 0.01, 0.026);
+var keys = new THREE.InstancedMesh(keyGeo, mat(0x3A3552, { r: 0.6 }), KC * KR); scene.add(keys);
+var keyBase = [], dummy = new THREE.Object3D();
+for (var r = 0; r < KR; r++) for (var c2 = 0; c2 < KC; c2++) {
+  var i = r * KC + c2, kx = -0.198 + c2 * 0.0305 + (r % 2) * 0.008, kz = -0.248 + r * 0.032;
+  keyBase.push([kx, 0.762, kz]); dummy.position.set(kx, 0.762, kz); dummy.updateMatrix(); keys.setMatrixAt(i, dummy.matrix);
+}
+var space = box(0.17, 0.01, 0.026, mat(0x5B4BDB, { r: 0.55, e: 0x5B4BDB, ei: 0.15 }), 0, 0.762, -0.12);
+var kbHit = box(0.46, 0.04, 0.15, new THREE.MeshBasicMaterial({ visible: false }), 0, 0.765, -0.2);
+var keyPress = {};
+function pressKey(i) {
+  i = ((i % (KC * KR)) + KC * KR) % (KC * KR); keyPress[i] = performance.now();
+}
+function updateKeys(now) {
+  var any = false;
+  for (var k in keyPress) {
+    var dt = now - keyPress[k], d = dt < 70 ? -0.006 : (dt < 160 ? -0.006 * (1 - (dt - 70) / 90) : 0);
+    var b = keyBase[k]; dummy.position.set(b[0], b[1] + d, b[2]); dummy.updateMatrix(); keys.setMatrixAt(+k, dummy.matrix); any = true;
+    if (dt >= 160) delete keyPress[k];
+  }
+  if (any) keys.instanceMatrix.needsUpdate = true;
+}
+box(0.055, 0.02, 0.09, mat(0x1E1B2E, { r: 0.4 }), 0.33, 0.75, -0.2);
+
+/* taza */
+var mug = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.1, 32), mat(0xFF6B4A, { r: 0.5 })); mug.position.set(-0.5, 0.79, -0.16); scene.add(mug);
+var handle = new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.008, 12, 24, Math.PI), mat(0xFF6B4A, { r: 0.5 })); handle.position.set(-0.46, 0.79, -0.16); handle.rotation.z = -Math.PI / 2; scene.add(handle);
+
+/* lámpara (izquierda) */
+var lampOn = true;
+box(0.14, 0.02, 0.14, mat(0x5A566E, { m: 0.3, r: 0.4 }), -0.62, 0.75, -0.6);
+box(0.016, 0.45, 0.016, mat(0x5A566E, { m: 0.3, r: 0.4 }), -0.62, 0.975, -0.6);
+box(0.22, 0.016, 0.016, mat(0x5A566E, { m: 0.3, r: 0.4 }), -0.52, 1.2, -0.6);
+var shade = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.11, 32, 1, true), mat(0xFF6B4A, { r: 0.55, side: THREE.DoubleSide })); shade.position.set(-0.42, 1.15, -0.6); scene.add(shade);
+var bulbM = mat(0xF5C06B, { e: 0xF5C06B, ei: 2.2 });
+var bulb = new THREE.Mesh(new THREE.SphereGeometry(0.026, 20, 12), bulbM); bulb.position.set(-0.42, 1.11, -0.6); scene.add(bulb);
+var lampLight = new THREE.PointLight(0xF5C06B, 1.8, 3.6, 2); lampLight.position.set(-0.42, 1.06, -0.55); scene.add(lampLight);
+var hemi = new THREE.HemisphereLight(0xA99EF5, 0x1E1B2E, 0.26); scene.add(hemi);
+
+/* torre y discos (derecha) */
+var tower = box(0.2, 0.46, 0.4, mat(0x1E1B2E, { r: 0.45, m: 0.2 }), 0.82, 0.97, -0.42);
+box(0.16, 0.022, 0.003, mat(0x141221), 0.82, 1.1, -0.2185);
+for (var v = 0; v < 6; v++) box(0.12, 0.004, 0.002, mat(0x3A3552), 0.82, 0.86 + v * 0.025, -0.219);
+var led = new THREE.Mesh(new THREE.SphereGeometry(0.008, 12, 8), mat(0xFF6B4A, { e: 0xFF6B4A, ei: 1.2 })); led.position.set(0.88, 1.16, -0.218); scene.add(led);
+var tray = new THREE.Group(); tray.position.set(0.82, 1.1, -0.287); scene.add(tray);
+var trayMesh = box(0.15, 0.008, 0.13, mat(0x2E2A42, { r: 0.5 }), 0, 0, 0, tray);
+var discObjs = [];
+DISCS.forEach(function (d, i) {
+  var lt = texFrom(256, 256, function (c, w, h) {
+    c.fillStyle = '#E8E6F5'; c.fillRect(0, 0, w, h);
+    c.fillStyle = d.color; c.beginPath(); c.arc(128, 128, 126, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FAFAF7'; c.beginPath(); c.arc(128, 128, 30, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#1E1B2E'; c.beginPath(); c.arc(128, 128, 12, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FAFAF7'; c.font = '600 26px ' + MONO; c.textAlign = 'center'; c.fillText(d.label, 128, 76); c.font = '400 16px ' + MONO; c.fillText('sim', 128, 196);
+  });
+  var mats = [mat(0xC9C5DC, { r: 0.3, m: 0.6 }), new THREE.MeshStandardMaterial({ map: lt, roughness: 0.35, metalness: 0.2 }), mat(0xC9C5DC, { r: 0.3, m: 0.6 })];
+  var m = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.004, 48), mats);
+  var home = new THREE.Vector3(0.5 + (i % 2) * 0.13, 0.744 + 0.002, -0.18 + Math.floor(i / 2) * 0.13);
+  m.position.copy(home); m.rotation.y = i * 0.7; scene.add(m);
+  discObjs.push({ d: d, mesh: m, home: home.clone(), rotHome: m.rotation.y });
+});
+
+/* estantería con libros */
+var shelfM = mat(0x3A3552, { r: 0.6 });
+box(1.45, 0.025, 0.24, shelfM, 0, 1.62, -1.08);
+box(1.45, 0.025, 0.24, shelfM, 0, 2.0, -1.08);
+var bookObjs = [];
+function spineTex(b) {
+  return texFrom(96, 512, function (c, w, h) {
+    c.fillStyle = b.curso === 2 ? '#2E2A42' : b.color; c.fillRect(0, 0, w, h);
+    if (b.curso === 2) { c.strokeStyle = '#8E8AA3'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6); }
+    if (b.id === 'ic1') { c.fillStyle = 'rgba(30,27,46,.55)'; c.fillRect(0, 0, w, h * 0.62); }
+    c.save(); c.translate(w / 2, h / 2); c.rotate(-Math.PI / 2); c.fillStyle = '#FAFAF7'; c.font = '600 46px ' + MONO; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(b.code, 0, 0); c.restore();
+    c.fillStyle = b.curso === 2 ? '#8E8AA3' : '#FAFAF7'; c.font = '400 22px ' + MONO; c.textAlign = 'center'; c.fillText(b.state, w / 2, h - 26);
+  });
+}
+function coverTex(b) {
+  return texFrom(512, 720, function (c, w, h) {
+    c.fillStyle = b.curso === 2 ? '#2E2A42' : b.color; c.fillRect(0, 0, w, h);
+    c.fillStyle = 'rgba(255,255,255,.08)'; for (var y = 0; y < h; y += 32) c.fillRect(0, y, w, 1);
+    c.fillStyle = '#FAFAF7'; c.font = '600 120px ' + DISP; c.fillText(b.code, 44, 220);
+    c.font = '500 34px ' + DISP; wrap(c, b.name, 44, 290, w - 88, 44);
+    c.font = '400 26px ' + MONO; c.fillStyle = '#FF9B80'; c.fillText('~/gcid/' + b.id, 44, h - 60);
+  });
+}
+function wrap(c, text, x, y, maxW, lh) {
+  var words = text.split(' '), line = '';
+  for (var i = 0; i < words.length; i++) { var t = line ? line + ' ' + words[i] : words[i]; if (c.measureText(t).width > maxW && line) { c.fillText(line, x, y); line = words[i]; y += lh; } else line = t; }
+  if (line) c.fillText(line, x, y); return y;
+}
+function drawPage(c, w, h, b, n) {
+  c.fillStyle = '#FAFAF7'; c.fillRect(0, 0, w, h);
+  c.fillStyle = 'rgba(30,27,46,.06)'; for (var y = 90; y < h; y += 40) c.fillRect(30, y, w - 60, 2);
+  c.fillStyle = '#1E1B2E';
+  if (n === 0) {
+    c.font = '600 28px ' + MONO; c.fillStyle = '#C93F22'; c.fillText('$', 36, 70); c.fillStyle = '#1E1B2E'; c.fillText(' ls -l ~/gcid/' + b.id, 52, 70);
+    c.font = '600 30px ' + MONO; c.fillStyle = b.state === 'drwx' ? '#16794B' : (b.state === 'drw-' ? '#C93F22' : '#5A566E'); c.fillText(b.state + '  ' + b.estado, 36, 130);
+    c.fillStyle = '#2E2A42'; c.font = '400 25px ' + MONO;
+    var y2 = 190; b.lines.forEach(function (l) { c.fillText(l, 36, y2); y2 += 44; });
+    c.fillStyle = '#5A566E'; c.font = '400 20px ' + MONO; c.fillText('pulsa para pasar la página', 36, h - 40);
+  } else {
+    c.font = '600 28px ' + MONO; c.fillStyle = '#C93F22'; c.fillText('$', 36, 70); c.fillStyle = '#1E1B2E'; c.fillText(' cat ' + b.id + '/LEEME', 52, 70);
+    c.fillStyle = '#2E2A42'; c.font = '400 24px ' + MONO;
+    var y3 = 140;
+    y3 = wrap(c, b.url ? 'En la versión real, cada página de este libro es un tema, con tu progreso de lectura marcado.' : 'Este libro se escribe a medida que avanza el curso. Cuando haya temas, aparecerán aquí.', 36, y3, w - 72, 36) + 60;
+    c.fillStyle = '#5B4BDB'; c.font = '600 24px ' + MONO;
+    c.fillText(b.url ? 'Abrir en la web: botón de abajo' : 'Aún sin enlace', 36, y3);
+  }
+}
+var bookDims = { t: 0.05, h: 0.25, d: 0.17 };
+var shelfX = { 1: -0.55, 2: -0.4 };
+BOOKS.forEach(function (b) {
+  var t = 0.045 + (b.code.length % 3) * 0.006, hgt = b.curso === 2 ? 0.22 + (b.code.length % 2) * 0.02 : 0.25 + (b.code.charCodeAt(2) % 3) * 0.01, d = 0.17;
+  var g = new THREE.Group();
+  var bodyM = mat(b.curso === 2 ? 0x2E2A42 : new THREE.Color(b.color).getHex(), { r: 0.7 });
+  var pagesBlock = box(t - 0.01, hgt - 0.012, d - 0.008, mat(0xF2F0F8, { r: 0.9 }), 0, 0, -0.002, g);
+  var back = box(0.005, hgt, d, bodyM, -t / 2 + 0.0025, 0, 0, g);
+  var spine = new THREE.Mesh(new THREE.PlaneGeometry(t, hgt), new THREE.MeshStandardMaterial({ map: spineTex(b), roughness: 0.7 })); spine.position.set(0, 0, d / 2 + 0.001); g.add(spine);
+  var spineBox = box(t, hgt, 0.004, bodyM, 0, 0, d / 2 - 0.0015, g);
+  var pivot = new THREE.Group(); pivot.position.set(t / 2, 0, d / 2); g.add(pivot);
+  var cover = box(0.005, hgt, d, bodyM, 0.0025, 0, -d / 2, pivot);
+  var cplane = new THREE.Mesh(new THREE.PlaneGeometry(d, hgt), new THREE.MeshStandardMaterial({ map: coverTex(b), roughness: 0.7 })); cplane.rotation.y = Math.PI / 2; cplane.position.set(0.0056, 0, -d / 2); pivot.add(cplane);
+  var pageT = texFrom(512, 720, function (c, w, h) { drawPage(c, w, h, b, 0); });
+  var pplane = new THREE.Mesh(new THREE.PlaneGeometry(d - 0.012, hgt - 0.016), new THREE.MeshBasicMaterial({ map: pageT, toneMapped: false })); pplane.rotation.y = Math.PI / 2; pplane.position.set(t / 2 - 0.005 + 0.0008, 0, -0.002); g.add(pplane);
+  var flipPivot = new THREE.Group(); flipPivot.position.set(t / 2 - 0.004, 0, d / 2 - 0.006); g.add(flipPivot);
+  var flipT = texFrom(512, 720, function (c, w, h) { drawPage(c, w, h, b, 0); });
+  var flip = new THREE.Mesh(new THREE.PlaneGeometry(d - 0.012, hgt - 0.016), new THREE.MeshBasicMaterial({ map: flipT, side: THREE.DoubleSide, toneMapped: false })); flip.rotation.y = Math.PI / 2; flip.position.set(0.0012, 0, -(d - 0.012) / 2); flip.visible = false; flipPivot.add(flip);
+  var row = b.curso;
+  var x = shelfX[row]; shelfX[row] += t + 0.012 + (b.code.length > 3 ? 0.004 : 0);
+  var y = (row === 1 ? 1.6325 : 2.0125) + hgt / 2;
+  g.position.set(x + t / 2, y, -1.2 + 0.03 + d / 2); scene.add(g);
+  var o = { b: b, g: g, pivot: pivot, page: 0, pageT: pageT, flipT: flipT, flip: flip, flipPivot: flipPivot, home: g.position.clone(), homeQ: g.quaternion.clone(), meshes: [spine, spineBox, back, cover, pagesBlock] };
+  bookObjs.push(o);
+});
+/* libros decorativos sin etiqueta para que la estantería no se vea vacía */
+[[0.25, 1, 0x3A3552], [0.31, 1, 0x26223A], [0.36, 1, 0x4638B8], [0.42, 1, 0x3A3552], [0.3, 2, 0x26223A], [0.36, 2, 0x3A3552]].forEach(function (p, i) {
+  var hh = 0.2 + (i % 3) * 0.03; box(0.04, hh, 0.17, mat(p[2], { r: 0.8 }), p[0], (p[1] === 1 ? 1.6325 : 2.0125) + hh / 2, -1.085);
+});
+
+/* pizarra (pared izquierda): calendario y pregunta del día, con la cuenta atrás de verdad */
+var quizAnswer = '';
+var EXAM = new Date(2027, 0, 8);
+function daysLeft() { var t = new Date(); t.setHours(0, 0, 0, 0); return Math.round((EXAM - t) / 86400000); }
+var boardTex = texFrom(1024, 672, drawBoard);
+function drawBoard(c, w, h) {
+  c.fillStyle = '#F4F3F8'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#1E1B2E'; c.font = '600 44px ' + DISP; c.fillText('cal 2027-01', 50, 80);
+  var days = ['L', 'M', 'X', 'J', 'V', 'S', 'D'], cw = 58, x0 = 50, y0 = 140;
+  c.font = '600 22px ' + MONO; c.fillStyle = '#5A566E'; days.forEach(function (d, i) { c.fillText(d, x0 + i * cw + 18, y0); });
+  c.font = '500 24px ' + MONO;
+  for (var d = 1; d <= 31; d++) {
+    var idx = d + 3, col = idx % 7, rowi = Math.floor(idx / 7), x = x0 + col * cw, y = y0 + 22 + rowi * 54;
+    if (d === 8) { c.fillStyle = '#FF6B4A'; rr(c, x - 2, y, 52, 44, 10); c.fill(); c.fillStyle = '#1E1B2E'; } else c.fillStyle = '#2E2A42';
+    c.fillText(String(d), x + (d < 10 ? 18 : 10), y + 31);
+  }
+  var left = daysLeft();
+  c.fillStyle = '#A84E12'; c.font = '600 26px ' + MONO;
+  c.fillText('8 ene · examen FP1', 50, 520);
+  c.fillText(left > 0 ? 'faltan ' + left + ' días' : (left === 0 ? 'es hoy' : 'ya pasó'), 50, 560);
+  c.fillStyle = '#5A566E'; c.font = '400 20px ' + MONO; c.fillText('[el resto, desde el calendario oficial]', 50, 610);
+  c.strokeStyle = '#C9C5DC'; c.lineWidth = 3; c.beginPath(); c.moveTo(500, 50); c.lineTo(500, 630); c.stroke();
+  c.fillStyle = '#1E1B2E'; c.font = '600 40px ' + DISP; c.fillText('pregunta del día', 540, 80);
+  c.font = '500 30px ' + MONO; c.fillStyle = '#2E2A42'; c.fillText('En Python,', 540, 160);
+  c.fillStyle = '#C93F22'; c.fillText('3 // 2', 540, 210); c.fillStyle = '#2E2A42'; c.fillText(' vale 1.5', 650, 210);
+  c.font = '600 34px ' + MONO; c.fillStyle = '#5B4BDB'; c.fillText('¿V o F?', 540, 290);
+  if (quizAnswer) {
+    var ok = quizAnswer === 'F';
+    c.fillStyle = ok ? '#16794B' : '#C2362B'; c.font = '600 36px ' + MONO; c.fillText(ok ? 'PASS' : 'FAIL', 540, 380);
+    c.fillStyle = '#2E2A42'; c.font = '400 24px ' + MONO;
+    wrap(c, '// es la división entera: 3 // 2 da 1. Con / sí da 1.5.', 540, 430, 440, 34);
+  } else { c.fillStyle = '#5A566E'; c.font = '400 22px ' + MONO; c.fillText('pulsa la pizarra para responder', 540, 380); }
+}
+function refreshBoard() { var t = boardTex; drawBoard(t.userData.g, 1024, 672); t.needsUpdate = true; }
+var boardFrame = box(0.02, 0.92, 1.36, mat(0x5A566E, { r: 0.5 }), -1.19, 1.45, -0.35);
+var board = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.853), new THREE.MeshStandardMaterial({ map: boardTex, roughness: 0.55 })); board.rotation.y = Math.PI / 2; board.position.set(-1.178, 1.45, -0.35); scene.add(board);
+
+/* póster (pared derecha) */
+var posterTex = texFrom(512, 720, function (c, w, h) {
+  c.fillStyle = '#1E1B2E'; c.fillRect(0, 0, w, h);
+  c.strokeStyle = '#FF6B4A'; c.lineWidth = 6; c.strokeRect(20, 20, w - 40, h - 40);
+  c.fillStyle = '#FAFAF7'; c.font = '600 64px ' + DISP; c.fillText('Sergio', 52, 150); c.fillText('Learns', 52, 222);
+  c.fillStyle = '#FF6B4A'; c.fillText('_', 270, 222);
+  c.font = '400 26px ' + MONO; c.fillStyle = '#A99EF5'; c.fillText('$ whoami', 52, 330);
+  c.fillStyle = '#E8E6F5'; c.fillText('estudiante de GCID', 52, 380); c.fillText('aprendiendo en público', 52, 420);
+  c.fillStyle = '#C9C5DC'; c.font = '400 22px ' + MONO; c.fillText('OS v0.1 · 3 nov 2026', 52, h - 70);
+});
+var poster = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), new THREE.MeshStandardMaterial({ map: posterTex, roughness: 0.6 })); poster.rotation.y = -Math.PI / 2; poster.position.set(1.24, 1.5, -0.3); scene.add(poster);
+
+/* ---------- pantalla del monitor ---------- */
+var screenState = 'standby', typed = '', typedOut = [], bootT0 = 0, simDisc = null, simT0 = 0, lastScreen = 0;
+var STANDBY = [['sergio@learns:~', '$ uptime'], ['ahora', 'IC1 · tema de papel 5 · IEEE 754'], ['tanda', '5 · arreglos visibles']];
+var BOOT = ['[ OK ] montando ~/apuntes', '[ OK ] cargando entornos: python, java, c, mips', '[ OK ] simuladores: 4', '[ OK ] sergio-bot', '[ OK ] calendario: examen FP1 el 8 ene', 'SergioLearns OS v0.1'];
+function drawScreen(now) {
+  var t = screenTex, c = t.userData.g, w = 1024, h = 592;
+  c.fillStyle = '#2A2640'; c.fillRect(0, 0, w, h);
+  c.textBaseline = 'alphabetic';
+  if (screenState === 'off') { c.fillStyle = '#0E0C16'; c.fillRect(0, 0, w, h); t.needsUpdate = true; return; }
+  if (screenState === 'standby') {
+    c.font = '400 30px ' + MONO;
+    c.fillStyle = '#A99EF5'; c.fillText('sergio@learns', 48, 80); c.fillStyle = '#E8E6F5'; c.fillText(':~', 282, 80); c.fillStyle = '#FF6B4A'; c.fillText('$', 330, 80); c.fillStyle = '#E8E6F5'; c.fillText(' uptime', 350, 80);
+    c.fillStyle = '#8E8AA3'; c.fillText('ahora', 48, 130); c.fillStyle = '#E8E6F5'; c.fillText(STANDBY[1][1], 170, 130);
+    c.fillStyle = '#8E8AA3'; c.fillText('tanda', 48, 176); c.fillStyle = '#E8E6F5'; c.fillText(STANDBY[2][1], 170, 176);
+    var y = 236; typedOut.slice(-4).forEach(function (l) { c.fillStyle = l.c; c.fillText(l.t, 48, y); y += 44; });
+    c.fillStyle = '#FF6B4A'; c.fillText('$', 48, y); c.fillStyle = '#E8E6F5'; c.fillText(' ' + typed, 66, y);
+    if (Math.floor(now / 500) % 2 === 0) { var cw = c.measureText(' ' + typed).width; c.fillStyle = '#FF6B4A'; c.fillRect(70 + cw, y - 26, 16, 32); }
+    c.fillStyle = '#C9C5DC'; c.font = '400 22px ' + MONO; c.fillText(mode === 'typing' ? 'escribe startx y pulsa Intro · Esc para salir' : 'pulsa la pantalla para entrar · el teclado para escribir', 48, h - 36);
+  } else if (screenState === 'boot') {
+    var el = now - bootT0; c.font = '400 28px ' + MONO;
+    for (var i = 0; i < BOOT.length; i++) {
+      if (el < 140 + i * 170) break;
+      var line = BOOT[i];
+      if (line.indexOf('[ OK ]') === 0) { c.fillStyle = '#5BD39A'; c.fillText('[ OK ]', 48, 80 + i * 46); c.fillStyle = '#E8E6F5'; c.fillText(line.slice(6), 160, 80 + i * 46); }
+      else { c.fillStyle = '#FF6B4A'; c.font = '600 44px ' + DISP; c.fillText(line, 48, 100 + i * 46); }
+    }
+  } else if (screenState === 'sim' && simDisc) {
+    drawSim(c, w, h, simDisc, (now - simT0) / 1000);
+  }
+  t.needsUpdate = true;
+}
+var RR = [['P1', 2], ['P2', 2], ['P3', 1], ['P4', 2], ['P1', 2], ['P2', 1], ['P1', 1]];
+var PCOL = { P1: '#5B4BDB', P2: '#FF6B4A', P3: '#5BD39A', P4: '#F5C06B' };
+var REF = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3];
+var LRU = (function () { var fr = [], used = [], out = []; REF.forEach(function (p, i) { var k = fr.indexOf(p), fault = false; if (k >= 0) used[k] = i; else { fault = true; if (fr.length < 3) { fr.push(p); used.push(i); } else { var m = 0; for (var j = 1; j < 3; j++) if (used[j] < used[m]) m = j; fr[m] = p; used[m] = i; } } out.push({ fr: fr.slice(), fault: fault }); }); return out; })();
+function drawSim(c, w, h, d, s) {
+  c.font = '400 26px ' + MONO; c.fillStyle = '#FF6B4A'; c.fillText(d.cmd.slice(0, 1), 40, 56); c.fillStyle = '#E8E6F5'; c.fillText(d.cmd.slice(1), 58, 56);
+  if (d.id === 'cpu') {
+    var total = 11, tt = Math.min(total, (s % 7) * 2.2), x0 = 60, unit = 78, y = 170, acc = 0;
+    c.font = '600 24px ' + MONO;
+    RR.forEach(function (p) { var st = acc, en = acc + p[1]; acc = en; if (st >= tt) return; var vis = Math.min(en, tt) - st; c.fillStyle = PCOL[p[0]]; rr(c, x0 + st * unit, y, vis * unit - 4, 90, 8); c.fill(); if (vis > 0.6) { c.fillStyle = '#1E1B2E'; c.fillText(p[0], x0 + st * unit + 12, y + 55); } });
+    c.fillStyle = '#C9C5DC'; c.font = '400 20px ' + MONO; for (var k = 0; k <= total; k++) c.fillText(String(k), x0 + k * unit - 6, y + 126);
+    c.fillStyle = '#E8E6F5'; c.font = '400 24px ' + MONO; c.fillText('Round Robin, quantum 2 · 4 procesos', 60, 380);
+    c.fillStyle = '#5BD39A'; if (tt >= total) c.fillText('[ OK ] todos terminados en t = 11', 60, 430);
+  } else if (d.id === 'pag') {
+    var n = Math.min(REF.length, Math.floor(s * 1.6) % (REF.length + 3)), cw2 = 88, x1 = 60;
+    c.font = '600 26px ' + MONO;
+    for (var i = 0; i < n; i++) {
+      var col = LRU[i], x = x1 + i * cw2;
+      c.fillStyle = '#A99EF5'; c.fillText(String(REF[i]), x + 30, 120);
+      for (var f = 0; f < 3; f++) { c.fillStyle = '#1E1B2E'; rr(c, x + 8, 140 + f * 64, 70, 56, 6); c.fill(); if (col.fr[f] !== undefined) { c.fillStyle = '#E8E6F5'; c.fillText(String(col.fr[f]), x + 34, 178 + f * 64); } }
+      if (col.fault) { c.fillStyle = '#FF8A7A'; c.fillText('F', x + 34, 360); }
+    }
+    c.fillStyle = '#E8E6F5'; c.font = '400 24px ' + MONO; c.fillText('LRU con 3 marcos · F = fallo de página', 60, 430);
+    var faults = LRU.slice(0, n).filter(function (x) { return x.fault; }).length; c.fillStyle = '#F5C06B'; c.fillText('fallos: ' + faults, 60, 474);
+  } else if (d.id === 'sub') {
+    var bits = '00000000', k2 = Math.min(8, Math.floor(s * 2.2) % 12);
+    c.font = '600 30px ' + MONO; c.fillStyle = '#E8E6F5'; c.fillText('192.168.10.', 60, 150);
+    for (var b = 0; b < 8; b++) { var on = b < 2 && b < k2; c.fillStyle = b < 2 ? (on ? '#FF6B4A' : '#3A3552') : (b < k2 ? '#5BD39A' : '#3A3552'); rr(c, 300 + b * 62, 110, 52, 56, 6); c.fill(); c.fillStyle = '#1E1B2E'; c.fillText(bits[b], 316 + b * 62, 148); }
+    c.font = '400 24px ' + MONO; c.fillStyle = '#FF9B80'; c.fillText('2 bits de subred', 300, 210); c.fillStyle = '#5BD39A'; c.fillText('6 bits de host', 430, 240);
+    if (k2 >= 8) { c.fillStyle = '#E8E6F5'; c.fillText('/26 → 4 subredes · 62 hosts en cada una', 60, 330); c.fillStyle = '#C9C5DC'; c.fillText('.0  .64  .128  .192', 60, 380); }
+  } else if (d.id === 'paq') {
+    var layers = [['Aplicación', 'HTTP', '#5B4BDB'], ['Transporte', 'TCP', '#FF6B4A'], ['Red', 'IP', '#16794B'], ['Enlace', 'Ethernet', '#F5A524']];
+    var k3 = Math.min(4, Math.floor(s * 1.3) % 7);
+    for (var L = 0; L < k3; L++) { var inset = (3 - L) * 34; c.fillStyle = layers[L][2]; rr(c, 60 + inset - 34 * 0, 100 + L * 4, 900 - inset * 2, 300 - L * 8, 12); c.globalAlpha = 0.9; c.fill(); c.globalAlpha = 1; }
+    c.font = '600 24px ' + MONO;
+    for (var L2 = 0; L2 < k3; L2++) { c.fillStyle = '#FAFAF7'; c.fillText(layers[L2][0] + ' · ' + layers[L2][1], 80 + (3 - L2) * 34, 140 + L2 * 60); }
+    c.fillStyle = '#E8E6F5'; c.font = '400 24px ' + MONO; c.fillText('cada capa envuelve a la anterior', 60, 470);
+  }
+  c.fillStyle = '#C9C5DC'; c.font = '400 20px ' + MONO; c.fillText('vista previa · el simulador completo está en la web', 40, h - 30);
+}
+
+/* ---------- cámara: sigue al cursor ---------- */
+var mx = 0, my = 0, dragYaw = 0, dragPitch = 0, isTouch = false;
+var cam = { pos: BASE.clone(), yaw: 0, pitch: -0.12, fov: 62 };
+var focus = null;
+function anglesTo(from, to) { var d = to.clone().sub(from); var len = d.length(); return { yaw: Math.atan2(-d.x, -d.z), pitch: Math.asin(d.y / len) }; }
+function applyCamera(dt) {
+  var ty, tp, tpos, tfov;
+  if (focus) { ty = focus.yaw + mx * 0.04; tp = focus.pitch + my * 0.03; tpos = focus.pos; tfov = focus.fov; }
+  else {
+    var ax = isTouch ? dragYaw : -mx * 1.05;
+    var ay = isTouch ? dragPitch : (my > 0 ? -0.12 + my * 0.75 : -0.12 + my * 0.85);
+    ty = ax; tp = ay; tpos = BASE; tfov = 62;
+  }
+  var rate = focus && focus.rate ? focus.rate : 5;
+  var k = reduced ? 1 : 1 - Math.exp(-dt * rate);
+  cam.yaw += (ty - cam.yaw) * k; cam.pitch += (tp - cam.pitch) * k; cam.fov += (tfov - cam.fov) * k; cam.pos.lerp(tpos, k);
+  var breathe = reduced || focus ? 0 : Math.sin(performance.now() / 1400) * 0.004;
+  camera.position.set(cam.pos.x, cam.pos.y + breathe, cam.pos.z);
+  var cp = Math.cos(cam.pitch);
+  camera.lookAt(cam.pos.x - Math.sin(cam.yaw) * cp, cam.pos.y + breathe + Math.sin(cam.pitch), cam.pos.z - Math.cos(cam.yaw) * cp);
+  if (Math.abs(camera.fov - cam.fov) > 0.01) { camera.fov = cam.fov; camera.updateProjectionMatrix(); }
+}
+
+/* ---------- modos ---------- */
+var mode = 'free';
+function setMode(m) {
+  mode = m; $('#btn-back').hidden = m === 'free' || m === 'os'; setHover(null);
+  $('#hint').textContent = {
+    free: isTouch ? 'Arrastra para mirar · toca un objeto' : 'Mueve el ratón para mirar · pulsa un objeto · Esc para volver',
+    book: 'Pulsa el libro para pasar la página · Esc para dejarlo', drawer: 'Pulsa una carpeta · Esc para cerrar el cajón',
+    board: 'Responde la pregunta · Esc para volver', typing: 'Escribe en el teclado · startx e Intro para encender · Esc para salir',
+    sim: 'El disco está dentro · Esc para expulsarlo', booting: 'Encendiendo…', os: '', busy: '…'
+  }[m] || '';
+}
+function ctx(html) { var el = $('#ctx'); if (!html) { el.hidden = true; el.innerHTML = ''; return; } el.innerHTML = html; el.hidden = false; }
+function panel(html) { var el = $('#panel'); if (!html) { el.hidden = true; el.innerHTML = ''; return; } el.innerHTML = html; el.hidden = false; var b = el.querySelector('button,a'); if (b) b.focus({ preventScroll: true }); }
+
+/* libro */
+var heldBook = null, HOLD_S = 1.35;
+function takeBook(o) {
+  if (mode !== 'free') return; setMode('busy'); heldBook = o;
+  focus = { yaw: 0, pitch: -0.12, pos: BASE, fov: 58 };
+  var dir = new THREE.Vector3(0, Math.sin(-0.12), -Math.cos(-0.12));
+  var target = BASE.clone().add(dir.multiplyScalar(0.46)); target.x += 0.11;
+  var q0 = o.g.quaternion.clone(), q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.05, -Math.PI / 2, 0));
+  var p0 = o.g.position.clone(), lift = p0.clone().add(new THREE.Vector3(0, 0, 0.12));
+  tween(260, function (e) { o.g.position.lerpVectors(p0, lift, e); }, function () {
+    tween(720, function (e) { o.g.position.lerpVectors(lift, target, e); THREE.Quaternion.slerp(q0, q1, o.g.quaternion, e); var s = 1 + (HOLD_S - 1) * e; o.g.scale.set(s, s, s); }, function () {
+      tween(620, function (e) { o.pivot.rotation.y = -Math.PI * 0.93 * e; }, function () {
+        setMode('book');
+        ctx((o.b.url ? '<a class="chip primary" href="' + o.b.url + '" target="_blank" rel="noopener">Abrir ' + o.b.code + ' en la web</a>' : '') + '<button class="chip" type="button" id="b-flip">Pasar página</button><button class="chip" type="button" id="b-put">Dejar el libro</button>');
+        $('#b-flip').onclick = flipPage; $('#b-put').onclick = putBookBack;
+      });
+    });
+  });
+}
+function flipPage() {
+  var o = heldBook; if (!o || mode !== 'book') return; setMode('busy');
+  var next = (o.page + 1) % 2;
+  drawPage(o.flipT.userData.g, 512, 720, o.b, o.page); o.flipT.needsUpdate = true; o.flip.visible = true; o.flipPivot.rotation.y = 0;
+  drawPage(o.pageT.userData.g, 512, 720, o.b, next); o.pageT.needsUpdate = true;
+  tween(520, function (e) { o.flipPivot.rotation.y = -Math.PI * 0.9 * e; }, function () { o.flip.visible = false; o.page = next; setMode('book'); });
+}
+function putBookBack() {
+  var o = heldBook; if (!o) return; setMode('busy'); ctx('');
+  tween(480, function (e) { o.pivot.rotation.y = -Math.PI * 0.93 * (1 - e); }, function () {
+    var p0 = o.g.position.clone(), q0 = o.g.quaternion.clone(), lift = o.home.clone().add(new THREE.Vector3(0, 0, 0.12));
+    tween(680, function (e) { o.g.position.lerpVectors(p0, lift, e); THREE.Quaternion.slerp(q0, o.homeQ, o.g.quaternion, e); var s = HOLD_S - (HOLD_S - 1) * e; o.g.scale.set(s, s, s); }, function () {
+      tween(240, function (e) { o.g.position.lerpVectors(lift, o.home, e); }, function () {
+        if (o.page !== 0) { drawPage(o.pageT.userData.g, 512, 720, o.b, 0); o.pageT.needsUpdate = true; o.page = 0; }
+        heldBook = null; focus = null; setMode('free');
+      });
+    });
+  });
+}
+/* cajón */
+function openDrawer() {
+  if (mode !== 'free') return; setMode('busy');
+  var a = anglesTo(BASE, new THREE.Vector3(-0.2, 0.62, 0.2));
+  focus = { yaw: a.yaw, pitch: a.pitch, pos: BASE.clone().add(new THREE.Vector3(-0.08, 0.02, 0)), fov: 52 };
+  tween(650, function (e) { drawer.position.z = 0.3 * e; }, function () { setMode('drawer'); ctx('<button class="chip" type="button" id="d-close">Cerrar el cajón</button>'); $('#d-close').onclick = closeDrawer; });
+}
+function closeDrawer() {
+  setMode('busy'); panel(''); ctx('');
+  tween(520, function (e) { drawer.position.z = 0.3 * (1 - e); }, function () { focus = null; setMode('free'); });
+}
+function openFolder(f) {
+  panel('<h2 id="panel-title"><span class="dollar">$</span> ls ~/apuntes/' + f.dir + '</h2>' +
+    (f.url ? '<p>' + f.n + ' artículos publicados por idioma.</p><p class="c-dim">En la versión real, la carpeta se abre aquí con sus temas y tu progreso.</p>' : '<p>Sale el ' + f.n + '. Ya está escrito y programado.</p>') +
+    '<div class="acts">' + (f.url ? '<a class="chip primary" href="' + f.url + '" target="_blank" rel="noopener">Abrir ' + f.dir + ' en la web</a>' : '') + '<button class="chip" type="button" id="p-close">Cerrar</button></div>');
+  $('#p-close').onclick = function () { panel(''); };
+}
+/* pizarra */
+function goBoard() {
+  if (mode !== 'free') return;
+  var from = new THREE.Vector3(-0.15, 1.3, 0.25), a = anglesTo(from, new THREE.Vector3(-1.18, 1.45, -0.35));
+  focus = { yaw: a.yaw, pitch: a.pitch, pos: from, fov: 46 }; setMode('board');
+  ctx('<button class="chip" type="button" id="q-v">Verdadero</button><button class="chip" type="button" id="q-f">Falso</button><button class="chip" type="button" id="q-x">Volver</button>');
+  $('#q-v').onclick = function () { quizAnswer = 'V'; refreshBoard(); }; $('#q-f').onclick = function () { quizAnswer = 'F'; refreshBoard(); }; $('#q-x').onclick = leaveBoard;
+}
+function leaveBoard() { ctx(''); focus = null; setMode('free'); }
+/* lámpara */
+function toggleLamp() {
+  lampOn = !lampOn; var from = lampLight.intensity, to = lampOn ? 1.8 : 0, h0 = hemi.intensity, h1 = lampOn ? 0.26 : 0.12;
+  tween(380, function (e) { lampLight.intensity = from + (to - from) * e; hemi.intensity = h0 + (h1 - h0) * e; bulb.material.emissiveIntensity = lampOn ? 2.2 * e : 2.2 * (1 - e); });
+}
+/* teclado */
+function startTyping() {
+  if (mode !== 'free') return;
+  var a = anglesTo(BASE, new THREE.Vector3(0, 0.95, -0.45));
+  focus = { yaw: a.yaw, pitch: a.pitch, pos: BASE.clone().add(new THREE.Vector3(0, -0.02, -0.12)), fov: 54 };
+  setMode('typing'); var k = $('#kbd'); k.value = ''; k.focus({ preventScroll: true });
+}
+function stopTyping() { $('#kbd').blur(); focus = null; setMode('free'); }
+$('#kbd').addEventListener('keydown', function (e) {
+  if (mode !== 'typing') return;
+  if (e.key === 'Escape') { e.preventDefault(); stopTyping(); return; }
+  if (e.key === 'Enter') {
+    e.preventDefault(); pressKey(41);
+    var cmd = typed.trim(); typed = '';
+    if (cmd === 'startx') { stopTyping(); boot(); return; }
+    typedOut.push({ t: '$ ' + cmd, c: '#A99EF5' });
+    if (cmd === 'help') typedOut.push({ t: 'órdenes: startx, help, clear', c: '#E8E6F5' });
+    else if (cmd === 'clear') typedOut = [];
+    else if (cmd) typedOut.push({ t: cmd.split(' ')[0] + ': orden no encontrada (prueba help)', c: '#FF8A7A' });
+    return;
+  }
+  if (e.key === 'Backspace') { typed = typed.slice(0, -1); pressKey(13); return; }
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { e.preventDefault(); if (typed.length < 40) { typed += e.key; pressKey(e.key.charCodeAt(0) * 7); } }
+});
+$('#kbd').addEventListener('input', function (e) { if (mode === 'typing' && e.target.value) { typed = (typed + e.target.value).slice(0, 40); pressKey(e.target.value.charCodeAt(0) * 7); } e.target.value = ''; });
+
+/* torre y discos */
+var trayOpen = false;
+function insertDisc(o) {
+  if (mode !== 'free') return; setMode('busy');
+  var a = anglesTo(BASE, new THREE.Vector3(0.72, 1.0, -0.3));
+  focus = { yaw: a.yaw, pitch: a.pitch, pos: BASE, fov: 50 };
+  var p0 = o.mesh.position.clone(), up = p0.clone().add(new THREE.Vector3(0, 0.18, 0)), over = new THREE.Vector3(0.82, 1.14, -0.157), inTray = new THREE.Vector3(0, 0.006, 0);
+  tween(420, function (e) { tray.position.z = -0.287 + 0.13 * e; }, function () {
+    tween(420, function (e) { o.mesh.position.lerpVectors(p0, up, e); o.mesh.rotation.y = o.rotHome + e * 3; }, function () {
+      tween(520, function (e) { o.mesh.position.lerpVectors(up, over, e); }, function () {
+        tray.attach(o.mesh);
+        var q = o.mesh.position.clone();
+        tween(260, function (e) { o.mesh.position.lerpVectors(q, inTray, e); }, function () {
+          tween(420, function (e) { tray.position.z = -0.157 - 0.13 * e; }, function () {
+            simDisc = o.d; simT0 = performance.now(); screenState = 'sim';
+            focus = { yaw: 0, pitch: -0.06, pos: BASE.clone().add(new THREE.Vector3(0, -0.12, -0.3)), fov: 44 };
+            setMode('sim'); o.inside = true; currentDisc = o;
+            ctx('<a class="chip primary" href="' + o.d.url + '" target="_blank" rel="noopener">Abrir el simulador completo</a><button class="chip" type="button" id="s-ej">Expulsar el disco</button>');
+            $('#s-ej').onclick = ejectDisc;
+          });
+        });
+      });
+    });
+  });
+}
+var currentDisc = null;
+function ejectDisc() {
+  var o = currentDisc; if (!o) return; setMode('busy'); ctx(''); screenState = 'standby'; simDisc = null;
+  var a = anglesTo(BASE, new THREE.Vector3(0.72, 1.0, -0.3)); focus = { yaw: a.yaw, pitch: a.pitch, pos: BASE, fov: 50 };
+  tween(420, function (e) { tray.position.z = -0.287 + 0.13 * e; }, function () {
+    scene.attach(o.mesh);
+    var p0 = o.mesh.position.clone(), up = o.home.clone().add(new THREE.Vector3(0, 0.18, 0));
+    tween(560, function (e) { o.mesh.position.lerpVectors(p0, up, e); }, function () {
+      tween(380, function (e) { o.mesh.position.lerpVectors(up, o.home, e); o.mesh.rotation.y = o.rotHome + 3 * (1 - e); }, function () {
+        tween(380, function (e) { tray.position.z = -0.157 - 0.13 * e; });
+        o.inside = false; currentDisc = null; focus = null; setMode('free');
+      });
+    });
+  });
+}
+
+/* encender y apagar el monitor */
+function boot() {
+  if (mode !== 'free' && mode !== 'typing') return;
+  setMode('booting'); ctx('');
+  focus = { yaw: 0, pitch: 0, pos: new THREE.Vector3(0, 1.06, -0.07), fov: 40, rate: 3.2 };
+  screenState = 'boot'; bootT0 = performance.now();
+  setTimeout(function () { openOS(); }, reduced ? 50 : 1400);
+}
+function shutdown() {
+  var os = $('#os'); os.classList.remove('on'); os.classList.add('off');
+  setTimeout(function () { os.hidden = true; os.classList.remove('off'); stopWall(); screenState = 'standby'; focus = null; setMode('free'); canvas.focus && canvas.focus(); }, reduced ? 10 : 460);
+}
+
+/* ---------- registro de objetos ---------- */
+reg('monitor', [bezel, screen], 'startx · encender el monitor', boot);
+reg('teclado', [kbHit, space], 'teclado · escribe una orden', startTyping);
+reg('cajon', [drawerFront, drawerHandle], 'ls ~/apuntes · abrir el cajón', openDrawer);
+reg('pizarra', [board, boardFrame], 'cal · pregunta del día', goBoard);
+reg('lampara', [shade], 'lámpara · encender o apagar', toggleLamp, function () { return mode === 'free' || mode === 'board'; });
+reg('torre', [tower, trayMesh], 'torre · mete un disco de la mesa', function () { var a = anglesTo(BASE, new THREE.Vector3(0.6, 0.8, -0.2)); focus = { yaw: a.yaw, pitch: a.pitch, pos: BASE, fov: 50 }; setTimeout(function () { if (mode === 'free') focus = null; }, 1600); });
+bookObjs.forEach(function (o) {
+  reg('book-' + o.b.id, o.meshes, o.b.code + ' · ' + o.b.estado + ' · cógelo', function () { takeBook(o); });
+  o.meshes.forEach(function (m) { m.userData.book = o; });
+});
+discObjs.forEach(function (o) { reg('disc-' + o.d.id, [o.mesh], 'disco · ' + o.d.name, function () { insertDisc(o); }, function () { return mode === 'free' && !o.inside; }); });
+folderMeshes.forEach(function (fo) { reg('folder-' + fo.f.dir, fo.meshes, 'cd ~/apuntes/' + fo.f.dir, function () { openFolder(fo.f); }, function () { return mode === 'drawer'; }); });
+/* el libro en la mano: pulsarlo pasa la página */
+var heldKey = 'held'; objs[heldKey] = { meshes: [], label: 'pasar la página', onClick: flipPage, enabled: function () { return mode === 'book'; } };
+
+/* ---------- menú accesible ---------- */
+function addBtn(el, text, fn) { var b = document.createElement('button'); b.type = 'button'; b.textContent = text; b.onclick = function () { toggleMenu(false); fn(); }; el.appendChild(b); }
+var mm = $('#menu-main');
+addBtn(mm, 'startx · monitor', boot); addBtn(mm, 'teclado', startTyping); addBtn(mm, 'cajón · apuntes', openDrawer); addBtn(mm, 'pizarra · cal y pregunta', goBoard); addBtn(mm, 'lámpara', toggleLamp);
+bookObjs.forEach(function (o) { addBtn($('#menu-books'), o.b.code, function () { takeBook(o); }); });
+discObjs.forEach(function (o) { addBtn($('#menu-discs'), o.d.label.toLowerCase(), function () { insertDisc(o); }); });
+function toggleMenu(open) { var m = $('#menu'), b = $('#btn-menu'); var o = open === undefined ? m.hidden : open; m.hidden = !o; b.setAttribute('aria-expanded', String(o)); if (o) { var f = m.querySelector('button'); if (f) f.focus(); } }
+$('#btn-menu').onclick = function () { toggleMenu(); };
+function back() {
+  if (!$('#panel').hidden) { panel(''); return; }
+  if (!$('#menu').hidden) { toggleMenu(false); return; }
+  if (mode === 'book') putBookBack(); else if (mode === 'drawer') closeDrawer(); else if (mode === 'board') leaveBoard(); else if (mode === 'typing') stopTyping(); else if (mode === 'sim') ejectDisc(); else if (mode === 'os') shutdown();
+}
+$('#btn-back').onclick = back;
+window.addEventListener('keydown', function (e) { if (e.key === 'Escape' && mode !== 'typing') back(); });
+
+/* ---------- puntero ---------- */
+var raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2(), needPick = false, downAt = null, lastX = 0, lastY = 0;
+canvas.addEventListener('pointermove', function (e) {
+  var w = window.innerWidth, h = window.innerHeight;
+  ndc.set((e.clientX / w) * 2 - 1, -(e.clientY / h) * 2 + 1); needPick = true;
+  if (e.pointerType === 'mouse') { isTouch = false; mx = ndc.x; my = ndc.y; }
+  else if (downAt) { isTouch = true; dragYaw = Math.max(-1.05, Math.min(1.05, dragYaw + (e.clientX - lastX) * 0.004)); dragPitch = Math.max(-0.97, Math.min(0.63, dragPitch - (e.clientY - lastY) * 0.004)); }
+  lastX = e.clientX; lastY = e.clientY;
+  var tip = $('#tip'); tip.style.left = e.clientX + 'px'; tip.style.top = e.clientY + 'px';
+});
+canvas.addEventListener('pointerdown', function (e) { downAt = { x: e.clientX, y: e.clientY }; lastX = e.clientX; lastY = e.clientY; if (e.pointerType !== 'mouse') { isTouch = true; if (dragPitch === 0 && dragYaw === 0) { dragYaw = cam.yaw; dragPitch = cam.pitch; } } });
+canvas.addEventListener('pointerup', function (e) {
+  var moved = downAt ? Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) : 0; downAt = null;
+  if (moved > 8) return;
+  var w = window.innerWidth, h = window.innerHeight; ndc.set((e.clientX / w) * 2 - 1, -(e.clientY / h) * 2 + 1);
+  var key = pick();
+  if (mode === 'book' && heldBook) { flipPage(); return; }
+  if (key && objs[key]) objs[key].onClick();
+});
+canvas.addEventListener('pointerleave', function () { setHover(null); });
+function pick() {
+  raycaster.setFromCamera(ndc, camera);
+  var hits = raycaster.intersectObjects(pickables, false);
+  for (var i = 0; i < hits.length; i++) { var k = hits[i].object.userData.key; if (k && objs[k] && objs[k].enabled()) return k; }
+  return null;
+}
+
+/* ---------- SergioLearns OS ---------- */
+var ICONS = {
+  terminal: 'M4 5h16v14H4z M7 10l3 2-3 2 M12 15h5', lab: 'M9 3h6 M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3',
+  log: 'M12 3v6 M12 15v6 M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6', about: 'M12 8h.01 M11 12h1v5h1 M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18'
+};
+var APPS = [['terminal', 'terminal'], ['lab', 'laboratorio'], ['log', 'git log'], ['about', 'uname']];
+var dock = $('#dock');
+APPS.forEach(function (a) {
+  var b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', a[1]);
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + ICONS[a[0]] + '"></path></svg><span>' + a[1] + '</span>';
+  b.onclick = function () { openWin(a[0]); }; dock.appendChild(b);
+});
+$('#btn-off').onclick = shutdown;
+var zTop = 10;
+function openWin(id) {
+  var ex = document.getElementById('win-' + id);
+  if (ex) { ex.style.zIndex = ++zTop; return; }
+  var W = document.createElement('section'); W.className = 'win'; W.id = 'win-' + id; W.setAttribute('aria-label', id);
+  var vw = window.innerWidth, n = $('#wins').children.length;
+  W.style.left = Math.max(16, Math.min(vw - 640, vw / 2 - 310 + n * 28)) + 'px'; W.style.top = (70 + n * 26) + 'px'; W.style.zIndex = ++zTop;
+  var title = { terminal: 'terminal · misiones', lab: 'laboratorio', log: 'git log --oneline', about: 'uname -a' }[id];
+  W.innerHTML = '<div class="win-bar"><span>' + title + '</span><button type="button" aria-label="Cerrar ' + title + '">cerrar</button></div><div class="win-body"></div>';
+  var body = W.querySelector('.win-body');
+  if (id === 'terminal') buildTerminal(body);
+  if (id === 'lab') body.innerHTML = '<div class="card-grid">' + DISCS.map(function (d) { return '<a href="' + d.url + '" target="_blank" rel="noopener"><b>' + d.name + '</b><span class="c-dim">' + d.cmd + '</span></a>'; }).join('') +
+    '<a href="https://sergiolearns.com/laboratorio/" target="_blank" rel="noopener"><b>Entornos</b><span class="c-dim">Python, Java, C y MIPS en el navegador</span></a></div>';
+  if (id === 'log') body.innerHTML = [['3 nov', 'auditoría completa y plan de expansión v2'], ['3 nov', 'IC1 · tema de papel 4, Complemento a 2 (sale el 30 nov)'], ['3 nov', 'Sergio Bot v2: bot propio que lee la página'], ['2 nov', 'renovación de los artículos antiguos terminada'], ['31 oct', 'calculadora «¿Cuánto necesito?» y simuladores de IC2']].map(function (l) { return '<div><span class="c-num">' + l[0] + '</span>  ' + l[1] + '</div>'; }).join('') + '<div class="c-dim" style="margin-top:10px">En la versión real sale sola de Novedades.</div>';
+  if (id === 'about') body.innerHTML = '<div><span class="c-cmd">SergioLearns OS 0.1</span> · prototipo · 3 nov 2026</div><div style="margin-top:10px" class="c-ok">[ OK ] mesa, estantería, cajón, pizarra, torre, teclado y monitor</div><div class="c-dim" style="margin-top:10px">ideas para las versiones siguientes:</div><div>· un Linux de verdad en la terminal, con misiones por temporadas</div><div>· el juez de ejercicios (make test)</div><div>· el editor UML para IS</div><div>· la habitación cambia con la carrera y con la hora de Canarias</div>';
+  W.querySelector('.win-bar button').onclick = function () { W.remove(); };
+  W.addEventListener('pointerdown', function () { W.style.zIndex = ++zTop; });
+  drag(W, W.querySelector('.win-bar'));
+  $('#wins').appendChild(W);
+  if (id === 'terminal') { var inp = W.querySelector('input'); if (inp) inp.focus({ preventScroll: true }); }
+}
+function drag(W, bar) {
+  var sx, sy, ox, oy, on = false;
+  bar.addEventListener('pointerdown', function (e) { if (e.target.tagName === 'BUTTON') return; on = true; sx = e.clientX; sy = e.clientY; ox = W.offsetLeft; oy = W.offsetTop; bar.setPointerCapture(e.pointerId); });
+  bar.addEventListener('pointermove', function (e) { if (!on) return; W.style.left = Math.max(-200, Math.min(window.innerWidth - 120, ox + e.clientX - sx)) + 'px'; W.style.top = Math.max(44, Math.min(window.innerHeight - 80, oy + e.clientY - sy)) + 'px'; });
+  bar.addEventListener('pointerup', function () { on = false; });
+}
+function buildTerminal(body) {
+  var out = document.createElement('div'); body.appendChild(out);
+  function line(t, cls) { var d = document.createElement('div'); d.className = 'term-line ' + (cls || ''); d.textContent = t; out.appendChild(d); body.scrollTop = body.scrollHeight; }
+  line('SergioLearns OS v0.1 · terminal'); line('Escribe help. Hay una misión activa: escribe misiones.', 'c-dim');
+  var row = document.createElement('div'); row.className = 'term-in';
+  row.innerHTML = '<label for="t-in">sergio@learns:~<span class="dollar">$</span></label><input id="t-in" autocomplete="off" spellcheck="false">';
+  body.appendChild(row);
+  var inp = row.querySelector('input');
+  inp.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return; e.preventDefault();
+    var c = inp.value.trim(); inp.value = ''; if (!c) return; line('$ ' + c, 'c-cmd');
+    if (c === 'help') line('órdenes: ls, ls -a, cat <archivo>, misiones, clear, exit');
+    else if (c === 'ls') line('apuntes/   misiones/   simuladores/   novedades.log');
+    else if (c === 'ls -a' || c === 'ls -la' || c === 'ls -al') line('.   ..   .pista   apuntes/   misiones/   simuladores/   novedades.log');
+    else if (c === 'misiones') { line('Misión 1 · El archivo escondido'); line('Hay un archivo que ls no enseña. Encuéntralo y léelo con cat.'); line('pista: los archivos ocultos empiezan por un punto', 'c-dim'); }
+    else if (c === 'cat .pista') { line('[ OK ] Misión 1 completada: ls -a enseña los archivos ocultos.', 'c-ok'); line('Siguiente: permisos con chmod. En la versión real, misiones nuevas por temporadas.', 'c-dim'); }
+    else if (c === 'cat novedades.log') { line('3 nov  auditoría completa y plan v2'); line('3 nov  IC1 · Complemento a 2 (sale el 30 nov)'); }
+    else if (c.indexOf('cat ') === 0) line('cat: ' + c.slice(4) + ': no existe o es un directorio', 'c-err');
+    else if (c === 'clear') out.innerHTML = '';
+    else if (c === 'exit') shutdown();
+    else line(c.split(' ')[0] + ': orden no encontrada. Prueba help', 'c-err');
+  });
+}
+/* fondo animado del escritorio */
+var wallRAF = null;
+function startWall() {
+  var cv = $('#wall'), g = cv.getContext('2d'), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  function size() { cv.width = window.innerWidth * dpr; cv.height = window.innerHeight * dpr; }
+  size(); window.addEventListener('resize', size);
+  var dots = []; for (var i = 0; i < 70; i++) dots.push({ x: Math.random(), y: Math.random(), s: 0.2 + Math.random() * 0.8, c: Math.random() < 0.15 ? '#FF6B4A' : '#A99EF5' });
+  function frame(t) {
+    var w = cv.width, h = cv.height; g.fillStyle = '#141221'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(169,158,245,.06)'; g.lineWidth = dpr; var step = 36 * dpr, off = reduced ? 0 : (t / 60) % step;
+    g.beginPath(); for (var x = -step + off; x < w; x += step) { g.moveTo(x, 0); g.lineTo(x, h); } for (var y = -step + off; y < h; y += step) { g.moveTo(0, y); g.lineTo(w, y); } g.stroke();
+    dots.forEach(function (d) { var yy = ((d.y + (reduced ? 0 : t / 90000 * d.s)) % 1) * h; g.fillStyle = d.c; g.globalAlpha = 0.25 + d.s * 0.35; g.beginPath(); g.arc(d.x * w, yy, 1.6 * dpr + d.s * dpr, 0, Math.PI * 2); g.fill(); });
+    g.globalAlpha = 1; g.fillStyle = 'rgba(232,230,245,.07)'; g.font = '600 ' + Math.round(64 * dpr) + 'px ' + DISP; g.textAlign = 'center'; g.fillText('~/sergiolearns', w / 2, h / 2);
+    if (Math.floor(t / 530) % 2 === 0) { g.fillStyle = 'rgba(255,107,74,.35)'; g.fillText('_', w / 2 + g.measureText('~/sergiolearns').width / 2 + 24 * dpr, h / 2); }
+    wallRAF = requestAnimationFrame(frame);
+  }
+  wallRAF = requestAnimationFrame(frame);
+}
+function stopWall() { if (wallRAF) cancelAnimationFrame(wallRAF); wallRAF = null; }
+function tickClock() { var d = new Date(); $('#clock').textContent = 'sergio@learns · ' + d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+setInterval(tickClock, 15000); tickClock();
+function openOS() {
+  var os = $('#os'); os.hidden = false; os.classList.remove('off'); os.classList.add('on'); setMode('os'); startWall();
+  $('#wins').innerHTML = ''; openWin('terminal');
+}
+
+/* ---------- bucle ---------- */
+function resize() { var w = window.innerWidth, h = window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+window.addEventListener('resize', resize); resize();
+var last = performance.now(), boardDay = new Date().getDate();
+function loop(now) {
+  var dt = Math.min(0.05, (now - last) / 1000); last = now;
+  runTweens(now); updateKeys(now); applyCamera(dt);
+  if (needPick && (mode === 'free' || mode === 'drawer' || mode === 'board')) { needPick = false; setHover(pick()); }
+  else if (mode !== 'free' && mode !== 'drawer' && mode !== 'board' && hovered) setHover(null);
+  if (now - lastScreen > 40) { lastScreen = now; drawScreen(now); }
+  if (!reduced) led.material.emissiveIntensity = mode === 'sim' ? (Math.sin(now / 90) > 0 ? 1.6 : 0.2) : 1.0 + Math.sin(now / 900) * 0.3;
+  screenLight.intensity = screenState === 'off' ? 0 : (screenState === 'boot' || screenState === 'sim' ? 0.9 : 0.55);
+  if (new Date().getDate() !== boardDay) { boardDay = new Date().getDate(); refreshBoard(); }
+  if ($('#os').hidden) renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+var ready = document.fonts && document.fonts.load ? Promise.all([document.fonts.load('600 40px "Space Grotesk"'), document.fonts.load('400 20px "JetBrains Mono"'), document.fonts.load('600 20px "JetBrains Mono"')]) : Promise.resolve();
+Promise.race([ready, new Promise(function (r) { setTimeout(r, 2500); })]).then(function () {
+  /* redibuja con las fuentes ya cargadas */
+  bookObjs.forEach(function (o) {
+    o.meshes[0].material.map = spineTex(o.b); o.meshes[0].material.needsUpdate = true;
+    drawPage(o.pageT.userData.g, 512, 720, o.b, 0); o.pageT.needsUpdate = true;
+  });
+  bookObjs.forEach(function (o) { var cp = o.pivot.children[1]; if (cp && cp.material) { cp.material.map = coverTex(o.b); cp.material.needsUpdate = true; } });
+  refreshBoard();
+  setMode('free');
+  requestAnimationFrame(loop);
+  setTimeout(function () { $('#loading').classList.add('out'); setTimeout(function () { $('#loading').hidden = true; }, 650); }, 200);
+});
+})();
+</script>
