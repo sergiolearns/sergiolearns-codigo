@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calidad final · muestra</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/" } }
+</script>
+<style>
+/* v0.2.4 (E59-16) · Muestra de calidad final: el rincón del escritorio como se vería en la v0.4 (modelos semirreales,
+   texturas PBR, luz con sombras horneadas al cargar). Escena aparte para compararla con la actual. */
+:root{ --ink:#1E1B2E; --ink-3:#141221; --violet-l:#A99EF5; --coral:#FF6B4A; --cream:#FAFAF7; --text:#E8E6F5; --muted:#C9C5DC;
+  --f-display:'Space Grotesk','Segoe UI',system-ui,sans-serif; --f-body:Inter,'Segoe UI',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,Consolas,monospace; color-scheme:dark }
+*{box-sizing:border-box} html,body{height:100%;margin:0} body{background:var(--ink-3);color:var(--text);font-family:var(--f-body);overflow:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none}
+#rotulo{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px);padding:10px 14px;border-radius:12px;background:rgba(20,18,33,.78);font:500 13px/1.5 var(--f-body);color:var(--muted)}
+#rotulo b{font:600 15px var(--f-display);color:var(--cream)} #rotulo kbd{font:600 12px var(--f-mono);font-variant-ligatures:none;color:var(--cream);border:1px solid rgba(201,197,220,.45);border-radius:5px;padding:0 5px}
+#rotulo a{color:var(--violet-l)}
+#fps{position:fixed;right:10px;top:10px;padding:8px 10px;border-radius:8px;background:rgba(20,18,33,.85);font:500 12px/1.5 var(--f-mono);font-variant-ligatures:none;white-space:pre;pointer-events:none}
+#carga{position:fixed;inset:0;display:grid;place-items:center;background:var(--ink-3);color:var(--muted);font:500 15px var(--f-body);transition:opacity .5s}
+#carga.fuera{opacity:0;pointer-events:none}
+code{font-family:var(--f-mono);font-variant-ligatures:none}
+@media (max-width:600px){#rotulo{font-size:12px}}
+</style>
+</head>
+<body>
+<canvas id="gl" tabindex="0" aria-label="Muestra de calidad final del rincón del escritorio. Arrastra para girar alrededor; 1 y 2 cambian de vista."></canvas>
+<div id="rotulo"><b>El cuarto de Sergio · muestra de calidad final</b><br>El rincón del escritorio como sería en la v0.4: texturas PBR hechas con código, luz de la ventana y del flexo con sombras horneadas al cargar, entorno y oclusión ambiental. <kbd>1</kbd> de pie · <kbd>2</kbd> sentado · arrastra para girar · <kbd>O</kbd> oclusión. <a href="https://sergiolearns.com/">Ir a la web normal</a></div>
+<div id="fps" hidden aria-hidden="true"></div>
+<div id="carga" aria-live="polite">Preparando la muestra…</div>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const P = new URLSearchParams(location.search), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: P.has('foto') });
+// el mismo presupuesto de píxeles que el cuarto (v0.2.3): ×1,5 como mucho y 2,4 Mpx
+const ratio = () => Math.min(Math.min(devicePixelRatio || 1, 1.5), Math.sqrt(2.4e6 / (innerWidth * innerHeight)));
+renderer.setPixelRatio(ratio()); renderer.setSize(innerWidth, innerHeight, false);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x141221);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.03, 60);
+const ani = renderer.capabilities.getMaxAnisotropy();
+
+/* ---------------- texturas PBR hechas con código (sin licencias de terceros) ----------------
+   Cada material sale de una «altura» h(x, y) en un lienzo: el COLOR (albedo) la usa para variar el tono, la RUGOSIDAD
+   para variar el brillo, y el RELIEVE (mapa de normales) sale de sus derivadas con el filtro de Sobel:
+     n = normalizar(−k·∂h/∂x, −k·∂h/∂y, 1), guardado como (n + 1) / 2 en RGB.
+   El ruido es «value noise» con interpolación suave, en varias octavas (fbm). */
+function hash(x, y, s) { const n = Math.sin(x * 127.1 + y * 311.7 + s * 74.7) * 43758.5453; return n - Math.floor(n); }
+function ruido(x, y, s) { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi, s), b = hash(xi + 1, yi, s), c = hash(xi, yi + 1, s), d = hash(xi + 1, yi + 1, s); return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v; }
+function fbm(x, y, s, oct = 4) { let t = 0, a = 0.5, f = 1; for (let i = 0; i < oct; i++) { t += a * ruido(x * f, y * f, s + i); f *= 2; a *= 0.5; } return t; }
+function lienzo(n) { const c = document.createElement('canvas'); c.width = c.height = n; return c; }
+function tex(c, srgb, rep = [1, 1]) { const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...rep); t.anisotropy = ani; if (srgb) t.colorSpace = THREE.SRGBColorSpace; return t; }
+// genera los tres mapas de un material a partir de h(u, v) ∈ [0, 1] y de dos funciones: color(h) y rugosidad(h)
+function materialPBR(n, h, color, rug, fuerza, rep, extra = {}) {
+  const H = new Float32Array(n * n);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) H[y * n + x] = h(x / n, y / n);
+  const cA = lienzo(n), cR = lienzo(n), cN = lienzo(n), gA = cA.getContext('2d'), gR = cR.getContext('2d'), gN = cN.getContext('2d');
+  const iA = gA.createImageData(n, n), iR = gR.createImageData(n, n), iN = gN.createImageData(n, n);
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const i = y * n + x, k = i * 4, v = H[i], [r, g, b] = color(v, x / n, y / n), ru = rug(v, x / n, y / n);
+    iA.data[k] = r; iA.data[k + 1] = g; iA.data[k + 2] = b; iA.data[k + 3] = 255;
+    iR.data[k] = iR.data[k + 1] = iR.data[k + 2] = Math.round(ru * 255); iR.data[k + 3] = 255;
+    const at = (xx, yy) => H[((yy + n) % n) * n + ((xx + n) % n)];
+    const dx = (at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1)) - (at(x - 1, y - 1) + 2 * at(x - 1, y) + at(x - 1, y + 1));
+    const dy = (at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1)) - (at(x - 1, y - 1) + 2 * at(x, y - 1) + at(x + 1, y - 1));
+    let nx = -dx * fuerza, ny = -dy * fuerza, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+    iN.data[k] = (nx * 0.5 + 0.5) * 255; iN.data[k + 1] = (ny * 0.5 + 0.5) * 255; iN.data[k + 2] = (nz * 0.5 + 0.5) * 255; iN.data[k + 3] = 255;
+  }
+  gA.putImageData(iA, 0, 0); gR.putImageData(iR, 0, 0); gN.putImageData(iN, 0, 0);
+  return new THREE.MeshStandardMaterial(Object.assign({ map: tex(cA, true, rep), roughnessMap: tex(cR, false, rep), normalMap: tex(cN, false, rep), roughness: 1, metalness: 0 }, extra));
+}
+const hex = h => [(h >> 16) & 255, (h >> 8) & 255, h & 255];
+const mezcla = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+const N = P.get('tex') === 'baja' ? 256 : 512;
+const M = {
+  // tablero: laminado gris violeta con poro fino y unas vetas largas, como el de la mesa real
+  tablero: materialPBR(N, (u, v) => 0.7 * fbm(u * 2, v * 30, 1, 3) + 0.3 * fbm(u * 80, v * 80, 2, 2), v => mezcla(hex(0x55516A), hex(0x625E78), v), v => 0.38 + 0.18 * v, 0.18, [2, 1]),
+  // tarima: tablas de 12 cm con vetas y juntas
+  suelo: materialPBR(N, (u, v) => { const fila = Math.floor(v * 8), off = hash(fila, 0, 9), x = (u + off) % 1, junta = (v * 8 % 1 < 0.03 || (x * 3 % 1) < 0.008) ? 0 : 1; return junta * (0.55 + 0.45 * fbm(x * 2 + fila, v * 30, 3)); },
+    (v, u, w) => { const fila = Math.floor(w * 8); return v === 0 ? [40, 32, 36] : mezcla(hex(0x4A3C40), hex(0x6B5A5E), v * (0.7 + 0.3 * hash(fila, 1, 4))); }, v => (v === 0 ? 0.95 : 0.55 + 0.3 * (1 - v)), 3, [2.5, 2.5]),
+  // pared: yeso pintado, con relieve suave
+  pared: materialPBR(256, (u, v) => fbm(u * 24, v * 24, 5, 4), v => mezcla(hex(0x29253C), hex(0x2D2943), v), v => 0.86 + 0.08 * v, 0.12, [4, 4]),
+  // metal cepillado de las patas y del pie del monitor
+  cepillado: materialPBR(256, (u, v) => 0.8 * fbm(u * 2, v * 120, 7, 3) + 0.2 * ruido(u * 300, v * 6, 8), v => mezcla(hex(0xB9B6C8), hex(0xE2E0EC), v), v => 0.28 + 0.2 * v, 0.4, [1, 1], { metalness: 1 }),
+  // tela de malla de la silla
+  malla: materialPBR(256, (u, v) => { const a = Math.sin(u * Math.PI * 2 * 48), b = Math.sin(v * Math.PI * 2 * 48); return 0.5 + 0.25 * a * b + 0.15 * fbm(u * 20, v * 20, 11, 2); }, v => mezcla(hex(0x16141F), hex(0x2E2A42), v), v => 0.8 + 0.15 * (1 - v), 2.2, [2, 2]),
+  // plástico mate con un granulado fino (torre, teclado, ratón)
+  plastico: materialPBR(256, (u, v) => fbm(u * 90, v * 90, 13, 2), v => mezcla(hex(0x16141F), hex(0x1F1C2B), v), v => 0.55 + 0.2 * v, 0.15, [1, 1]),
+  teclas: materialPBR(256, (u, v) => fbm(u * 120, v * 120, 17, 2), v => mezcla(hex(0x2A2638), hex(0x34304A), v), v => 0.5 + 0.2 * v, 0.3, [1, 1])
+};
+const vidrio = new THREE.MeshPhysicalMaterial({ color: 0x0E0C16, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.55, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.4 });
+const negroBrillo = new THREE.MeshPhysicalMaterial({ color: 0x0C0B12, roughness: 0.25, clearcoat: 0.6, clearcoatRoughness: 0.2 });
+const porcelana = new THREE.MeshPhysicalMaterial({ color: 0xFF6B4A, roughness: 0.32, clearcoat: 1, clearcoatRoughness: 0.08 });
+const crema = new THREE.MeshPhysicalMaterial({ color: 0xF7F4EA, roughness: 0.35, clearcoat: 0.8 });
+
+/* ---------------- la habitación (el rincón) ---------------- */
+const add = (m, x, y, z, padre = scene) => { m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; padre.add(m); return m; };
+const rb = (w, h, d, r, mt, x, y, z, padre) => add(new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 4, r), mt), x, y, z, padre);
+const suelo = add(new THREE.Mesh(new THREE.PlaneGeometry(4, 3.2), M.suelo), 0, 0, 0.3); suelo.rotation.x = -Math.PI / 2; suelo.castShadow = false;
+// pared de la ventana (con hueco) y pared derecha
+{
+  const z = -1.2, alto = 2.6, V = { x0: -0.8, x1: 0.8, y0: 1.0, y1: 2.1 };
+  const tro = (w, h, x, y) => { const m = add(new THREE.Mesh(new THREE.PlaneGeometry(w, h), M.pared), x, y, z); m.castShadow = false; };
+  tro(1.2, alto, -1.4, alto / 2); tro(1.2, alto, 1.4, alto / 2); tro(1.6, V.y0, 0, V.y0 / 2); tro(1.6, alto - V.y1, 0, (V.y1 + alto) / 2);
+  const der = add(new THREE.Mesh(new THREE.PlaneGeometry(3.2, alto), M.pared), 1.25, alto / 2, 0.3); der.rotation.y = -Math.PI / 2; der.castShadow = false;
+  const izq = add(new THREE.Mesh(new THREE.PlaneGeometry(3.2, alto), M.pared), -2.0, alto / 2, 0.3); izq.rotation.y = Math.PI / 2; izq.castShadow = false;
+  // marco, alféizar y parteluz
+  const marco = new THREE.MeshStandardMaterial({ color: 0x2E2A42, roughness: 0.45 });
+  rb(1.68, 0.05, 0.06, 0.01, marco, 0, V.y1 - 0.025, z - 0.1); rb(1.68, 0.05, 0.06, 0.01, marco, 0, V.y0 + 0.025, z - 0.1); rb(0.05, 1.1, 0.06, 0.01, marco, V.x0 + 0.025, 1.55, z - 0.1); rb(0.05, 1.1, 0.06, 0.01, marco, V.x1 - 0.025, 1.55, z - 0.1); rb(0.04, 1.06, 0.05, 0.01, marco, 0, 1.55, z - 0.1);
+  rb(1.74, 0.03, 0.18, 0.006, new THREE.MeshStandardMaterial({ color: 0x3A3552, roughness: 0.4 }), 0, V.y0 - 0.012, z + 0.03);
+  // fuera: el cielo de la tarde y unas siluetas (sin luces: solo color que brilla)
+  const cielo = document.createElement('canvas'); cielo.width = 512; cielo.height = 256; const g = cielo.getContext('2d');
+  const gr = g.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, '#6E6AA8'); gr.addColorStop(0.55, '#D9A3B8'); gr.addColorStop(1, '#F6C9A0'); g.fillStyle = gr; g.fillRect(0, 0, 512, 256);
+  g.fillStyle = 'rgba(46,42,66,.85)'; for (let x = 0; x < 512;) { const w = 30 + hash(x, 3, 1) * 60, h = 40 + hash(x, 4, 2) * 120; g.fillRect(x, 256 - h, w, h); x += w + 4; }
+  g.fillStyle = 'rgba(245,192,107,.8)'; for (let i = 0; i < 70; i++) g.fillRect(hash(i, 5, 3) * 512, 150 + hash(i, 6, 4) * 100, 4, 6);
+  const fuera = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.7), new THREE.MeshBasicMaterial({ map: tex(cielo, true), toneMapped: false })); fuera.position.set(0, 1.6, z - 0.9); scene.add(fuera);
+}
+// la mesa: tablero y patas en T (mismas medidas que en el cuarto)
+const MESA_Y = 0.74;
+rb(1.9, 0.035, 0.75, 0.008, M.tablero, 0, 0.7225, -0.35);
+[-0.88, 0.88].forEach(x => { rb(0.06, 0.68, 0.06, 0.008, M.cepillado, x, 0.36, -0.35); rb(0.07, 0.03, 0.7, 0.01, M.cepillado, x, 0.015, -0.35); rb(0.05, 0.04, 0.66, 0.008, M.cepillado, x, 0.68, -0.35); });
+rb(1.7, 0.05, 0.05, 0.008, M.cepillado, 0, 0.68, -0.62);
+// el monitor: marco fino, pantalla con el escritorio del PC y pie de aluminio
+const pant = document.createElement('canvas'); pant.width = 1024; pant.height = 592;
+{
+  const g = pant.getContext('2d'), gr = g.createLinearGradient(0, 0, 1024, 592); gr.addColorStop(0, '#1E1B2E'); gr.addColorStop(1, '#2A2640'); g.fillStyle = gr; g.fillRect(0, 0, 1024, 592);
+  g.fillStyle = 'rgba(20,18,33,.9)'; g.fillRect(0, 0, 1024, 40); g.fillStyle = '#E8E6F5'; g.font = '600 18px "JetBrains Mono", monospace'; g.fillText('SergioLearns OS v0.2', 18, 27);
+  g.fillStyle = '#2A2640'; g.fillRect(150, 110, 520, 330); g.fillStyle = '#1E1B2E'; g.fillRect(150, 110, 520, 34); g.fillStyle = '#E8E6F5'; g.font = '600 16px "JetBrains Mono", monospace'; g.fillText('terminal', 166, 133);
+  [['$ ', 'python3 notas.py'], ['', 'Media: 8.4'], ['$ ', 'git log --oneline'], ['', 'a3f2c1 v0.2.4: controles de juego']].forEach(([p, t], i) => { g.fillStyle = '#FF6B4A'; g.fillText(p, 170, 180 + i * 30); g.fillStyle = i % 2 ? '#C9C5DC' : '#E8E6F5'; g.fillText(t, 190, 180 + i * 30); });
+  g.fillStyle = 'rgba(20,18,33,.9)'; g.fillRect(380, 520, 264, 52);
+}
+const monitor = new THREE.Group(); scene.add(monitor);
+rb(0.66, 0.39, 0.022, 0.006, negroBrillo, 0, 1.06, -0.597, monitor);
+rb(0.3, 0.2, 0.04, 0.03, M.plastico, 0, 1.06, -0.62, monitor);
+const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(0.645, 0.372), new THREE.MeshStandardMaterial({ map: tex(pant, true), emissive: 0xffffff, emissiveMap: tex(pant, true), emissiveIntensity: 0.9, roughness: 0.45 })); pantalla.position.set(0, 1.064, -0.5855); monitor.add(pantalla);
+rb(0.045, 0.27, 0.025, 0.008, M.cepillado, 0, 0.87, -0.635, monitor);
+{ const pie = add(new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.115, 0.012, 64), M.cepillado), 0, 0.746, -0.6, monitor); pie.scale.z = 0.65; }
+// el teclado: carcasa y teclas con bisel (RoundedBox), con sus letras
+const teclado = new THREE.Group(); teclado.position.set(0, MESA_Y, -0.2); scene.add(teclado);
+rb(0.44, 0.022, 0.145, 0.006, M.plastico, 0, 0.011, 0, teclado);
+{
+  const filas = ['ºQWERTYUIOP', 'ASDFGHJKLÑ', 'ZXCVBNM,.-'], ku = 0.0303, geo = new RoundedBoxGeometry(ku * 0.86, 0.012, ku * 0.86, 3, 0.003);
+  const leyendas = document.createElement('canvas'); leyendas.width = 64; leyendas.height = 64;
+  filas.forEach((f, j) => [...f].forEach((ch, i) => {
+    const c = leyendas.cloneNode(); const g = c.getContext('2d'); g.fillStyle = '#34304A'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#E8E6F5'; g.font = '600 28px Inter, sans-serif'; g.textAlign = 'center'; g.fillText(ch, 32, 42);
+    const mt = M.teclas.clone(); mt.map = tex(c, true);
+    const k = new THREE.Mesh(geo, mt); k.position.set(-0.19 + i * ku + j * 0.008, 0.026, -0.05 + j * ku); k.castShadow = k.receiveShadow = true; teclado.add(k);
+  }));
+  const esp = new THREE.Mesh(new RoundedBoxGeometry(ku * 5.6, 0.012, ku * 0.86, 3, 0.003), M.teclas); esp.position.set(-0.02, 0.026, -0.05 + 3 * ku); esp.castShadow = esp.receiveShadow = true; teclado.add(esp);
+}
+// el ratón y la alfombrilla
+{ const r = add(new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.04, 8, 24), M.plastico), 0.34, 0.752, -0.2); r.rotation.x = Math.PI / 2; r.scale.set(1, 1, 0.5); }
+{ const a = add(new THREE.Mesh(new RoundedBoxGeometry(0.26, 0.003, 0.22, 2, 0.001), new THREE.MeshStandardMaterial({ color: 0x26223A, roughness: 0.95 })), 0.36, MESA_Y + 0.0015, -0.2); a.castShadow = false; }
+// la torre compacta con su lateral de cristal y los ventiladores que brillan
+const TORRE = { x: 0.835, w: 0.17, h: 0.4, y: MESA_Y + 0.2 };
+rb(TORRE.w, TORRE.h, 0.42, 0.012, M.plastico, TORRE.x, TORRE.y, -0.429);
+{ const c = add(new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.32), vidrio), TORRE.x - TORRE.w / 2 - 0.002, TORRE.y, -0.43); c.rotation.y = -Math.PI / 2; c.castShadow = false; }
+const ventiladores = [0.83, 0.93].map(y => { const r = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.004, 12, 64), new THREE.MeshStandardMaterial({ color: 0x5B4BDB, emissive: 0xA99EF5, emissiveIntensity: 2.2 })); r.position.set(TORRE.x, y, -0.2172); scene.add(r); return r; });
+{ const l = new THREE.PointLight(0xA99EF5, 0.25, 0.6, 2); l.position.set(TORRE.x, 0.88, -0.19); scene.add(l); }
+// la taza de cerámica (torneada), con su asa, su café y el posavasos
+{
+  const perfil = [[0, 0.0], [0.036, 0.0], [0.038, 0.004], [0.039, 0.05], [0.041, 0.098], [0.0405, 0.1], [0.036, 0.1], [0.034, 0.05], [0.032, 0.008], [0, 0.008]].map(([x, y]) => new THREE.Vector2(x, y));
+  const taza = new THREE.Group(); taza.position.set(0.6, MESA_Y + 0.005, -0.1); taza.rotation.y = 2.2; scene.add(taza);
+  add(new THREE.Mesh(new THREE.LatheGeometry(perfil, 64), porcelana), 0, 0, 0, taza);
+  add(new THREE.Mesh(new THREE.TorusGeometry(0.025, 0.008, 16, 32, Math.PI), porcelana), 0.04, 0.05, 0, taza).rotation.z = -Math.PI / 2;
+  const cafe = add(new THREE.Mesh(new THREE.CircleGeometry(0.034, 48), new THREE.MeshPhysicalMaterial({ color: 0x2A160C, roughness: 0.08, clearcoat: 1 })), 0, 0.085, 0, taza); cafe.rotation.x = -Math.PI / 2;
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.005, 48), new THREE.MeshStandardMaterial({ color: 0x2E2A42, roughness: 0.7 })), 0.6, MESA_Y + 0.0025, -0.1);
+}
+// el flexo de brazo articulado: base, dos brazos, cabeza y la bombilla (que es la otra luz)
+const flexo = new THREE.Group(); scene.add(flexo);
+{
+  const negroMetal = new THREE.MeshStandardMaterial({ color: 0x2E2A42, metalness: 0.6, roughness: 0.35 });
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.08, 0.025, 48), negroMetal), -0.66, 0.7525, -0.6, flexo);
+  const A = new THREE.Vector3(-0.66, 0.765, -0.6), B = new THREE.Vector3(-0.6, 1.08, -0.62), C = new THREE.Vector3(-0.44, 1.2, -0.59);
+  [[A, B], [B, C]].forEach(([p, q]) => { const d = q.clone().sub(p), m = add(new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, d.length(), 16), negroMetal), 0, 0, 0, flexo); m.position.copy(p).add(q).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); });
+  const cab = add(new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.13, 48, 1, true), new THREE.MeshStandardMaterial({ color: 0x2E2A42, metalness: 0.6, roughness: 0.3, side: THREE.DoubleSide })), -0.4, 1.14, -0.56, flexo); cab.rotation.set(0.5, 0, -0.9);
+  const bombilla = new THREE.Mesh(new THREE.SphereGeometry(0.022, 24, 16), new THREE.MeshStandardMaterial({ color: 0xFFF1DE, emissive: 0xFFE2B8, emissiveIntensity: 4 })); bombilla.position.set(-0.375, 1.105, -0.545); flexo.add(bombilla);
+}
+// la silla de oficina: respaldo de malla curvo, asiento acolchado, estrella de cinco patas
+const silla = new THREE.Group(); silla.position.set(0, 0, 0.3); scene.add(silla);
+{
+  const gris = new THREE.MeshStandardMaterial({ color: 0x2E2A42, metalness: 0.5, roughness: 0.35 });
+  for (let k = 0; k < 5; k++) {
+    const a = k * Math.PI * 2 / 5 + 0.3, p = rb(0.3, 0.025, 0.045, 0.01, gris, Math.cos(a) * 0.15, 0.065, Math.sin(a) * 0.15, silla); p.rotation.y = -a;
+    const rueda = add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.022, 24), M.plastico), Math.cos(a) * 0.29, 0.027, Math.sin(a) * 0.29, silla); rueda.rotation.z = Math.PI / 2; rueda.rotation.y = -a;
+  }
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 0.36, 32), M.cepillado), 0, 0.26, 0, silla);
+  rb(0.5, 0.075, 0.48, 0.035, M.malla, 0, 0.47, 0, silla);
+  // el respaldo: una placa curva (un trozo de cilindro) con su marco
+  const resp = new THREE.CylinderGeometry(0.6, 0.6, 0.56, 48, 1, true, -0.38, 0.76); resp.translate(0, 0, -0.6);
+  const r = add(new THREE.Mesh(resp, Object.assign(M.malla.clone(), { side: THREE.DoubleSide })), 0, 0.88, 0.26, silla); r.rotation.x = -0.1;
+  [0.6, 1.16].forEach(y => { const b = add(new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.012, 8, 48, 0.76), gris), 0, y, 0.26 - 0.6, silla); b.rotation.set(Math.PI / 2, 0, Math.PI / 2 - 0.38); });
+  rb(0.08, 0.22, 0.05, 0.02, gris, 0, 0.6, 0.23, silla);
+  [-0.27, 0.27].forEach(x => { rb(0.03, 0.18, 0.03, 0.01, gris, x, 0.58, 0.02, silla); rb(0.065, 0.03, 0.26, 0.012, M.malla, x, 0.68, 0.0, silla); });
+}
+
+/* ---------------- la luz: entorno, ventana y flexo, con sombras horneadas al cargar ---------------- */
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.22;
+const hemi = new THREE.HemisphereLight(0xA99EF5, 0x2B2740, 0.25); scene.add(hemi);
+// la luz de la tarde que entra por la ventana (sol bajo, cálido) y proyecta la sombra del monitor y de la torre
+const sol = new THREE.DirectionalLight(0xFFD2A8, 2.2); sol.position.set(-0.9, 2.6, -3.4); sol.target.position.set(0.1, 0.7, -0.2); scene.add(sol, sol.target);
+sol.castShadow = true; sol.shadow.mapSize.set(2048, 2048); Object.assign(sol.shadow.camera, { left: -1.6, right: 1.6, top: 1.6, bottom: -1.2, near: 0.5, far: 7 }); sol.shadow.bias = -0.0004; sol.shadow.normalBias = 0.02; sol.shadow.radius = 4;
+// el flexo: un foco cálido con sombra suave
+const luzFlexo = new THREE.SpotLight(0xFFE2B8, 6, 3, 0.75, 0.6, 2); luzFlexo.position.set(-0.38, 1.1, -0.54); luzFlexo.target.position.set(-0.2, 0.74, -0.3); scene.add(luzFlexo, luzFlexo.target);
+luzFlexo.castShadow = true; luzFlexo.shadow.mapSize.set(1024, 1024); luzFlexo.shadow.bias = -0.0006; luzFlexo.shadow.radius = 5;
+// la pantalla también alumbra (poco) lo que tiene delante
+{ const l = new THREE.RectAreaLight ? null : null; const p = new THREE.PointLight(0xA99EF5, 0.35, 1.4, 2); p.position.set(0, 1.06, -0.45); scene.add(p); }
+// «horneadas»: las sombras se calculan en los primeros fotogramas y después se congelan (nada se mueve en la escena)
+renderer.shadowMap.autoUpdate = false; let sombrasPendientes = 2;
+
+/* ---------------- posproceso: oclusión ambiental (GTAO) y salida ---------------- */
+const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const ao = new GTAOPass(scene, camera, innerWidth, innerHeight); ao.updateGtaoMaterial({ radius: 0.25, distanceExponent: 1.4, thickness: 1.2, scale: 1.1 }); ao.blendIntensity = 0.9;
+ao.enabled = P.get('ao') !== '0'; composer.addPass(ao);
+composer.addPass(new OutputPass());
+function tam() { const r = ratio(); renderer.setPixelRatio(r); renderer.setSize(innerWidth, innerHeight, false); composer.setPixelRatio(r); composer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+addEventListener('resize', tam); tam();
+
+/* ---------------- vistas y control ---------------- */
+const VISTAS = { 1: { pos: [-0.95, 1.62, 1.3], mira: [0.1, 0.85, -0.35], fov: 55 }, 2: { pos: [0, 1.22, 0.55], mira: [0, 1.22 - Math.sin(0.12), 0.55 - Math.cos(0.12)], fov: 62 } };
+const ctrl = new OrbitControls(camera, canvas); ctrl.enableDamping = !reduced; ctrl.dampingFactor = 0.08; ctrl.enablePan = false; ctrl.minDistance = 0.4; ctrl.maxDistance = 2.6; ctrl.maxPolarAngle = Math.PI * 0.55; ctrl.rotateSpeed = 0.5;
+function vista(n) { const v = VISTAS[n]; camera.position.set(...v.pos); ctrl.target.set(...v.mira); camera.fov = v.fov; camera.updateProjectionMatrix(); ctrl.update(); }
+vista(P.get('vista') || 1);
+addEventListener('keydown', e => { if (e.key === '1' || e.key === '2') vista(e.key); if (e.key === 'o' || e.key === 'O') ao.enabled = !ao.enabled; });
+
+/* ---------------- bucle y panel ?fps ---------------- */
+const panel = document.getElementById('fps'); panel.hidden = !P.has('fps');
+let n = 0, total = 0, t0 = performance.now(), ultimo = performance.now();
+function bucle(t) {
+  const dt = Math.min(0.05, (t - ultimo) / 1000); ultimo = t;
+  if (!reduced) ventiladores.forEach((v, i) => { v.rotation.z += dt * (1.2 + i * 0.3); });
+  if (sombrasPendientes > 0) { renderer.shadowMap.needsUpdate = true; sombrasPendientes--; }
+  ctrl.update(); composer.render(); n++; total++;
+  if (!panel.hidden && t - t0 > 500) { const info = renderer.info.render; panel.textContent = (n / ((t - t0) / 1000)).toFixed(0) + ' fps\n' + renderer.domElement.width + ' × ' + renderer.domElement.height + '\n' + info.calls + ' llamadas · ' + (info.triangles / 1000).toFixed(1) + ' k triángulos\nAO ' + (ao.enabled ? 'sí' : 'no'); n = 0; t0 = t; }
+  requestAnimationFrame(bucle);
+}
+window.__slInfo = () => { renderer.info.autoReset = false; renderer.info.reset(); composer.render(); renderer.info.autoReset = true; return { llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles, geometrias: renderer.info.memory.geometries, texturas: renderer.info.memory.textures, programas: renderer.info.programs.length, ao: ao.enabled }; };
+window.__slFps = () => total;
+window.__slVista = k => { vista(k); return true; };
+window.__slAO = on => { ao.enabled = on; return on; };
+const fuentes = document.fonts ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 2000))]) : Promise.resolve();
+fuentes.then(() => { requestAnimationFrame(bucle); setTimeout(() => { document.getElementById('carga').classList.add('fuera'); window.__slListo = true; }, 300); });
+</script>
+</body>
+</html>

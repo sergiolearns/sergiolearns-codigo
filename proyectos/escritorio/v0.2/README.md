@@ -1,4 +1,4 @@
-# Proyecto Escritorio · v0.2 (4 nov 2026)
+# El cuarto de Sergio · v0.2 (4 nov 2026)
 
 La habitación sin botones: se coge, se gira, se arrastra y se suelta. Los discos (simulacros) van a la disquetera, los USB (simuladores) al puerto de la torre, las carpetas salen del cajón, los libros se abren y sus páginas se curvan, la pizarra se escribe con rotulador, la taza abre Sergio Bot en el vapor y detrás está la puerta para volver a la web.
 
@@ -18,4 +18,4 @@ La habitación sin botones: se coge, se gira, se arrastra y se suelta. Los disco
 | `08-libro.js` · `09-pizarra.js` · `10-pantalla.js` | Libro abierto, pizarra y monitor con SergioLearns OS |
 | `11-accesibilidad.js` · `12-bucle.js` | Tab, teclas y anuncios; el fotograma |
 
-**Capítulo que lo explica:** [v0.2 del Proyecto Escritorio — coger, girar, arrastrar y soltar](https://sergiolearns.com/proyecto-escritorio-v0-2-interaccion-sin-botones/) · [English](https://sergiolearns.com/en/desk-project-v0-2-no-buttons/)
+**Capítulo que lo explica:** [v0.2 de El cuarto de Sergio — coger, girar, arrastrar y soltar](https://sergiolearns.com/el-cuarto-de-sergio-v0-2-interaccion-sin-botones/) · [English](https://sergiolearns.com/en/sergios-room-v0-2-no-buttons/)

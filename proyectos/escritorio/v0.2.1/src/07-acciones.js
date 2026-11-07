@@ -1,0 +1,316 @@
+/* ===================== 07 · acciones =====================
+   Qué hace cada objeto: disco a la disquetera y USB al puerto (E05, E24),
+   cajón con peso (E09), carpeta que se abre en la mesa (E07), taza con
+   Sergio Bot en el vapor (E10), lámpara con interruptor (E09) y la puerta. */
+
+/* ---------- torre: disquetera ---------- */
+const torre = { disco: null, usb: null, bandeja: 0 };   // bandeja: 0 cerrada, 1 abierta
+function mueveBandeja(a, dur = 380) { const b0 = torre.bandeja; return anim(dur, e => { torre.bandeja = lerp(b0, a, e); tray.position.z = lerp(TRAY_CERRADA, TRAY_ABIERTA, torre.bandeja); }, curva.suave); }
+// v0.2.1 (E35): la zona está DELANTE de la bandeja abierta (no encima): el disco llega por delante y entra deslizándose
+const DELANTE_BANDEJA = v3(0.82, 1.118, -0.152 + 0.1);
+const zonaDisquetera = zona({
+  clave: 'disquetera', punto: DELANTE_BANDEJA, radio: 0.32, mallas: [slot, trayMesh], quat: new THREE.Quaternion(),
+  acepta: o => o.tipo === 'disco',
+  alEntrar: () => { if (!torre.disco) mueveBandeja(1); },
+  alSalir: () => { if (!torre.disco) mueveBandeja(0); },
+  encaja: o => meteDisco(o)
+});
+USOS.disco = o => meteDisco(o);
+async function meteDisco(o) {
+  cambia('ocupado'); gesto.obj = o;
+  if (torre.disco && torre.disco !== o) await sacaDisco(false);
+  if (torre.bandeja < 1) await mueveBandeja(1);
+  scene.attach(o.raiz);
+  tray.updateMatrixWorld(true);
+  // recorrido (E35): delante de la bandeja y algo más alto → se desliza hacia dentro rozando → se asienta con un rebote
+  const delante = new THREE.Vector3(0, 0.018, 0.1).applyMatrix4(tray.matrixWorld);
+  const roza = new THREE.Vector3(0, 0.014, 0).applyMatrix4(tray.matrixWorld), dentro = new THREE.Vector3(0, 0.006, 0).applyMatrix4(tray.matrixWorld);
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone(), q1 = new THREE.Quaternion();
+  // si viene de lejos (con E desde la mano), llega en arco por encima de todo
+  const C = p0.clone().lerp(delante, 0.5); C.y = Math.max(p0.y, delante.y) + 0.05;
+  await anim(480, e => { bezier2(p0, C, delante, e, o.raiz.position); o.raiz.quaternion.slerpQuaternions(q0, q1, Math.min(1, e * 1.3)); }, curva.suave);
+  await anim(300, e => o.raiz.position.lerpVectors(delante, roza, e), curva.sale);
+  await anim(220, e => o.raiz.position.lerpVectors(roza, dentro, e), curva.rebote);   // se asienta
+  tray.attach(o.raiz);                                                                  // a partir de aquí se mueve con la bandeja
+  await mueveBandeja(0, 460);
+  torre.disco = o; gesto.obj = null; $('#velo').classList.remove('on');
+  pantalla.pon('simulacro', o.datos); parpadeoLed(1400);
+  miraMonitor('Simulacro ' + o.datos.code + ' cargado en el monitor. Clic en la pantalla para abrirlo, Esc para volver.');
+}
+// Lo que enseña el monitor según lo que hay en la torre (E35: al sacar el disco o el USB, vuelve a lo que toca)
+function pantallaSegunTorre() {
+  if (torre.disco) pantalla.pon('simulacro', torre.disco.datos);
+  else if (torre.usb) pantalla.pon('simulador', torre.usb.datos);
+  else pantalla.pon('reposo');
+}
+async function sacaDisco(volverLibre = true) {
+  const o = torre.disco; if (!o) return;
+  if (volverLibre) cambia('ocupado');
+  await mueveBandeja(1);
+  scene.attach(o.raiz); torre.disco = null; pantallaSegunTorre();
+  // sale de la bandeja por delante antes de volar al estuche
+  tray.updateMatrixWorld(true);
+  const p0 = o.raiz.position.clone(), fuera = new THREE.Vector3(0, 0.02, 0.1).applyMatrix4(tray.matrixWorld);
+  await anim(280, e => o.raiz.position.lerpVectors(p0, fuera, e), curva.suave);
+  await volverACasa(o, 620);
+  await mueveBandeja(0);
+  if (volverLibre) { cambia('libre'); bus.emit('vuelve'); }
+}
+registrar('expulsar', { nombre: 'Botón de expulsar', mallas: [ejectBtn], alClic: () => {
+  if (!torre.disco) { mueveBandeja(torre.bandeja > 0.5 ? 0 : 1); return; }
+  sacaDisco();
+} });
+
+/* ---------- torre: puerto USB ---------- */
+const PUERTO = v3(0.87, 0.97, -0.2185);
+const zonaPuerto = zona({
+  clave: 'puerto', punto: v3(0.87, 0.97, -0.15), radio: 0.3, mallas: [usbPort], quat: QLLEVAR.usb,
+  acepta: o => o.tipo === 'usb', encaja: o => enchufa(o)
+});
+USOS.usb = o => enchufa(o);
+async function enchufa(o) {
+  cambia('ocupado'); gesto.obj = o;
+  if (torre.usb && torre.usb !== o) { const viejo = torre.usb; torre.usb = null; scene.attach(viejo.raiz); volverACasa(viejo, 560); }
+  scene.attach(o.raiz);
+  // la punta del conector (0,048 m por debajo del centro) tiene que quedar 1,2 cm dentro del puerto
+  const fuera = v3(PUERTO.x, PUERTO.y, PUERTO.z + 0.048 + 0.03), dentro = v3(PUERTO.x, PUERTO.y, PUERTO.z - 0.012 + 0.048);
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone();
+  await anim(420, e => { o.raiz.position.lerpVectors(p0, fuera, e); o.raiz.quaternion.slerpQuaternions(q0, QLLEVAR.usb, e); }, curva.suave);
+  await anim(220, e => o.raiz.position.lerpVectors(fuera, dentro, e), curva.retroceso);  // el «clic» al entrar
+  torre.usb = o; gesto.obj = null; $('#velo').classList.remove('on');
+  pantalla.pon('simulador', o.datos); parpadeoLed(900);
+  miraMonitor('Simulador ' + o.datos.nombre + ' en el monitor. Clic en la pantalla para abrirlo, Esc para volver.');
+}
+bus.on('coge', o => { if (o === torre.usb) { torre.usb = null; pantallaSegunTorre(); } });
+let ledHasta = 0;
+function parpadeoLed(ms) { ledHasta = performance.now() + ms; }
+
+/* ---------- monitor de cerca (después de meter un disco o un USB) ---------- */
+function miraMonitor(texto) {
+  enfoca(v3(0, 1.06, -0.6), BASE.clone().add(v3(0, -0.1, -0.28)), 46);
+  cambia('monitor'); anuncia(texto);
+}
+function enlacePantalla() {
+  const d = pantalla.datos;
+  if (pantalla.estado === 'simulador') return d.url;
+  if (pantalla.estado === 'simulacro') { const p = d.partes.find(x => publicado(x[1])); return p ? p[2] : ''; }
+  return '';
+}
+modo('monitor', {
+  punto: () => { raycaster.setFromCamera(ndc, camera); const sobre = raycaster.intersectObject(screen).length > 0; return sobre && enlacePantalla() ? ['enlace', 'Abrir en la web'] : ['punto']; },
+  move() { actualizaPunto(); },
+  up() { const r = pick([screen]); if (r || raycaster.intersectObject(screen).length) { const u = enlacePantalla(); if (u) window.open(u, '_blank', 'noopener'); } },
+  tecla(e) { if (e.key === 'Enter' || e.key === 'e' || e.key === 'E') { const u = enlacePantalla(); if (u) window.open(u, '_blank', 'noopener'); return true; } return false; },
+  esc() { sueltaFoco(); cambia('libre'); }
+});
+
+/* ---------- cajón con peso: un muelle ---------- */
+const cajonM = new Muelle(0, 70, 11, 1.3);    // pesado: rigidez baja y algo de rebote
+const CAJON_ABIERTO = 0.3;
+function cajonAbierto() { return cajonM.obj > 0.15 && drawer.position.z > 0.12; }
+function abreCajon() { cajonM.obj = CAJON_ABIERTO; enfocaCajon(); anuncia('Cajón abierto: siete carpetas de apuntes.'); }
+function cierraCajon() { cajonM.obj = 0; sueltaFoco(); }
+function enfocaCajon() { enfoca(v3(-0.2, 0.6, 0.18), BASE.clone().add(v3(-0.08, 0.02, 0)), 54, { paralaje: 0.06 }); }
+bus.on('vuelve', () => { if (cajonM.obj > 0.15 && gesto.estado === 'libre') enfocaCajon(); });
+registrar('cajon', {
+  nombre: 'Cajón de los apuntes', mallas: [drawerFront, drawerHandle], puntero: 'mano',
+  alClic: () => (cajonM.obj > 0.15 ? cierraCajon() : abreCajon()),
+  alArrastrar: {
+    empieza(p) { this.y0 = p.y; this.z0 = cajonM.obj > 0.15 ? CAJON_ABIERTO : 0; },
+    mueve(e) { cajonM.obj = clamp(this.z0 + (e.clientY - this.y0) * 0.0016, 0, 0.33); setPunto('agarre'); },
+    suelta() { if (cajonM.obj > 0.14) abreCajon(); else cierraCajon(); actualizaPunto(); }
+  }
+});
+
+/* ---------- carpeta abierta sobre la mesa ---------- */
+const MESA_CARPETA = { pos: v3(0.08, 0.778, -0.05), quat: new THREE.Quaternion() };
+const carpetaAbierta = { o: null };
+zona({ clave: 'mesa', punto: v3(0.05, PLANO_Y + 0.04, -0.2), radio: 1, mallas: [], acepta: o => o.tipo === 'carpeta', encaja: o => abreCarpeta(o),
+  prox_: p => (p.z < -0.02 && p.z > -0.6 && Math.abs(p.x) < 0.7 ? 0.4 : 0) });   // cualquier sitio de la mesa vale
+USOS.carpeta = o => abreCarpeta(o);
+async function abreCarpeta(o) {
+  cambia('ocupado'); scene.attach(o.raiz);
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone(), alto = MESA_CARPETA.pos.clone().add(v3(0, 0.08, 0));
+  await anim(480, e => { o.raiz.position.lerpVectors(p0, alto, e); o.raiz.quaternion.slerpQuaternions(q0, MESA_CARPETA.quat, e); }, curva.suave);
+  await anim(220, e => o.raiz.position.lerpVectors(alto, MESA_CARPETA.pos, e), curva.sale);
+  enfoca(v3(-0.06, 0.77, -0.05), BASE.clone().add(v3(-0.02, -0.06, -0.12)), 50, { paralaje: 0.02 });
+  await anim(700, e => { o.bisagra.rotation.z = Math.PI * 0.985 * e; }, curva.suave);   // la tapa se abre hacia la izquierda
+  carpetaAbierta.o = o; cambia('carpeta');
+  anuncia('Carpeta de ' + o.datos.nombre + ' abierta.' + (o.datos.url ? ' Intro abre la dirección escrita en la hoja.' : ''));
+}
+function sobreDireccion() {
+  const o = carpetaAbierta.o; if (!o || !o.datos.url) return false;
+  raycaster.setFromCamera(ndc, camera);
+  const h = raycaster.intersectObject(o.hoja)[0];
+  return !!(h && h.uv && h.uv.x > 0.12 && h.uv.x < 0.95 && h.uv.y > 0.2 && h.uv.y < 0.44);
+}
+modo('carpeta', {
+  punto: () => (sobreDireccion() ? ['enlace', 'Abrir en la web'] : ['punto']),
+  move() { actualizaPunto(); },
+  up() { if (sobreDireccion()) window.open(carpetaAbierta.o.datos.url, '_blank', 'noopener'); },
+  tecla(e) { if (e.key === 'Enter' && carpetaAbierta.o.datos.url) { window.open(carpetaAbierta.o.datos.url, '_blank', 'noopener'); return true; } return false; },
+  async esc() {
+    const o = carpetaAbierta.o; cambia('ocupado');
+    await anim(500, e => { o.bisagra.rotation.z = Math.PI * 0.985 * (1 - e); }, curva.suave);
+    carpetaAbierta.o = null; sueltaFoco();
+    if (cajonM.obj < 0.15) abreCajon();
+    await volverACasa(o, 600); cambia('libre'); bus.emit('vuelve');
+  }
+});
+
+/* ---------- taza: Sergio Bot en el vapor (E10, decisión de Sergio del 4 nov) ---------- */
+const botTex = texFrom(1024, 600);
+const botPlano = new THREE.Mesh(new THREE.PlaneGeometry(0.46, 0.27), new THREE.MeshBasicMaterial({ map: botTex, transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
+botPlano.visible = false; scene.add(botPlano);
+const bot = { msgs: [{ de: 'bot', t: 'Hola, soy Sergio Bot. Pregúntame por una asignatura o por los simulacros.' }], escrito: '', revela: 0, t0: 0 };
+USOS.taza = async o => {
+  cambia('ocupado');
+  const p0 = o.raiz.position.clone(), q0 = o.raiz.quaternion.clone();
+  const dir = camera.getWorldDirection(new THREE.Vector3());
+  const cerca = camera.position.clone().addScaledVector(dir, 0.3).add(v3(0, -0.12, 0));
+  const q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, cam.yaw + 2.2, 0));
+  await anim(600, e => { o.raiz.position.lerpVectors(p0, cerca, e); o.raiz.quaternion.slerpQuaternions(q0, q1, e); vapor.espeso = e; }, curva.suave);
+  botPlano.position.copy(camera.position).addScaledVector(dir, 0.52).add(v3(0, 0.02, 0));
+  botPlano.quaternion.copy(camera.quaternion); botPlano.visible = true;
+  bot.revela = 1e9; dibujaBot(0);
+  await anim(500, e => { botPlano.material.opacity = e; botPlano.scale.setScalar(0.85 + 0.15 * e); }, curva.sale);
+  cambia('bot'); const inp = $('#entrada'); inp.value = ''; inp.focus({ preventScroll: true });
+  anuncia('Sergio Bot en el vapor. Escribe tu pregunta y pulsa Intro. Esc para dejar la taza.');
+};
+function respuestaBot(q) { for (const [re, r] of BOT) if (re.test(q)) return r; return BOT_OTRA; }
+function dibujaBot(t) {
+  redibuja(botTex, (c, w, h) => {
+    c.textBaseline = 'alphabetic';
+    c.shadowColor = 'rgba(169,158,245,.7)'; c.shadowBlur = 18;
+    c.fillStyle = 'rgba(250,250,247,.95)'; c.font = '600 40px ' + DISP; c.fillText('Sergio Bot', 40, 64);
+    c.font = '500 24px ' + BODY; c.fillStyle = 'rgba(232,230,245,.75)'; c.fillText('en el vapor del café · respuestas de ejemplo', 40, 102);
+    let y = 160;
+    const ult = bot.msgs.slice(-3);
+    ult.forEach((m, i) => {
+      const onda = reduced ? 0 : Math.sin(t / 700 + i) * 3;
+      c.font = (m.de === 'tu' ? '600 ' : '400 ') + '36px ' + BODY; c.fillStyle = m.de === 'tu' ? 'rgba(255,155,128,.98)' : 'rgba(250,250,247,.96)';
+      let txt = (m.de === 'tu' ? 'Tú: ' : '') + m.t;
+      if (i === ult.length - 1 && m.de === 'bot') txt = txt.slice(0, Math.floor(bot.revela));
+      y = wrap(c, txt, 40 + onda, y, w - 80, 46) + 56;
+    });
+    c.shadowBlur = 10; c.font = '400 34px ' + BODY; c.fillStyle = 'rgba(250,250,247,.9)';
+    const caret = Math.floor(t / 500) % 2 ? '' : '_';
+    c.fillText((bot.escrito || '') + caret, 40, h - 40);
+    if (!bot.escrito) { c.fillStyle = 'rgba(232,230,245,.55)'; c.fillText('Escribe tu pregunta…', 40 + c.measureText(caret).width + 4, h - 40); }
+  });
+}
+$('#entrada').addEventListener('keydown', e => {
+  if (gesto.estado !== 'bot') return;
+  if (e.key === 'Escape') return;          // lo trata el teclado general
+  if (e.key === 'Enter') {
+    e.preventDefault(); const q = bot.escrito.trim(); bot.escrito = ''; if (!q) return;
+    bot.msgs.push({ de: 'tu', t: q }, { de: 'bot', t: respuestaBot(q) }); bot.revela = 0; return;
+  }
+  if (e.key === 'Backspace') { e.preventDefault(); bot.escrito = bot.escrito.slice(0, -1); return; }
+  // las teclas normales se apuntan aquí; las letras compuestas (á, ¿) llegan por el evento «input»
+  if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) { e.preventDefault(); if (bot.escrito.length < 80) bot.escrito += e.key; }
+});
+$('#entrada').addEventListener('input', e => { if (gesto.estado === 'bot') { bot.escrito = (bot.escrito + (e.data || e.target.value)).slice(0, 80); e.target.value = ''; } });
+modo('bot', {
+  down() {}, up() { $('#entrada').focus({ preventScroll: true }); },
+  async esc() {
+    cambia('ocupado'); $('#entrada').value = ''; bot.escrito = ''; devuelveFoco('taza');
+    await anim(300, e => { botPlano.material.opacity = 1 - e; }, curva.entra);
+    botPlano.visible = false;
+    const v0 = vapor.espeso; anim(800, e => { vapor.espeso = v0 * (1 - e); });
+    await volverACasa(tazaObj, 560); sueltaFoco(); cambia('libre'); bus.emit('vuelve');
+  }
+});
+let botUlt = 0;
+function corrBot(t) {
+  if (!botPlano.visible) return;
+  if (bot.revela < 1e8) bot.revela += 1.4;
+  if (t - botUlt > 45) { botUlt = t; dibujaBot(t); }
+}
+
+/* ---------- lámpara: interruptor que bascula y luz que parpadea al encender ---------- */
+let lamparaOn = true;
+async function interruptor() {
+  lamparaOn = !lamparaOn;
+  const r0 = rocker.rotation.x, r1 = lamparaOn ? -0.28 : 0.28;
+  anim(160, e => { rocker.rotation.x = lerp(r0, r1, e); }, curva.retroceso);
+  const h0 = hemi.intensity;
+  if (lamparaOn) {
+    for (const [v, ms] of [[0.5, 50], [0.05, 60], [0.9, 50], [0.3, 70], [1, 0]]) {
+      lampLight.intensity = 2.6 * v; bulb.material.emissiveIntensity = 2.2 * v; hemi.intensity = lerp(0.35, 0.75, v) + ventanaEstado.dia;
+      if (ms) await espera(ms);
+    }
+  } else {
+    const l0 = lampLight.intensity;
+    await anim(320, e => { lampLight.intensity = l0 * (1 - e); bulb.material.emissiveIntensity = 2.2 * (1 - e); hemi.intensity = lerp(h0, 0.35 + ventanaEstado.dia, e); }, curva.sale);
+  }
+}
+registrar('lampara', { nombre: 'Interruptor de la lámpara', mallas: [rockerMesh, switchBox, lampBase, shade], alClic: interruptor });
+
+/* ---------- la puerta: salir a la web ---------- */
+let puertaAbierta = false;
+async function puerta(abrir) {
+  puertaAbierta = abrir;
+  if (abrir) await anim(260, e => { doorKnob.rotation.z = -0.6 * e; }, curva.sale);
+  const y0 = door.rotation.y, l0 = pasilloLuz.intensity;
+  await anim(abrir ? 900 : 600, e => { door.rotation.y = lerp(y0, abrir ? 0.42 : 0, e); pasilloLuz.intensity = lerp(l0, abrir ? 3 : 0, e); }, abrir ? curva.sale : curva.suave);
+  if (abrir) anim(220, e => { doorKnob.rotation.z = -0.6 * (1 - e); }, curva.sale);
+  if (abrir) anuncia('Puerta entreabierta. Clic en la luz del pasillo para volver a la web.');
+}
+registrar('puerta', { nombre: 'Puerta', mallas: [doorSlab, knobMesh], brilloK: 0.35, alClic: () => puerta(!puertaAbierta) });
+registrar('salida', { nombre: 'Volver a la web', mallas: [pasillo], puntero: 'enlace', activo: () => gesto.estado === 'libre' && puertaAbierta,
+  alClic: () => window.open('https://sergiolearns.com/', '_blank', 'noopener') });
+
+/* ---------- el estuche se abre al acercarse ---------- */
+let estucheAbierto = 0, estucheHasta = 0;
+function tapaEstuche(abrir) {
+  const objetivo = abrir ? 1 : 0; if (objetivo === estucheAbierto) return;
+  const a0 = estucheAbierto; estucheAbierto = objetivo;
+  anim(abrir ? 520 : 420, e => { tapaEst.rotation.x = -1.95 * lerp(a0, objetivo, e); }, abrir ? curva.retroceso : curva.suave);
+}
+registrar('estuche', { nombre: 'Estuche de los simulacros', mallas: [tapaMesh, estFrente], alClic: () => { tapaEstuche(!estucheAbierto); estucheHasta = performance.now() + 4000; } });
+bus.on('hover', k => { if (k && (k.startsWith('disco-') || k === 'estuche')) { tapaEstuche(true); estucheHasta = performance.now() + 1500; } });
+function corrEstuche(t) {
+  const cerca = (gesto.hover && (gesto.hover.startsWith('disco-') || gesto.hover === 'estuche')) || (gesto.obj && gesto.obj.tipo === 'disco');
+  if (cerca) estucheHasta = t + 1200;
+  if (estucheAbierto && t > estucheHasta && gesto.estado === 'libre') tapaEstuche(false);
+}
+
+/* ---------- el ratón de la mesa: sensibilidad con la rueda (E37) ---------- */
+function pintaLedsRaton() { ratonLeds.forEach((m, i) => { m.material.emissiveIntensity = i < SENS.nivel ? 1.6 : 0; m.material.color.setHex(i < SENS.nivel ? 0xFF6B4A : 0x3A3552); }); }
+pintaLedsRaton();
+function cambiaSensibilidad(d) {
+  const n = clamp(SENS.nivel + d, 1, 5); if (n === SENS.nivel) return;
+  SENS.nivel = n; guardado.set('sensibilidad', n); pintaLedsRaton();
+  anim(120, e => { ratonRueda.rotation.x = d * e * 0.8; }, curva.sale);
+  anuncia('Sensibilidad ' + n + ' de 5.');
+}
+registrar('raton', { nombre: 'Ratón · rueda: sensibilidad', mallas: [ratonCuerpo, ratonRueda], puntero: 'rueda',
+  alClic: () => { cambiaSensibilidad(SENS.nivel >= 5 ? -4 : 1); } });
+
+/* ---------- mirar de cerca lo que no se coge: corcho, ventana, trofeos, póster… (E33, E34) ---------- */
+// Un clic acerca la vista y Esc vuelve. Las funciones del corcho, los trofeos y el armario llegan en la v0.3.
+function miraDeCerca(punto, desde, fov, texto) {
+  cambia('ocupado'); enfoca(punto, desde, fov, { paralaje: 0.03, rate: 3.6 });
+  setTimeout(() => { cambia('mirar'); anuncia(texto); }, reduced ? 0 : 450);
+}
+modo('mirar', { punto: () => ['punto'], esc() { const k = mirarDesde; sueltaFoco(); cambia('libre'); bus.emit('vuelve'); if (k) devuelveFoco(k); } });
+let mirarDesde = null;
+function registraMirar(clave, nombre, mallas, punto, desde, fov, texto, extra = {}) {
+  registrar(clave, Object.assign({ nombre, mallas, puntero: 'lupa', brilloK: 0.35,
+    alClic: () => { mirarDesde = clave; miraDeCerca(punto, desde, fov, texto); } }, extra));
+}
+registraMirar('ventana', 'Ventana · hora de Canarias', [cristal], v3(0, 1.55, -1.6), v3(0, 1.35, 0.1), 52,
+  'La ventana. Fuera, el ático con la hora real de Canarias. Esc para volver.');
+registraMirar('corcho', 'Corcho · la historia de la web', [corchoMesh, corchoMarco], v3(SALA.x0, CORCHO_POS.y, CORCHO_POS.z), v3(-0.35, 1.38, 1.65), 52,
+  'El corcho, con la historia de la web en fotos y entradas: ' + CORCHO.map(c => c.t + ', ' + c.s).join('. ') + '. Aquí irán los logros en la v0.3. Esc para volver.');
+registraMirar('trofeos', 'Estantería de trofeos (v0.3)', peanas, v3(SALA.x1, 1.65, TROFEOS.z), v3(0.7, 1.45, 1.1), 50,
+  'La estantería de trofeos, vacía de momento: los logros llegan en la v0.3. Esc para volver.');
+registraMirar('poster', 'Póster', [posterMesh], v3(-0.02, 1.43, FONDO), v3(0, 1.35, 1.4), 50,
+  'El póster: sergiolearns, aprendiendo en público desde marzo de 2026. Esc para volver.');
+registraMirar('armario', 'Armario · personalización (v0.3)', [armarioG.children[0]], v3(ARMARIO.x0, 1.1, 2.1), v3(0.3, 1.3, 1.5), 56,
+  'El armario. En la v0.3 guardará la personalización del escritorio. Esc para volver.');
+registraMirar('sillon', 'Sillón', sillonG.children.slice(0, 3), v3(1.4, 0.45, 1.1), v3(0.2, 1.2, 0.8), 56, 'El sillón. Esc para volver.');
+registraMirar('cama', 'Cama', [camaG.children[1], camaG.userData.manta], v3(-0.76, 0.45, 1.66), v3(-0.1, 1.25, 0.9), 60, 'La cama. Esc para volver.');
+registraMirar('reloj', 'Reloj · hora de Canarias', [esfera, relojCaja], v3(RELOJ.x, RELOJ.y, RELOJ.z), v3(0.5, 1.5, 0.2), 40, '', {
+  alClic: () => { mirarDesde = 'reloj'; miraDeCerca(v3(RELOJ.x, RELOJ.y, RELOJ.z), v3(0.5, 1.5, 0.2), 40, 'El reloj marca las ' + horaTexto() + ' en Canarias. Esc para volver.'); } });

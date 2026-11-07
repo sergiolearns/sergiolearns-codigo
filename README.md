@@ -8,7 +8,7 @@ Cada archivo empieza con un comentario que dice de qué artículo sale, así que
 
 ## Qué hay dentro
 
-130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 36 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 13 de computadores), en 76 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión del Proyecto Escritorio (el escritorio en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 36 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 13 de computadores), en 76 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión de El cuarto de Sergio (el cuarto en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -143,7 +143,7 @@ Temas de papel de IC1: los simuladores de «Compruébalo con Python» de la teor
 
 | Proyecto | Versiones | Artículos |
 |---|---|---|
-| Proyecto Escritorio: mi escritorio en 3D dentro de la web (three.js, máquina de estados, muelles, zonas de destino, páginas que se curvan) | [`proyectos/escritorio/`](proyectos/escritorio): [v0.1](proyectos/escritorio/v0.1) (un archivo) y [v0.2](proyectos/escritorio/v0.2) (12 módulos) | [Memoria](https://sergiolearns.com/proyecto-escritorio/) · [1. La idea](https://sergiolearns.com/proyecto-escritorio-la-idea/) · [2. v0.1](https://sergiolearns.com/proyecto-escritorio-v0-1-prototipo-3d/) · [3. v0.2](https://sergiolearns.com/proyecto-escritorio-v0-2-interaccion-sin-botones/) |
+| El cuarto de Sergio: mi cuarto en 3D dentro de la web, que se recorre y se juega (three.js, máquina de estados, muelles, caminar con A*, Pointer Lock, paisaje con la hora real de Canarias) | [`proyectos/escritorio/`](proyectos/escritorio): 7 versiones, de [v0.1](proyectos/escritorio/v0.1) (un archivo) y [v0.2](proyectos/escritorio/v0.2) (12 módulos) a [v0.2.1](proyectos/escritorio/v0.2.1), [v0.2.2](proyectos/escritorio/v0.2.2), [v0.2.3](proyectos/escritorio/v0.2.3), [v0.2.4](proyectos/escritorio/v0.2.4) y [v0.2.5](proyectos/escritorio/v0.2.5) (la última, 15 módulos) | [Memoria](https://sergiolearns.com/el-cuarto-de-sergio/) · [1. La idea](https://sergiolearns.com/el-cuarto-de-sergio-la-idea/) · [2. v0.1](https://sergiolearns.com/el-cuarto-de-sergio-v0-1-prototipo-3d/) · [3. v0.2](https://sergiolearns.com/el-cuarto-de-sergio-v0-2-interaccion-sin-botones/) · [4. v0.2.x](https://sergiolearns.com/el-cuarto-de-sergio-v0-2-x-recorrer-y-jugar/) (diciembre de 2026) |
 
 ## Cómo ejecutarlos
 
@@ -181,7 +181,7 @@ lenguaje/
 
 proyectos/
 └── escritorio/
-    └── vX.Y/         ← el código completo de cada versión del Proyecto Escritorio
+    └── vX.Y/         ← el código completo de cada versión de El cuarto de Sergio
 ```
 
 Un consejo: intenta resolver el ejercicio en la web antes de mirar la solución aquí. Se aprende el doble.

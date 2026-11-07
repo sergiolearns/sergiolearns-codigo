@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Escritorio 3D de SergioLearns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js" } }
+</script>
+<style>
+/* v0.2 · Una habitación de noche vista desde la silla. Fuera del PC no hay interfaz: solo el punto. */
+:root{
+  --ink:#1E1B2E; --ink-2:#2A2640; --ink-3:#141221; --line:#3A3552;
+  --violet:#5B4BDB; --violet-l:#A99EF5; --coral:#FF6B4A; --coral-l:#FF9B80;
+  --cream:#FAFAF7; --text:#E8E6F5; --muted:#C9C5DC; --ok:#5BD39A; --err:#FF8A7A; --amber:#F5C06B;
+  --f-display:'Space Grotesk','Segoe UI',system-ui,sans-serif;
+  --f-body:Inter,'Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,'Cascadia Mono',Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--ink-3);color:var(--text);font-family:var(--f-body);overflow:hidden}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:none;outline:none}
+code,.mono{font-family:var(--f-mono);font-variant-ligatures:none}
+/* el punto (E03): cambia de forma según la acción */
+#punto{position:fixed;left:0;top:0;z-index:9;pointer-events:none;width:0;height:0;transition:opacity .2s}
+#punto .ico{position:absolute;left:-15px;top:-15px;width:30px;height:30px;transition:transform .16s cubic-bezier(.2,.9,.3,1.3);filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
+#punto svg{display:block;overflow:visible}
+#punto .nombre{position:absolute;left:18px;top:10px;white-space:nowrap;font:500 12px/1 var(--f-body);color:var(--cream);text-shadow:0 1px 3px rgba(0,0,0,.8);opacity:0;transform:translateY(3px);transition:opacity .25s,transform .25s}
+#punto.con-nombre .nombre{opacity:.92;transform:none}
+#punto.oculto{opacity:0}
+/* velo de inspección: la habitación se oscurece alrededor del objeto */
+#velo{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(20,18,33,0) 30%,rgba(20,18,33,.72) 100%);opacity:0;transition:opacity .45s}
+#velo.on{opacity:1}
+/* recordatorio de teclas, solo las dos primeras veces que se inspecciona */
+#teclas{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:4;display:flex;gap:18px;font:500 13px var(--f-body);color:var(--muted);opacity:0;transition:opacity .4s;pointer-events:none;white-space:nowrap}
+#teclas.on{opacity:1}
+#teclas kbd{display:inline-block;min-width:24px;padding:2px 7px;margin-right:6px;border:1px solid rgba(201,197,220,.5);border-bottom-width:2px;border-radius:6px;font:600 12px var(--f-mono);font-variant-ligatures:none;color:var(--cream);text-align:center}
+/* accesibilidad (E20): invisible hasta que se usa el teclado */
+.sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+#saltar{position:fixed;left:16px;top:16px;z-index:40;padding:10px 14px;border-radius:10px;background:var(--ink);color:var(--text);font:500 14px var(--f-body);box-shadow:0 0 0 2px var(--coral);text-decoration:none;transform:translateY(-200%)}
+#saltar:focus{transform:none;outline:none}
+#objetos button{all:unset}
+#etiqueta{position:fixed;z-index:8;pointer-events:none;transform:translate(-50%,-140%);padding:6px 10px;border-radius:8px;background:rgba(20,18,33,.86);box-shadow:0 0 0 2px var(--coral);font:500 13px var(--f-body);color:var(--cream);white-space:nowrap}
+:focus-visible{outline:2px solid var(--coral);outline-offset:3px}
+#entrada{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0}
+#carga{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:var(--ink-3);font:500 15px var(--f-body);color:var(--muted);transition:opacity .6s}
+#carga.fuera{opacity:0;pointer-events:none}
+#sin3d{position:fixed;inset:0;z-index:31;display:grid;place-items:center;padding:24px;background:var(--ink);font:400 15px/1.7 var(--f-body)}
+#sin3d a{color:var(--violet-l)}
+/* SergioLearns OS (mundo virtual: aquí sí hay terminal). Se rehace en la v0.3 */
+#os{position:fixed;inset:0;z-index:20;background:var(--ink-3);overflow:hidden;transform-origin:50% 50%;cursor:default}
+#os.on{animation:crtOn .55s cubic-bezier(.2,.8,.2,1)}
+#os.off{animation:crtOff .45s ease-in forwards}
+@keyframes crtOn{0%{transform:scale(1,.004);filter:brightness(3)}45%{transform:scale(1,.004)}100%{transform:scale(1,1);filter:brightness(1)}}
+@keyframes crtOff{0%{transform:scale(1,1)}55%{transform:scale(1,.004);filter:brightness(2.5)}100%{transform:scale(0,.004);filter:brightness(4)}}
+#wall{position:absolute;inset:0;width:100%;height:100%}
+.os-bar{position:absolute;left:0;right:0;top:0;height:44px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(20,18,33,.9);border-bottom:1px solid var(--line);font:600 13px var(--f-mono);font-variant-ligatures:none}
+.os-bar .clock{color:var(--muted);font-weight:400}
+.dock{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:6px;background:rgba(20,18,33,.9);border:1px solid var(--line);border-radius:20px;padding:8px 10px;max-width:calc(100vw - 32px);overflow-x:auto}
+.dock button{background:none;border:1px solid transparent;border-radius:14px;padding:8px 10px;min-width:70px;min-height:56px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;color:var(--text);font:500 11px var(--f-mono);font-variant-ligatures:none;transition:transform .18s cubic-bezier(.2,.9,.3,1.3)}
+.dock button:hover,.dock button:focus-visible{transform:translateY(-6px) scale(1.12);border-color:var(--coral)}
+.dock svg{width:26px;height:26px;stroke:var(--text);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.win{position:absolute;width:min(640px,calc(100vw - 32px));background:var(--ink-2);border-radius:14px;box-shadow:0 0 0 1px rgba(255,107,74,.45),0 24px 60px rgba(0,0,0,.5);overflow:hidden;animation:winIn .3s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes winIn{from{opacity:0;transform:scale(.9) translateY(14px)}to{opacity:1;transform:none}}
+.win-bar{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 14px;background:var(--ink);cursor:grab;font:600 13px var(--f-mono);font-variant-ligatures:none;touch-action:none;user-select:none}
+.win-bar button{background:none;border:0;cursor:pointer;color:var(--muted);padding:6px 10px;min-height:32px;font:600 12px var(--f-mono)}
+.win-bar button:hover{color:var(--coral-l)}
+.win-body{padding:16px 18px;font:400 14px/1.65 var(--f-mono);font-variant-ligatures:none;max-height:min(56vh,460px);overflow:auto;white-space:normal}
+.win-body a{color:var(--violet-l)}
+.win-body pre{margin:0;white-space:pre-wrap;font:inherit}
+.term-line{white-space:pre-wrap}
+.term-in{display:flex;gap:8px;align-items:center;margin-top:6px}
+.term-in label{color:var(--violet-l);white-space:nowrap}
+.term-in input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--text);font:400 14px var(--f-mono);font-variant-ligatures:none;caret-color:var(--coral)}
+.c-ok{color:var(--ok)}.c-err{color:var(--err)}.c-cmd{color:var(--violet-l)}.c-dim{color:var(--muted)}.c-num{color:var(--amber)}.c-co{color:var(--coral)}
+.dollar{color:var(--coral)}
+@media (prefers-reduced-motion: reduce){
+  #os.on,#os.off,.win{animation:none}
+  .dock button,#punto .ico,#velo,#teclas{transition:none}
+}
+</style>
+</head>
+<body>
+<a id="saltar" href="https://sergiolearns.com/">Ir a la web normal, sin 3D</a>
+<canvas id="gl" tabindex="-1" aria-label="El escritorio de Sergio en 3D. Usa el tabulador para recorrer los objetos; el manual está en la estantería."></canvas>
+<nav id="objetos" class="sr" aria-label="Objetos de la habitación"></nav>
+<div id="anuncio" class="sr" aria-live="polite"></div>
+<div id="velo"></div>
+<div id="punto" class="oculto" aria-hidden="true"><div class="ico"></div><span class="nombre"></span></div>
+<div id="etiqueta" hidden aria-hidden="true"></div>
+<div id="teclas" aria-hidden="true"></div>
+<input id="entrada" type="text" aria-label="Escribe" autocomplete="off" spellcheck="false">
+<div id="os" hidden role="application" aria-label="SergioLearns OS">
+  <canvas id="wall" aria-hidden="true"></canvas>
+  <div class="os-bar"><span>SergioLearns OS <span class="c-co">v0.2</span></span><span class="clock" id="clock"></span><span class="c-dim">shutdown · Esc</span></div>
+  <div id="wins"></div>
+  <nav class="dock" id="dock" aria-label="Aplicaciones"></nav>
+</div>
+<div id="carga" aria-live="polite">Entrando en la habitación…</div>
+<div id="sin3d" hidden></div>
+<script type="module">
