@@ -1,0 +1,4 @@
+<!doctype html><meta charset=utf-8><script src="jw/java-wasm.iife.js"></script>
+<script>
+window.runJava = async (src)=>{ if(!window.rt) window.rt = await JavaWasm.createRuntime({baseUrl: location.origin+'/jw/'}); return await rt.run(src,{}); };
+</script>
