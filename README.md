@@ -2,13 +2,13 @@
 
 # sergiolearns-codigo
 
-El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java, C y MIPS, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
+El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java, C, MIPS y R, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
 
 Cada archivo empieza con un comentario que dice de qué artículo sale, así que siempre puedes volver a la explicación paso a paso.
 
 ## Qué hay dentro
 
-130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS y 84 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 61 de computadores), en 87 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión de El cuarto de Sergio (el cuarto en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS, 7 scripts de R y 84 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 61 de computadores), en 90 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión de El cuarto de Sergio (el cuarto en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/r/`](herramientas/r) están los dos scripts de las guías de R y RStudio de ME1 (comprobar que el portátil está listo para el examen y un script de prueba). En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -150,6 +150,14 @@ Temas de papel de IC1: los simuladores de «Compruébalo con Python» de la teor
 | Subrutinas y la pila (`jal` y `jr $ra`, argumentos en `$a0`-`$a3` y resultados en `$v0`/`$v1`, `$t` frente a `$s`, la pila con `$sp`, hoja y no hoja, recursión y datos locales) | [`mips/subrutinas/`](mips/subrutinas): [3 programas](https://sergiolearns.com/subrutinas-en-mips-practica/) y [3 ejercicios](https://sergiolearns.com/subrutinas-en-mips-ejercicios/) | [Teoría](https://sergiolearns.com/subrutinas-en-mips/) · [Práctica](https://sergiolearns.com/subrutinas-en-mips-practica/) · [Ejercicios](https://sergiolearns.com/subrutinas-en-mips-ejercicios/) |
 | Simulacro del examen práctico de IC1 (soluciones de las versiones A, B y C de la ordinaria —apartado 1 y apartado 2 por teclado— y de la extraordinaria —apartado 1, subrutina y teclado—; `<versión>-<convocatoria>-apartadoN-….s`) | [`mips/examenes/ic1/`](mips/examenes/ic1): [15 soluciones](https://sergiolearns.com/simulacro-examen-ic1-practica/) | [Simulacro práctico](https://sergiolearns.com/simulacro-examen-ic1-practica/) |
 
+### R y estadística · ME1
+
+| Tema | Archivos | Artículos |
+|---|---|---|
+| Herramientas: R y RStudio | [`herramientas/r/`](herramientas/r) (portátil listo para el examen y script de prueba) | [Instalar R y RStudio](https://sergiolearns.com/instalar-r-y-rstudio/) · [Cómo usar RStudio](https://sergiolearns.com/como-usar-rstudio/) (diciembre de 2026) |
+| R desde cero (calculadora, variables, vectores, índices y reciclaje, matrices; listas, factores, data frames, leer y escribir .csv, funciones y paquetes) | [`r/r-desde-cero/`](r/r-desde-cero): [2 scripts](https://sergiolearns.com/r-desde-cero-vectores-y-matrices/) con todo el código de los artículos | [R desde cero 1](https://sergiolearns.com/r-desde-cero-vectores-y-matrices/) · [R desde cero 2](https://sergiolearns.com/r-desde-cero-data-frames-y-funciones/) (diciembre de 2026) |
+| Estadística descriptiva (media, mediana, varianza, cuartiles y atípicos, tablas de frecuencias con `cut`, histogramas y boxplots, datos agrupados, varios grupos) | [`estadistica/estadistica-descriptiva/`](estadistica/estadistica-descriptiva): [3 programas](https://sergiolearns.com/estadistica-descriptiva-practica/) y [2 scripts de ejercicios](https://sergiolearns.com/estadistica-descriptiva-ejercicios/) (soluciones y funciones «para tu script») | [Teoría](https://sergiolearns.com/estadistica-descriptiva/) · [Demostraciones](https://sergiolearns.com/estadistica-descriptiva-demostraciones/) · [Práctica](https://sergiolearns.com/estadistica-descriptiva-practica/) · [Ejercicios](https://sergiolearns.com/estadistica-descriptiva-ejercicios/) (diciembre de 2026) |
+
 ### Proyectos
 
 | Proyecto | Versiones | Artículos |
@@ -174,12 +182,15 @@ gcc c/punteros/programas/01-*.c -o programa
 # MIPS: ábrelo en QtSpim (Reinitialize and Load File) o en el entorno MIPS de la web
 # mips/estructura-y-datos/programas/01-programa-1-el-mapa-de-memoria-del-inventario.s
 
+# R: Rscript o, mejor, ábrelo en RStudio o en el entorno de R de la web
+Rscript estadistica/estadistica-descriptiva/programas/01-programa-1-el-resumen-de-las-mananas.R
+
 # Linux (bash): sesiones de terminal; ejecútalas en una carpeta de pruebas, nunca como root
 mkdir ~/prueba && cd ~/prueba
 bash ~/sergiolearns-codigo/linux/permisos/programas/01-programa-1-montar-la-carpeta-del-grupo.sh
 ```
 
-¿Es la primera vez? En la web tienes cómo [instalar Python en Windows](https://sergiolearns.com/instalar-python-en-windows/), [instalar Java](https://sergiolearns.com/instalar-java-en-windows/) y [compilar C con gcc en Fedora](https://sergiolearns.com/instalar-gedit-en-fedora-y-compilar-con-gcc/).
+¿Es la primera vez? En la web tienes cómo [instalar Python en Windows](https://sergiolearns.com/instalar-python-en-windows/), [instalar Java](https://sergiolearns.com/instalar-java-en-windows/) [compilar C con gcc en Fedora](https://sergiolearns.com/instalar-gedit-en-fedora-y-compilar-con-gcc/) e [instalar R y RStudio](https://sergiolearns.com/instalar-r-y-rstudio/).
 
 ## Cómo está organizado
 
@@ -189,6 +200,9 @@ lenguaje/
     ├── programas/    ← programas resueltos (artículos de práctica)
     ├── ejercicios/   ← soluciones de los ejercicios
     └── simuladores/  ← «Compruébalo con Python» de las teorías de IC2 (redes/ y sistemas-operativos/) y de IC1 (computadores/)
+
+r/                    ← R desde cero (ME1)
+estadistica/          ← los temas de estadística de ME1, en R (programas y ejercicios)
 
 proyectos/
 └── escritorio/
