@@ -2,13 +2,13 @@
 
 # sergiolearns-codigo
 
-El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java, C, MIPS y R, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
+El código completo de los artículos de **[sergiolearns.com](https://sergiolearns.com)**: los programas resueltos y las soluciones de los ejercicios de Python, Java, C, MIPS, R y MATLAB, ordenados por lenguaje y tema, listos para copiar, ejecutar y romper.
 
 Cada archivo empieza con un comentario que dice de qué artículo sale, así que siempre puedes volver a la explicación paso a paso.
 
 ## Qué hay dentro
 
-130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS, 57 scripts de R y 84 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 61 de computadores), en 100 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión de El cuarto de Sergio (el cuarto en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/r/`](herramientas/r) están los dos scripts de las guías de R y RStudio de ME1 (comprobar que el portátil está listo para el examen y un script de prueba). En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
+130 programas de Python, 92 de Java, 95 de C, 40 de Linux (bash), 51 de MIPS, 57 scripts de R, 14 scripts de MATLAB y 84 simuladores y comprobaciones en Python (3 de redes, 20 de sistemas operativos y 61 de computadores), en 102 temas, y 4 simulacros de examen práctico (IC2 en C, FP2 en Python y Java, FP1 en Python e IC1 en MIPS). En [`proyectos/escritorio/`](proyectos/escritorio) está el código completo de cada versión de El cuarto de Sergio (el cuarto en 3D de la web). En [`herramientas/entorno/`](herramientas/entorno) está el editor del entorno de programación de los simulacros de FP2. En [`herramientas/mips/`](herramientas/mips) están los colores y el autocompletado de MIPS para Notepad++ (`notepad++/MIPS-colores.xml` y `notepad++/autoCompletion/MIPS.xml`) y el programa de ejemplo de las guías de QtSpim (`ejemplos/suma.s`), de IC1. En [`herramientas/r/`](herramientas/r) están los dos scripts de las guías de R y RStudio de ME1 (comprobar que el portátil está listo para el examen y un script de prueba). En [`herramientas/mips/entorno/`](herramientas/mips/entorno) está el entorno MIPS de la web (editor + simulador con el núcleo de SPIM en WebAssembly, licencia BSD).
 
 ### Python · FP1 / FP2
 
@@ -168,6 +168,15 @@ Temas de papel de IC1: los simuladores de «Compruébalo con Python» de la teor
 | Propiedades de los estimadores (sesgo, varianza y ECM simulados con `replicate` y `apply` por filas, la cota de Cramér-Rao medida con `sapply` y escala logarítmica, consistencia y normalidad asintótica del EMV, error estándar con `optim(…, hessian = TRUE)`) | [`estadistica/propiedades-de-los-estimadores/`](estadistica/propiedades-de-los-estimadores): [3 programas](https://sergiolearns.com/propiedades-de-los-estimadores-practica/) y [2 scripts de ejercicios](https://sergiolearns.com/propiedades-de-los-estimadores-ejercicios/) (soluciones y funciones «para tu script») | [Teoría](https://sergiolearns.com/propiedades-de-los-estimadores/) · [Demostraciones](https://sergiolearns.com/propiedades-de-los-estimadores-demostraciones/) · [Práctica](https://sergiolearns.com/propiedades-de-los-estimadores-practica/) · [Ejercicios](https://sergiolearns.com/propiedades-de-los-estimadores-ejercicios/) (diciembre de 2026) |
 | Intervalos de confianza (cobertura simulada con `replicate`, `t.test`, `var.test` y `prop.test`, intervalos de la media, la varianza, dos medias, pareados y el cociente, Wald frente a Wilson, pivote exacto de la exponencial con `qchisq(…, 2n)`, el máximo de la uniforme y tamaños muestrales con `ceiling`) | [`estadistica/intervalos-de-confianza/`](estadistica/intervalos-de-confianza): [3 programas](https://sergiolearns.com/intervalos-de-confianza-practica/) y [2 scripts de ejercicios](https://sergiolearns.com/intervalos-de-confianza-ejercicios/) (soluciones y funciones «para tu script») | [Teoría](https://sergiolearns.com/intervalos-de-confianza/) · [Demostraciones](https://sergiolearns.com/intervalos-de-confianza-demostraciones/) · [Práctica](https://sergiolearns.com/intervalos-de-confianza-practica/) · [Ejercicios](https://sergiolearns.com/intervalos-de-confianza-ejercicios/) (diciembre de 2026) |
 
+### Álgebra y Geometría · AG
+
+| Tema | Archivos | Artículos |
+|---|---|---|
+| Matrices y determinantes (producto, traspuesta, rango con `rref`, inversa con `inv` y por operaciones elementales, `det` 4 × 4, el cifrado de Hill con su clave y una matriz con parámetro con `syms`) | [`algebra/matrices-y-determinantes/`](algebra/matrices-y-determinantes): [6 scripts](https://sergiolearns.com/matrices-y-determinantes-practica/) y [1 script de ejercicios](https://sergiolearns.com/matrices-y-determinantes-ejercicios/) | [Teoría](https://sergiolearns.com/matrices-y-determinantes/) · [Práctica](https://sergiolearns.com/matrices-y-determinantes-practica/) · [Ejercicios](https://sergiolearns.com/matrices-y-determinantes-ejercicios/) (19 de noviembre de 2026) |
+| Sistemas de ecuaciones lineales (Gauss y Gauss-Jordan con `rref`, `A \ b`, Rouché-Frobenius con `rank`, Cramer, homogéneos con `null` y un sistema con parámetro) | [`algebra/sistemas-de-ecuaciones-lineales/`](algebra/sistemas-de-ecuaciones-lineales): [6 scripts](https://sergiolearns.com/sistemas-de-ecuaciones-lineales-practica/) y [1 script de ejercicios](https://sergiolearns.com/sistemas-de-ecuaciones-lineales-ejercicios/) | [Teoría](https://sergiolearns.com/sistemas-de-ecuaciones-lineales/) · [Práctica](https://sergiolearns.com/sistemas-de-ecuaciones-lineales-practica/) · [Ejercicios](https://sergiolearns.com/sistemas-de-ecuaciones-lineales-ejercicios/) (20 de noviembre de 2026) |
+
+Los scripts funcionan en MATLAB y en el [entorno de MATLAB de la web](https://sergiolearns.com/entornos/matlab/). El [simulador Gauss-Jordan paso a paso](https://sergiolearns.com/laboratorio/simuladores/gauss-jordan/) tiene su código en [`herramientas/simuladores/ag/`](herramientas/simuladores/ag).
+
 ### Proyectos
 
 | Proyecto | Versiones | Artículos |
@@ -213,6 +222,7 @@ lenguaje/
 
 r/                    ← R desde cero (ME1)
 estadistica/          ← los temas de estadística de ME1, en R (programas y ejercicios)
+algebra/              ← los temas de Álgebra y Geometría (AG), en MATLAB (programas y ejercicios)
 
 proyectos/
 └── escritorio/
