@@ -185,7 +185,15 @@ function parse(src) {
       if (k.v === 'try') { p++; var tb = block(['catch', 'end']), cv = null, cb = [];
         if (isKw('catch')) { p++; if (pk().t === 'id' && (pk(1).t === 'nl' || (pk(1).t === 'op' && (pk(1).v === ',' || pk(1).v === ';')))) { cv = pk().v; p++; } cb = block(['end']); }
         p++; return endStmt({ k: 'try', b: tb, cv: cv, cb: cb, line: line }); }
-      if (k.v === 'function') err('En este entorno no se pueden definir funciones con «function»; usa funciones anónimas: f = @(x) x.^2;');
+      if (k.v === 'function') {   // 18 nov 2026 (intensivo de MATLAB): funciones locales al final del script, como MATLAB R2016b+
+        p++; var outs = [], fname, ins = [];
+        if (isOp('[')) { p++; while (!isOp(']')) { if (isOp(',')) { p++; continue; } var o1 = pk(); if (o1.t !== 'id') err('Las salidas de la función van entre corchetes: function [a, b] = nombre(x)'); outs.push(o1.v); p++; } p++; eat('='); var fn1 = pk(); if (fn1.t !== 'id') err('Falta el nombre de la función.'); fname = fn1.v; p++; }
+        else { var f1 = pk(); if (f1.t !== 'id') err('Falta el nombre de la función.'); p++; if (isOp('=')) { p++; outs = [f1.v]; var f2 = pk(); if (f2.t !== 'id') err('Falta el nombre de la función.'); fname = f2.v; p++; } else fname = f1.v; }
+        if (isOp('(')) { p++; while (!isOp(')')) { if (isOp(',')) { p++; continue; } var a1 = pk(); if (a1.t !== 'id') err('Los argumentos de la función son nombres de variable.'); ins.push(a1.v); p++; } p++; }
+        var fbody = block(['end', 'function']);
+        if (!isKw('end')) err('En un script, cada función local termina con «end».');
+        p++; return endStmt({ k: 'fdef', name: fname, ins: ins, outs: outs, body: fbody, line: line });
+      }
       err('«' + k.v + '» fuera de lugar.');
     }
     // [a, b] = ...

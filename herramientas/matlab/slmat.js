@@ -190,7 +190,15 @@ function parse(src) {
       if (k.v === 'try') { p++; var tb = block(['catch', 'end']), cv = null, cb = [];
         if (isKw('catch')) { p++; if (pk().t === 'id' && (pk(1).t === 'nl' || (pk(1).t === 'op' && (pk(1).v === ',' || pk(1).v === ';')))) { cv = pk().v; p++; } cb = block(['end']); }
         p++; return endStmt({ k: 'try', b: tb, cv: cv, cb: cb, line: line }); }
-      if (k.v === 'function') err('En este entorno no se pueden definir funciones con «function»; usa funciones anónimas: f = @(x) x.^2;');
+      if (k.v === 'function') {   // 18 nov 2026 (intensivo de MATLAB): funciones locales al final del script, como MATLAB R2016b+
+        p++; var outs = [], fname, ins = [];
+        if (isOp('[')) { p++; while (!isOp(']')) { if (isOp(',')) { p++; continue; } var o1 = pk(); if (o1.t !== 'id') err('Las salidas de la función van entre corchetes: function [a, b] = nombre(x)'); outs.push(o1.v); p++; } p++; eat('='); var fn1 = pk(); if (fn1.t !== 'id') err('Falta el nombre de la función.'); fname = fn1.v; p++; }
+        else { var f1 = pk(); if (f1.t !== 'id') err('Falta el nombre de la función.'); p++; if (isOp('=')) { p++; outs = [f1.v]; var f2 = pk(); if (f2.t !== 'id') err('Falta el nombre de la función.'); fname = f2.v; p++; } else fname = f1.v; }
+        if (isOp('(')) { p++; while (!isOp(')')) { if (isOp(',')) { p++; continue; } var a1 = pk(); if (a1.t !== 'id') err('Los argumentos de la función son nombres de variable.'); ins.push(a1.v); p++; } p++; }
+        var fbody = block(['end', 'function']);
+        if (!isKw('end')) err('En un script, cada función local termina con «end».');
+        p++; return endStmt({ k: 'fdef', name: fname, ins: ins, outs: outs, body: fbody, line: line });
+      }
       err('«' + k.v + '» fuera de lugar.');
     }
     // [a, b] = ...
@@ -1142,7 +1150,7 @@ function Ctx(opts) {
   opts = opts || {};
   this.vars = new Map(); this.F = { mode: 'short' }; this.outBuf = '';
   this.out = opts.out || null; this.onWarn = opts.warn || null; this.onStep = opts.step || null;
-  this.endStack = []; this.steps = 0; this.maxSteps = opts.maxSteps || 2e6; this.lastLine = 0;
+  this.recPlots = !!opts.recPlots; this.endStack = []; this.steps = 0; this.maxSteps = opts.maxSteps || 2e6; this.lastLine = 0;
 }
 Ctx.prototype.print = function (s) { if (this.out) this.out(s); else this.outBuf += s; };
 Ctx.prototype.warn = function (m, en) { this.print('Warning: ' + (en || m) + '\n'); if (this.onWarn) this.onWarn(m, en); };
@@ -1421,7 +1429,9 @@ function callFn(f, args, ctx, nout) {
   try { return evalE(f.body, ctx, nout); } finally { ctx.vars = save; }
 }
 function callOrVar(name, args, ctx, nout, node) {
+  if (ctx.fmissing && ctx.fmissing.has(name) && !ctx.vars.has(name)) throw new MErr('Falta el argumento «' + name + '»: la función se ha llamado con menos argumentos de los que usa.', node && node.line, 'nargin', 'Not enough input arguments.');   // 18 nov 2026 (intensivo de MATLAB, teoría)
   if (ctx.vars.has(name)) { var v = ctx.vars.get(name); if (args) { if (v.k === 'f') return callFn(v, args, ctx, nout); return indexGet(v, args, ctx); } return v; }
+  if (ctx.funcs && ctx.funcs.has(name)) return callUser(ctx.funcs.get(name), args || [], ctx, nout);
   var B = BUILTIN[name];
   if (!B) {
     var sug = suggest(name, ctx);
@@ -1429,8 +1439,28 @@ function callOrVar(name, args, ctx, nout, node) {
   }
   return B(args || [], ctx, nout || 1, name);
 }
+function callUser(fd, args, ctx, nout) {
+  if (args.length > fd.ins.length) throw new MErr('Demasiados argumentos para «' + fd.name + '» (espera ' + fd.ins.length + ').', 0, 'nargs', 'Too many input arguments.');
+  nout = nout || 0;
+  if (nout > Math.max(fd.outs.length, 1)) throw new MErr('«' + fd.name + '» no devuelve tantos resultados (devuelve ' + fd.outs.length + ').', 0, 'nout', 'Too many output arguments.');
+  var save = ctx.vars, depth = (ctx.fdepth || 0); if (depth > 200) throw new MErr('Demasiadas llamadas anidadas (¿una recursión sin caso base?).', 0, 'rec', 'Maximum recursion limit of 500 reached.');
+  ctx.vars = new Map(); ctx.fdepth = depth + 1;
+  var saveMiss = ctx.fmissing; ctx.fmissing = new Set();
+  fd.ins.forEach(function (p, k) { if (k < args.length) ctx.vars.set(p, args[k]); else ctx.fmissing.add(p); });
+  ctx.vars.set('nargin', sc(args.length)); ctx.vars.set('nargout', sc(nout));
+  try {
+    try { execBlock(fd.body, ctx); } catch (sig) { if (!(sig instanceof RetSig)) { if (sig && sig.isM && !sig.inFn) { sig.inFn = fd.name; sig.fline = sig.line; } throw sig; } }
+    var res = [];
+    for (var k = 0; k < Math.max(nout, fd.outs.length ? 1 : 0) && k < fd.outs.length; k++) {
+      if (!ctx.vars.has(fd.outs[k])) throw new MErr('La salida «' + fd.outs[k] + '» de «' + fd.name + '» no recibe ningún valor.', 0, 'noout', 'Output argument "' + fd.outs[k] + '" (and possibly others) not assigned a value in the execution with "' + fd.name + '" function.');
+      res.push(ctx.vars.get(fd.outs[k]));
+    }
+  } finally { ctx.vars = save; ctx.fdepth = depth; ctx.fmissing = saveMiss; }
+  if (!res.length) return undefined;
+  return nout > 1 ? { multi: res } : res[0];
+}
 function suggest(name, ctx) {
-  var cands = Array.from(ctx.vars.keys()).concat(Object.keys(BUILTIN)), best = null, bd = 3;
+  var cands = Array.from(ctx.vars.keys()).concat(Object.keys(BUILTIN), ctx.funcs ? Array.from(ctx.funcs.keys()) : []), best = null, bd = 3;
   cands.forEach(function (c) { var d = lev(name.toLowerCase(), c.toLowerCase()); if (d < bd || (d === bd && false)) { bd = d; best = c; } });
   return bd <= (name.length > 3 ? 2 : 1) ? best : null;
 }
@@ -1561,19 +1591,26 @@ function runCmd(s, ctx) {
     case 'syms': return BUILTIN.syms(a.map(chr), ctx);
     case 'clear': case 'clearvars': return BUILTIN.clear(a.map(chr), ctx);
     case 'clc': return BUILTIN.clc([], ctx);
-    case 'close': case 'clf': case 'hold': case 'more': case 'figure': case 'grid': case 'axis': case 'warning': return;
+    case 'hold': case 'grid': case 'axis': case 'figure': case 'close': case 'clf': plotCmd(ctx, s.name, a.map(function (x) { return x; })); return;
+    case 'more': case 'warning': return;
     case 'help': case 'doc': return BUILTIN.help(a.map(chr), ctx);
     case 'who': case 'whos': return BUILTIN.who([], ctx, 0, s.name);
   }
 }
 function run(src, ctx) {
-  var prog = parse(src);
+  var prog = parse(src), seen = false;
+  if (!ctx.funcs) ctx.funcs = new Map();
+  prog = prog.filter(function (s) {
+    if (s.k === 'fdef') { seen = true; ctx.funcs.set(s.name, s); return false; }
+    if (seen) throw new MErr('En un script, las funciones van al final del archivo.', s.line, 'fdef', 'Function definitions in a script must appear at the end of the file. Move all statements after the "' + Array.from(ctx.funcs.keys()).pop() + '" function definition to before the first local function definition.');
+    return true;
+  });
   try { execBlock(prog, ctx); }
   catch (e) { if (e instanceof RetSig) return; if (e instanceof BreakSig || e instanceof ContSig) throw new MErr('break o continue fuera de un bucle.', ctx.lastLine, 'break'); throw e; }
 }
 
 /* sl-matlab · funciones. Las que no devuelven nada (disp, fprintf, format…) están en NOANS. */
-var NOANS = { eval: 1, disp: 1, fprintf: 1, format: 1, clc: 1, clear: 1, syms: 1, help: 1, who: 1, whos: 1, close: 1, figure: 1, hold: 1, grid: 1, warning: 1, display: 1, error: 1, clearvars: 1 };
+var NOANS = { assert: 1, eval: 1, disp: 1, fprintf: 1, format: 1, clc: 1, clear: 1, syms: 1, help: 1, who: 1, whos: 1, close: 1, figure: 1, hold: 1, grid: 1, warning: 1, display: 1, error: 1, clearvars: 1 };
 function argN(args, i, name) { if (args.length <= i) throw new MErr('Faltan argumentos en ' + name + '.', 0, 'nargs'); return args[i]; }
 function numArg(args, i, name, def) { if (args.length <= i) { if (def !== undefined) return def; throw new MErr('Faltan argumentos en ' + name + '.', 0, 'nargs'); } return num(args[i], 'El argumento ' + (i + 1) + ' de ' + name); }
 function mArg(args, i, name) { var v = argN(args, i, name); if (v.k === 'y') return v; if (v.k !== 'm') throw new MErr(name + ' necesita una matriz.', 0, 'arg'); return v; }
@@ -1614,7 +1651,7 @@ function symNumOnly(v, name) { if (v.k === 'y') { if (!yIsNum(v)) throw new MErr
 var BUILTIN = {
   pi: function () { return sc(Math.PI); }, eps: function (a) { return sc(a.length ? epsOf(num(a[0])) : EPS); },
   Inf: function () { return sc(Infinity); }, inf: function () { return sc(Infinity); }, NaN: function () { return sc(NaN); }, nan: function () { return sc(NaN); },
-  i: function () { return sc(0, 1); }, j: function () { return sc(0, 1); }, true: function () { return lg(sc(1)); }, false: function () { return lg(sc(0)); },
+  i: function () { return sc(0, 1); }, j: function () { return sc(0, 1); }, true: function (a) { if (!a.length) return lg(sc(1)); var s = sizeArgs(a, 'true'), m = M(s[0], s[1]); m.re.fill(1); return lg(m); }, false: function (a) { if (!a.length) return lg(sc(0)); var s = sizeArgs(a, 'false'); return lg(M(s[0], s[1])); },
   zeros: function (a) { var s = sizeArgs(a, 'zeros'); return M(s[0], s[1]); },
   ones: function (a) { var s = sizeArgs(a, 'ones'), m = M(s[0], s[1]); m.re.fill(1); return m; },
   eye: function (a) { var s = sizeArgs(a, 'eye'); return eye(s[0], s[1]); },
@@ -1789,7 +1826,20 @@ var BUILTIN = {
   fprintf: function (a, ctx) { var f = argN(a, 0, 'fprintf'); if (f.k === 'm' && !f.ch && a.length > 1 && f.r * f.c === 1 && f.re[0] === 1) { a = a.slice(1); f = a[0]; } if (!(f.k === 'm' && f.ch)) { ctx.print(dispStr(f, ctx.F)); return; } ctx.print(sprintfC(str(f), a.slice(1))); },
   disp: function (a, ctx) { var v = argN(a, 0, 'disp'); ctx.print(dispStr(v, ctx.F)); },
   display: function (a, ctx) { ctx.print(display('ans', argN(a, 0, 'display'), ctx.F) + '\n'); },
-  error: function (a) { var f = argN(a, 0, 'error'); throw new MErr(sprintfC(str(f), a.slice(1)), 0, 'user'); },
+  error: function (a) { var f = argN(a, 0, 'error');
+    if (a.length > 1 && f.ch && /^[A-Za-z]\w*(:[A-Za-z]\w*)+$/.test(str(f))) { var e = new MErr(sprintfC(str(a[1]), a.slice(2)), 0, 'user'); e.ident = str(f); throw e; }   // 18 nov 2026: error('id:sub', 'formato', ...)
+    throw new MErr(a.length > 1 ? sprintfC(str(f), a.slice(1)) : str(f), 0, 'user'); },
+  assert: function (a) { var c = argN(a, 0, 'assert'), ok = c.k === 'm' && numel(c) > 0; if (ok) for (var i = 0; i < c.re.length; i++) if (!c.re[i] && !(c.im && c.im[i])) { ok = false; break; }
+    if (!ok) { if (a.length > 1) { var msg = a.length > 2 && /^[A-Za-z]\w*(:[A-Za-z]\w*)+$/.test(str(a[1])) ? sprintfC(str(a[2]), a.slice(3)) : sprintfC(str(a[1]), a.slice(2)); throw new MErr(msg, 0, 'user'); } throw new MErr('La comprobación (assert) ha fallado.', 0, 'assert', 'Assertion failed.'); } },
+  isrow: function (a) { var v = argN(a, 0, 'isrow'); return lg(sc(v.r === 1 ? 1 : 0)); },
+  iscolumn: function (a) { var v = argN(a, 0, 'iscolumn'); return lg(sc(v.c === 1 ? 1 : 0)); },
+  isvector: function (a) { var v = argN(a, 0, 'isvector'); return lg(sc((v.r === 1 || v.c === 1) && v.r * v.c >= 1 ? 1 : 0)); },
+  isscalar: function (a) { var v = argN(a, 0, 'isscalar'); return lg(sc(v.r === 1 && v.c === 1 ? 1 : 0)); },
+  ismatrix: function (a) { argN(a, 0, 'ismatrix'); return lg(sc(1)); },
+  issymmetric: function (a) { var v = argN(a, 0, 'issymmetric'); if (v.r !== v.c) return lg(sc(0)); for (var i = 0; i < v.r; i++) for (var j = 0; j < v.c; j++) if (v.re[i + j * v.r] !== v.re[j + i * v.r]) return lg(sc(0)); return lg(sc(1)); },
+  isdiag: function (a) { var v = argN(a, 0, 'isdiag'); for (var i = 0; i < v.r; i++) for (var j = 0; j < v.c; j++) if (i !== j && (v.re[i + j * v.r] || (v.im && v.im[i + j * v.r]))) return lg(sc(0)); return lg(sc(1)); },
+  istriu: function (a) { var v = argN(a, 0, 'istriu'); for (var i = 0; i < v.r; i++) for (var j = 0; j < Math.min(i, v.c); j++) if (v.re[i + j * v.r] || (v.im && v.im[i + j * v.r])) return lg(sc(0)); return lg(sc(1)); },
+  istril: function (a) { var v = argN(a, 0, 'istril'); for (var i = 0; i < v.r; i++) for (var j = i + 1; j < v.c; j++) if (v.re[i + j * v.r] || (v.im && v.im[i + j * v.r])) return lg(sc(0)); return lg(sc(1)); },
   isnumeric: function (a) { var v = argN(a, 0, 'isnumeric'); return lg(sc(v.k === 'm' && !v.ch && !v.lg ? 1 : 0)); },
   ischar: function (a) { var v = argN(a, 0, 'ischar'); return lg(sc(v.k === 'm' && v.ch ? 1 : 0)); },
   strcat: function (a) { return chr(a.map(function (v) { return v.ch ? str(v).replace(/\s+$/, '') : str(v); }).join('')); },
@@ -1832,7 +1882,8 @@ var BUILTIN = {
   linsolve: function (a, ctx) { return mldivide(realM(argN(a, 0, 'linsolve'), 'linsolve'), realM(argN(a, 1, 'linsolve'), 'linsolve'), ctx); },
   struct: function (a) { var s = { k: 's', f: new Map() }; for (var i = 0; i + 1 < a.length; i += 2) s.f.set(str(a[i]), a[i + 1]); return s; },
   fieldnames: function (a) { var s = argN(a, 0, 'fieldnames'); var ks = Array.from(s.f.keys()); return { k: 'c', r: ks.length, c: 1, d: ks.map(chr) }; },
-  plot: noPlot, compass: noPlot, polarplot: noPlot, fplot: noPlot, ezplot: noPlot, quiver: noPlot, surf: noPlot, mesh: noPlot, plot3: noPlot, scatter: noPlot, fimplicit: noPlot, line: noPlot, fill: noPlot, xlabel: function () {}, ylabel: function () {}, title: function () {}, legend: function () {}, axis: function () {}, grid: function () {}, hold: function () {}, figure: function () {}, close: function () {},
+  plot: recPlot, compass: noPlot, polarplot: noPlot, fplot: noPlot, ezplot: noPlot, quiver: recPlot, surf: noPlot, mesh: noPlot, plot3: recPlot, scatter: recPlot, fimplicit: noPlot, line: recPlot, fill: recPlot,
+  xlabel: recPlot, ylabel: recPlot, zlabel: recPlot, title: recPlot, legend: recPlot, text: recPlot, axis: function (a, ctx) { plotCmd(ctx, 'axis', a.map(function (x) { return x.ch ? str(x) : Array.from(x.re); })); }, grid: function (a, ctx) { plotCmd(ctx, 'grid', a.map(str)); }, hold: function (a, ctx) { plotCmd(ctx, 'hold', a.map(str)); }, figure: function (a, ctx) { plotCmd(ctx, 'figure', []); }, close: function () {}, view: recPlot,
   input: function () { throw new MErr('input() no está disponible en este entorno: escribe los datos en el código.', 0, 'input'); },
   eval: function (a, ctx) { var src = str(argN(a, 0, 'eval')); try { run(src, ctx); } catch (e) { if (e.isM && e.id === 'parse' || e.id === 'incomplete' || e.id === 'noend' || e.id === 'eqop' || e.id === 'str') e.en = 'Error: ' + e.en; throw e; } },
   tic: function (a, ctx) { ctx._tic = Date.now(); }, toc: function (a, ctx) { return sc((Date.now() - (ctx._tic || Date.now())) / 1000); }
@@ -1848,6 +1899,26 @@ function casin(a, b) { var s = csqrt(1 - (a * a - b * b), -2 * a * b), l = clog(
 function cacos(a, b) { var z = casin(a, b); return [Math.PI / 2 - z[0], -z[1]]; }
 function catan(a, b) { var l1 = clog(1 + b, -a), l2 = clog(1 - b, a), x = l1[0] - l2[0], y = l1[1] - l2[1]; return [-y / 2, x / 2]; }
 function cxList(v) { var o = []; for (var i = 0; i < v.re.length; i++) o.push([v.re[i], v.im ? v.im[i] : 0]); return o; }
+// 18 nov 2026 (intensivo de MATLAB): los gráficos se registran en ctx.figs (no imprimen nada, como MATLAB). El entorno de la web los puede dibujar;
+// los artículos los pasan a SVG con los datos reales.
+function figNow(ctx) { if (!ctx.figs) ctx.figs = []; if (!ctx.figs.length) ctx.figs.push({ items: [], hold: false }); return ctx.figs[ctx.figs.length - 1]; }
+function plotArg(v) { if (v && v.k === 'm') { if (v.ch) return str(v); return { r: v.r, c: v.c, re: Array.from(v.re), im: v.im ? Array.from(v.im) : null }; } if (v && v.k === 'c') return v.d.map(plotArg); return null; }
+function recPlot(a, ctx, nout, name) {
+  if (!ctx.recPlots && /^(plot|plot3|quiver|fill|scatter|line)$/.test(name)) noPlot();
+  if (!ctx.recPlots) return;
+  var F = figNow(ctx), drawing = /^(plot|plot3|quiver|fill|scatter|line)$/.test(name);
+  if (drawing && !F.hold && F.items.some(function (it) { return /^(plot|plot3|quiver|fill|scatter|line)$/.test(it.fn); })) F.items = F.items.filter(function (it) { return !/^(plot|plot3|quiver|fill|scatter|line|text)$/.test(it.fn); });
+  F.items.push({ fn: name, args: a.map(plotArg) });
+}
+function plotCmd(ctx, name, args) {
+  if (!ctx.recPlots) return;
+  if (!ctx.figs) ctx.figs = [];
+  if (name === 'figure') { ctx.figs.push({ items: [], hold: false }); return; }
+  if (name === 'close' || name === 'clf') { if (name === 'clf' && ctx.figs.length) ctx.figs[ctx.figs.length - 1].items = []; return; }
+  var F = figNow(ctx);
+  if (name === 'hold') { var w = (args[0] === undefined ? (F.hold ? 'off' : 'on') : String(args[0])); F.hold = w === 'on'; return; }
+  F.items.push({ fn: name, args: args });
+}
 function noPlot() { throw new MErr('Los gráficos (plot, fplot…) todavía no están en este entorno de la web; pruébalos en tu MATLAB.', 0, 'plot'); }
 function realOrCx(v) { if (v.k === 'y') return symToNum(v); if (v.k !== 'm') throw new MErr('Se necesita una matriz de números.', 0, 'arg'); return unlg(v); }
 function rowOf(jb) { var m = M(1, jb.length); jb.forEach(function (j, i) { m.re[i] = j + 1; }); return m; }

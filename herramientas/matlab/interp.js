@@ -3,7 +3,7 @@ function Ctx(opts) {
   opts = opts || {};
   this.vars = new Map(); this.F = { mode: 'short' }; this.outBuf = '';
   this.out = opts.out || null; this.onWarn = opts.warn || null; this.onStep = opts.step || null;
-  this.endStack = []; this.steps = 0; this.maxSteps = opts.maxSteps || 2e6; this.lastLine = 0;
+  this.recPlots = !!opts.recPlots; this.endStack = []; this.steps = 0; this.maxSteps = opts.maxSteps || 2e6; this.lastLine = 0;
 }
 Ctx.prototype.print = function (s) { if (this.out) this.out(s); else this.outBuf += s; };
 Ctx.prototype.warn = function (m, en) { this.print('Warning: ' + (en || m) + '\n'); if (this.onWarn) this.onWarn(m, en); };
@@ -282,7 +282,9 @@ function callFn(f, args, ctx, nout) {
   try { return evalE(f.body, ctx, nout); } finally { ctx.vars = save; }
 }
 function callOrVar(name, args, ctx, nout, node) {
+  if (ctx.fmissing && ctx.fmissing.has(name) && !ctx.vars.has(name)) throw new MErr('Falta el argumento «' + name + '»: la función se ha llamado con menos argumentos de los que usa.', node && node.line, 'nargin', 'Not enough input arguments.');   // 18 nov 2026 (intensivo de MATLAB, teoría)
   if (ctx.vars.has(name)) { var v = ctx.vars.get(name); if (args) { if (v.k === 'f') return callFn(v, args, ctx, nout); return indexGet(v, args, ctx); } return v; }
+  if (ctx.funcs && ctx.funcs.has(name)) return callUser(ctx.funcs.get(name), args || [], ctx, nout);
   var B = BUILTIN[name];
   if (!B) {
     var sug = suggest(name, ctx);
@@ -290,8 +292,28 @@ function callOrVar(name, args, ctx, nout, node) {
   }
   return B(args || [], ctx, nout || 1, name);
 }
+function callUser(fd, args, ctx, nout) {
+  if (args.length > fd.ins.length) throw new MErr('Demasiados argumentos para «' + fd.name + '» (espera ' + fd.ins.length + ').', 0, 'nargs', 'Too many input arguments.');
+  nout = nout || 0;
+  if (nout > Math.max(fd.outs.length, 1)) throw new MErr('«' + fd.name + '» no devuelve tantos resultados (devuelve ' + fd.outs.length + ').', 0, 'nout', 'Too many output arguments.');
+  var save = ctx.vars, depth = (ctx.fdepth || 0); if (depth > 200) throw new MErr('Demasiadas llamadas anidadas (¿una recursión sin caso base?).', 0, 'rec', 'Maximum recursion limit of 500 reached.');
+  ctx.vars = new Map(); ctx.fdepth = depth + 1;
+  var saveMiss = ctx.fmissing; ctx.fmissing = new Set();
+  fd.ins.forEach(function (p, k) { if (k < args.length) ctx.vars.set(p, args[k]); else ctx.fmissing.add(p); });
+  ctx.vars.set('nargin', sc(args.length)); ctx.vars.set('nargout', sc(nout));
+  try {
+    try { execBlock(fd.body, ctx); } catch (sig) { if (!(sig instanceof RetSig)) { if (sig && sig.isM && !sig.inFn) { sig.inFn = fd.name; sig.fline = sig.line; } throw sig; } }
+    var res = [];
+    for (var k = 0; k < Math.max(nout, fd.outs.length ? 1 : 0) && k < fd.outs.length; k++) {
+      if (!ctx.vars.has(fd.outs[k])) throw new MErr('La salida «' + fd.outs[k] + '» de «' + fd.name + '» no recibe ningún valor.', 0, 'noout', 'Output argument "' + fd.outs[k] + '" (and possibly others) not assigned a value in the execution with "' + fd.name + '" function.');
+      res.push(ctx.vars.get(fd.outs[k]));
+    }
+  } finally { ctx.vars = save; ctx.fdepth = depth; ctx.fmissing = saveMiss; }
+  if (!res.length) return undefined;
+  return nout > 1 ? { multi: res } : res[0];
+}
 function suggest(name, ctx) {
-  var cands = Array.from(ctx.vars.keys()).concat(Object.keys(BUILTIN)), best = null, bd = 3;
+  var cands = Array.from(ctx.vars.keys()).concat(Object.keys(BUILTIN), ctx.funcs ? Array.from(ctx.funcs.keys()) : []), best = null, bd = 3;
   cands.forEach(function (c) { var d = lev(name.toLowerCase(), c.toLowerCase()); if (d < bd || (d === bd && false)) { bd = d; best = c; } });
   return bd <= (name.length > 3 ? 2 : 1) ? best : null;
 }
@@ -422,13 +444,20 @@ function runCmd(s, ctx) {
     case 'syms': return BUILTIN.syms(a.map(chr), ctx);
     case 'clear': case 'clearvars': return BUILTIN.clear(a.map(chr), ctx);
     case 'clc': return BUILTIN.clc([], ctx);
-    case 'close': case 'clf': case 'hold': case 'more': case 'figure': case 'grid': case 'axis': case 'warning': return;
+    case 'hold': case 'grid': case 'axis': case 'figure': case 'close': case 'clf': plotCmd(ctx, s.name, a.map(function (x) { return x; })); return;
+    case 'more': case 'warning': return;
     case 'help': case 'doc': return BUILTIN.help(a.map(chr), ctx);
     case 'who': case 'whos': return BUILTIN.who([], ctx, 0, s.name);
   }
 }
 function run(src, ctx) {
-  var prog = parse(src);
+  var prog = parse(src), seen = false;
+  if (!ctx.funcs) ctx.funcs = new Map();
+  prog = prog.filter(function (s) {
+    if (s.k === 'fdef') { seen = true; ctx.funcs.set(s.name, s); return false; }
+    if (seen) throw new MErr('En un script, las funciones van al final del archivo.', s.line, 'fdef', 'Function definitions in a script must appear at the end of the file. Move all statements after the "' + Array.from(ctx.funcs.keys()).pop() + '" function definition to before the first local function definition.');
+    return true;
+  });
   try { execBlock(prog, ctx); }
   catch (e) { if (e instanceof RetSig) return; if (e instanceof BreakSig || e instanceof ContSig) throw new MErr('break o continue fuera de un bucle.', ctx.lastLine, 'break'); throw e; }
 }
