@@ -1,0 +1,28 @@
+Incorrect dimensions for matrix multiplication. Check that the number of columns in the first matrix matches the number of rows in the second matrix. To operate on each element of the matrix individually, use TIMES (.*) for elementwise multiplication.
+Arrays have incompatible sizes for this operation.
+Index exceeds the number of array elements. Index must not exceed 3.
+Array indices must be positive integers or logical values.
+Array indices must be positive integers or logical values.
+Index in position 1 exceeds array bounds. Index must not exceed 3.
+Unrecognized function or variable 'noexiste'.
+Matrix must be square.
+Matrix must be square.
+Dimensions of arrays being concatenated are not consistent.
+Dimensions of arrays being concatenated are not consistent.
+Incorrect dimensions for raising a matrix to a power. Check that the matrix is square and the power is a scalar. To operate on each element of the matrix individually, use POWER (.^) for elementwise power.
+Input matrix must be square.
+Matrix dimensions must agree.
+Unable to perform assignment because the size of the left side is 1-by-1 and the size of the right side is 1-by-2.
+Unrecognized field name "b".
+A and B must be of length 3 in the dimension in which the cross product is taken.
+A and B must be same size.
+Not enough input arguments.
+Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.
+Error: This statement is incomplete.
+Error: This statement is incomplete.
+Error: At least one END is missing. The statement beginning here does not have a matching end.
+Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or other syntax error. To construct matrices, use brackets instead of parentheses.
+Error: Unsupported use of the '=' operator. To compare values for equality, use '=='. To specify name-value arguments, check that name is a valid identifier with no surrounding quotes.
+Error: Character vector is not terminated properly.
+Undefined function 'plott' for input arguments of type 'double'.
+Undefined function 'Rref' for input arguments of type 'double'.
